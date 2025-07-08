@@ -20,6 +20,7 @@ export default function GraphNode({ data }: { data: [number, [number, number]] }
             //Implement zoom later (maybe), currently elem size bound by viewport
             moveGraphItem = (elem: Element, offsetX, offsetY, zoom, border) => {//, zoom) => {
                 const h_elem = (elem as HTMLElement)
+                console.log(zoom, "temp zoom output so build goes through, remove when zoom implemented")
                 //console.log("a", offsetX, offsetY)
                 if (document.getElementById("graphViewContainer") != null) {
                     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
