@@ -1,5 +1,5 @@
 import "./base_gnode.css";
-export let moveGraphItem: (elem: Element, offsetX: number, offsetY: number, zoom: number, border: DOMRect) => void
+export let moveGraphItem: (elem: Element, offsetX: number, offsetY: number, zoom: number/*, border: DOMRect*/) => void
 export let nodeID: number;
 let posX: number;
 let posY: number;
@@ -18,7 +18,7 @@ export default function GraphNode({ data }: { data: [number, [number, number]] }
         <img draggable={false} class="graphitem" src="temp_options_button.png" style={"left:" + posX + "px;right:" + posY + "px"} />
         {
             //Implement zoom later (maybe), currently elem size bound by viewport
-            moveGraphItem = (elem: Element, offsetX, offsetY, zoom, border) => {//, zoom) => {
+            moveGraphItem = (elem: Element, offsetX, offsetY, zoom/*, border*/) => {//, zoom) => {
                 const h_elem = (elem as HTMLElement)
                 console.log(zoom, "temp zoom output so build goes through, remove when zoom implemented")
                 //console.log("a", offsetX, offsetY)
@@ -32,12 +32,13 @@ export default function GraphNode({ data }: { data: [number, [number, number]] }
                 borderOffsetY ??= 18.440 + 3.2
                 h_elem.style.left = (posX - borderOffsetX + offsetX) + "px";
                 h_elem.style.top = (posY - borderOffsetY + offsetY) + "px";
+                /*  clip-path automatically does this.
                 if ((border.top < (posY + offsetY)) && ((posY + offsetY) < border.bottom) && (border.left < (posX + offsetX)) && ((posX + offsetX) < border.right)) {
                     h_elem.style.visibility = "visible"
                 }
                 else {
                     h_elem.style.visibility = "hidden"
-                }
+                }*/
 
 
             }}

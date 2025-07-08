@@ -61,7 +61,7 @@ function MDPApp() {
         zoom *= 1;
         for (const i of graphitems) {
           //console.log("x", offsetX, "y", offsetY)
-          moveGraphItem(i, offsetX, offsetY, zoom, gvc_rect);
+          moveGraphItem(i, offsetX, offsetY, zoom/*, gvc_rect*/);
         }
 
       }
