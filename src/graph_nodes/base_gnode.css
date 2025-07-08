@@ -1,0 +1,11 @@
+.graphitem {
+  align-self: center;
+  left: 0px;
+  right: 0px;
+  position: relative;
+  height: 10vh;
+  width: 10vh;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+}

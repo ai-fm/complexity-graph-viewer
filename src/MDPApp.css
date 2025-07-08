@@ -1,0 +1,34 @@
+/*.container {}*/
+body {
+  margin: 0px;
+}
+
+
+
+
+#MDPTypeDropdownContainer {
+  margin-top: 2.5vh;
+  margin-right: 2.5vh;
+  height: 5vh;
+  border: 0.5vh solid #21f3f0;
+  background-color: transparent;
+  border-radius: 5%/50%;
+}
+
+.settingsicon {
+  margin-top: 2.5vh;
+  margin-right: 2.5vh;
+  margin-left: 50vh;
+  height: 10vh;
+  width: 10vh;
+  align-self: flex-end;
+}
+
+#filterCheckboxContainer {
+  margin-top: 2.5vh;
+  margin-right: 2.5vh;
+  height: 75vh;
+  border: 0.1vh solid #21f3f0;
+  background-color: transparent;
+  border-radius: 5%;
+}

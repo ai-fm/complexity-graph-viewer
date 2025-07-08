@@ -1,0 +1,18 @@
+{
+    "mdpType": "MDP",
+    "title": "The complexity of Markov Decision Processes",
+    "authors": [
+        "Christos H. Papadimitriou",
+        "John N. Tsitsiklis"
+    ],
+    "problemType": "Cost Minimization",
+    "problemApproach": "Policy Computation",
+    "problemNotes": "\"We investigate the complexity of the classical problem of optimal policy computation in Markov decision processes.\"",
+    "complexity": "NC",
+    "horizonType": "Finite Horizon",
+    "determinism": "Deterministic",
+    "dependence": "Stationary",
+    "generalProofType": "Structure",
+    "proofNotes": "3.Theorem 2\"Our approach is to look at these problems as variants of the graph-theoretic shortest-path problem[La]",
+    "url": "https://dspace.mit.edu/bitstream/handle/1721.1/2893/P-1479-13685602.pdf?sequence=1"
+}

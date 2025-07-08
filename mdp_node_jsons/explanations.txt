@@ -1,0 +1,32 @@
+These are the different features/categories. If exclusive to certain MDPs, null for all other mdp types.
+
+MDP type: Should be self explanatory. Categorical string. Values present in our data: 
+MDP ID: ID assigned to that MDP type to clearly identify it. Int. ID/MDP pairs:
+
+Title: Papers title. Text.
+Authors: Papers authors. Text array.
+
+Problem Type: Reachability, MaxReward, etc. Categorical String. Values present:
+Problem Approach: Policy existence, evaluation or computation? Categorical String. Values present:
+Problem notes: Optional field for more notes on the problem. Text.
+
+Horizon type: General horizon type. Categorical string. Values present:
+Determinism: Deterministic(pure)/randomized? Either categorical string or boolean. 
+Dependence: Stationary, Hist or time dependent? Categorical string. Values present:
+Memory: Policy memory, finite or infinite. Either categorical string or boolean.
+Analysis type: Quantitiative/Qualitative limit almost sure, positive. Categorical string.
+
+Discount factor shape: In rare cases discount factors have other shapes. Text.
+Nonneg rewards: Only nonnegative rewards? Boolean. 
+Rectangularity: Exclusive to mdps with ambiguity sets. Categorical string.
+Convexness: Exclusive to mdps with ambiguity sets. Categorical string.
+Representation: Is out mdp succinct or compressed? Categorical string. Default flat/null.
+
+
+Complexity: Complexity/Decidability result. Categorical string.
+Complexity notes: Optional field for more information on complexity. Text.
+
+General Proof type: What general approach was used for the proof? Reduction, guess and verify, etc. Categorical string.
+Proof notes: "Optional" field briefly describing the proof, and if possible naming it as theorem i. Text.
+
+Link: Link to paper. Text, if possible clickable.

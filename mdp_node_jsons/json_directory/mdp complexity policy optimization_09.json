@@ -1,0 +1,18 @@
+{
+    "mdpType": "POMDP",
+    "title": "The complexity of Markov Decision Processes",
+    "authors": [
+        "Christos H. Papadimitriou",
+        "John N. Tsitsiklis"
+    ],
+    "problemType": "Cost Minimization",
+    "problemApproach": "Policy Computation",
+    "problemNotes": "\"We investigate the complexity of the classical problem of optimal policy computation in Markov decision processes.\"",
+    "complexity": "PSPACE-complete",
+    "complexityNotes": "\"Even if [Horizon] T is restricted to be smaller than |S|.\" Additionally: \"In the traditional formulation of the partially observed problem [Be], the observation at time t is a random variable, for which we know its conditional distribution given the current state and time. Here we essentially deal with the special case in which the observation is a deterministic function of the current state. Clearly, the general case cannot beany easier.\"",
+    "horizonType": "Finite Horizon",
+    "dependence": "Stationary",
+    "generalProofType": "Reduction",
+    "proofNotes": "4. Theorem 6. Reduction from QSAT for hardness. Membership via \"We can think of the possible outcomes of the process within the finite horizon T as a tree of depth T, which has internal nodes both for decisions and transitions. The leaves of this tree can be evaluated to determine the total contribution to the expected cost of this path. To determine whether the optimal policy has expected cost less than some number B, we need to traverse this tree, making nondeterministic decisions at the decision nodes, iterating over all transitions, and taking care to make the same decision every time the history of observations is identical. This latter can be achieved by organizing the search in such a way that nodes at the same level of the tree are divided into intervals from left to right, corresponding to distinct observation sequences. Decisions from nodes in the same-interval must be the same. That the problem is in PSPACE follows now from the fact that PSPACE is robust under nondeterminism.\"",
+    "url": "https://dspace.mit.edu/bitstream/handle/1721.1/2893/P-1479-13685602.pdf?sequence=1"
+}

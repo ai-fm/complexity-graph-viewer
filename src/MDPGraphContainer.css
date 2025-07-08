@@ -1,0 +1,7 @@
+#graphViewContainer {
+    border: 0.5vh solid #21f3f0;
+    background-color: transparent;
+    box-sizing: border-box;
+    border-radius: 5% 5%;
+    margin: 2.5vh;
+}

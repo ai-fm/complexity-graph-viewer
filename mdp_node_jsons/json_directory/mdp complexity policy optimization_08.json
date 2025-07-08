@@ -1,0 +1,18 @@
+{
+    "mdpType": "MDP",
+    "title": "The complexity of Markov Decision Processes",
+    "authors": [
+        "Christos H. Papadimitriou",
+        "John N. Tsitsiklis"
+    ],
+    "problemType": "Cost Minimization",
+    "problemApproach": "Policy Computation",
+    "problemNotes": "\"We investigate the complexity of the classical problem of optimal policy computation in Markov decision processes.\"",
+    "complexity": "NC",
+    "horizonType": "Finite Horizon",
+    "determinism": "Deterministic",
+    "dependence": "Stationary",
+    "generalProofType": "Structure",
+    "proofNotes": "\"Given a stationary deterministic process, the stationary finite horizon problem with horizon T is equivalent to finding the shortest path with T arcs in the corresponding graph, starting from the node n_0. The algorithm should run in a number of parallel steps that is polynomial to loglogT; therefore the \"pathdoubling\" technique would not give the desired result. In the sequel we assume thatT>n², otherwise the previous technique applies.\"",
+    "url": "https://dspace.mit.edu/bitstream/handle/1721.1/2893/P-1479-13685602.pdf?sequence=1"
+}

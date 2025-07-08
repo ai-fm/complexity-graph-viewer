@@ -1,0 +1,37 @@
+TODOS: 
+-> make node generate from position in params
+-> make nodes identifiable via ID in an actionable way
+- implement zoom
+- make results one result per paper instead of one per result in jsons
+- make graph elements hide better if outside of view
+- make graph element clickable popup info view
+- generate graph from json
+- load in node data from results 
+- proper nodes
+- connecting arrows
+- make actual complexity result graph 
+
+
+Far-off todos:
+Implement subgraphs (i.e. POMDP reachability subgraph for just differing approaches to it)
+Implement By-Problem view instead of By-Type view
+Settings
+More options beneath dropdown
+
+
+
+
+/node-category-values:
+TODO make complexity class only have class names and suffix have suffixes
+"complexityClasses": [
+"NC",
+"P",
+"NP",
+"PSPACE"
+],
+"complexitySuffix": [
+"complete",
+"Complete",
+"hard",
+"Hard",
+],
