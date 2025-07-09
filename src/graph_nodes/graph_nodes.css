@@ -1,8 +1,7 @@
 .graphitem {
-  align-self: center;
   left: 0px;
-  right: 0px;
-  position: relative;
+  top: 0px;
+  position: absolute;
   height: 10vh;
   width: 10vh;
   user-select: none;

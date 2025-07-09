@@ -1,13 +1,13 @@
 
 import "./MDPApp.css";
 import MDPTypeDropdown from "./MDPTypeDropdown";
-
 function MDPApp() {
 
   return (
     <main class="container">
       <div style="display: flex;">
-        <div id="graphViewContainer" style="flex-direction:row; flex-grow: 1; " />
+        <div id="graphViewContainer" style="flex-grow: 1; position:relative">
+        </div>
         <div style="display:flex; flex-direction:column" id="inputColumn">
           <div id="MDPTypeDropdownContainer">
             <MDPTypeDropdown />
