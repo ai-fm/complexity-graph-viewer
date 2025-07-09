@@ -25,7 +25,7 @@
   },
   "include": [
     "src",
-    "mdp_node_jsons/json_directory/index.ts",
+    "complexity_result_jsons/json_directory/index.ts",
   ],
   "references": [
     {
