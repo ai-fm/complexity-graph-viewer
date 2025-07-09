@@ -5,14 +5,11 @@ let posX: number;
 let posY: number;
 
 export default function GraphNode({ data }: { data: [number, [number, number]] }) {
-
     nodeID = data[0]
     posX = data[1][0]
     posY = data[1][1]
     let borderOffsetY
     let borderOffsetX
-
-
 
     return (<div>
         <img draggable={false} class="graphitem" src="temp_options_button.png" style={"left:" + posX + "px;right:" + posY + "px"} />
@@ -32,18 +29,6 @@ export default function GraphNode({ data }: { data: [number, [number, number]] }
                 borderOffsetY ??= 18.440 + 3.2
                 h_elem.style.left = (posX - borderOffsetX + offsetX) + "px";
                 h_elem.style.top = (posY - borderOffsetY + offsetY) + "px";
-                /*  clip-path automatically does this.
-                if ((border.top < (posY + offsetY)) && ((posY + offsetY) < border.bottom) && (border.left < (posX + offsetX)) && ((posX + offsetX) < border.right)) {
-                    h_elem.style.visibility = "visible"
-                }
-                else {
-                    h_elem.style.visibility = "hidden"
-                }*/
-
-
             }}
     </div>)
-
-
-
 }

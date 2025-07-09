@@ -1,17 +1,12 @@
-//core functionality for standard dropdown form
 import { useState } from "preact/hooks";
 import { setGraphType } from "./MDPGraphContainer";
 import "./MDPTypeDropdown.css";
 import nodes from "./nodes/nodes";
-//modified standard dropdown form from https://preactjs.com/guide/v10/forms
-//TODO customize and adapt
-//TODO use form logic instead
 export let dropdownval: string;
 
 export default function MDPTypeDropdown() {
   const [value, setValue] = useState('');
   const MDPTypes = nodes.map(entry => entry.mdpType)
-
 
   return (
 
@@ -42,4 +37,3 @@ export default function MDPTypeDropdown() {
     });
   }
 }
-

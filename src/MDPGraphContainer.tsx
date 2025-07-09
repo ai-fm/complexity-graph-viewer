@@ -8,11 +8,6 @@ import ComplexityGraph from "./graph_nodes/generate_graph";
 //export definition for func ahead of implementing it
 export let setGraphType: (pGraphtype: string) => void
 
-
-
-
-
-
 export default function MDPGraphContainer() {
   //state holding current mdp 
   const [graphtype, setGraphtype] = useState('MDP');
@@ -24,7 +19,6 @@ export default function MDPGraphContainer() {
   return (
     <div id="graphViewContainer" style="flex-direction:row; flex-grow: 1; " >
       <ComplexityGraph mdptype={graphtype} />
-
     </div>
   );
 }

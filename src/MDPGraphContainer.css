@@ -4,6 +4,5 @@
     box-sizing: border-box;
     border-radius: 5% 5%;
     margin: 2.5vh;
-
     clip-path: inset(0px round 5%);
 }

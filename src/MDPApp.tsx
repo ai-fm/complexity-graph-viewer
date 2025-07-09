@@ -3,50 +3,35 @@ import "./MDPApp.css";
 import MDPGraphContainer from "./MDPGraphContainer";
 import MDPTypeDropdown from "./MDPTypeDropdown";
 import { GraphManager } from "./graph_nodes/GraphManager";
+
 //This is the graphmanager, responsible for creating new graphs from the dropdown and in a graph moving the nodes around.
 //temp disclaimer a lot of that functionality is still in other places
 export const graphMGR = new GraphManager();
 
 function MDPApp() {
-
-  // mouse stuff based on https://www.tnado.com/blog/javascript-move-a-div-element-with-the-mouse/
-  // so far just used for elements within graph but global mousedown event 
-
   let mousedown = false
-
-
 
   onmousedown = (event) => {
     mousedown = true
     graphMGR.handleMouseDownEvent(event)
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onmouseup = (_event) => {
+  onmouseup = () => {
     mousedown = false;
 
   }
+
   onmousemove = (event) => {
     if (mousedown) { graphMGR.handleMouseMoveEvent(event) }
   }
 
-
-
-
   return (
     <main class="container">
-
-
       <div style="display: flex;">
-
-        <MDPGraphContainer>
-
-        </MDPGraphContainer>
+        <MDPGraphContainer />
         <div style="display:flex; flex-direction:column" id="inputColumn">
           <div id="MDPTypeDropdownContainer">
-            <MDPTypeDropdown>
-
-            </MDPTypeDropdown>
+            <MDPTypeDropdown />
           </div>
           <div id="filterCheckboxContainer">
           </div>
@@ -59,6 +44,5 @@ function MDPApp() {
     </main>
   );
 }
-
 
 export default MDPApp;

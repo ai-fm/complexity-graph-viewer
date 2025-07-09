@@ -22,7 +22,10 @@ Implement By-Problem view instead of By-Type view
 Settings
 More options beneath dropdown
 
-
+regarding dropdown:
+//modified standard dropdown form from https://preactjs.com/guide/v10/forms
+//TODO customize and adapt
+//TODO use form logic instead
 
 
 /node-category-values:
