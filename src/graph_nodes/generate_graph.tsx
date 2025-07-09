@@ -1,19 +1,15 @@
 
-import GraphNode from "./base_gnode";
+import { graphMGR } from "../MDPApp";
 import "./generate_graph.css";
 export default function ComplexityGraph({ mdptype }: { mdptype: string }) {
 
 
-    if (mdptype == "MDP") {
-        return (
-            <div>
-                <GraphNode data={[20, [0, 1]]} />
-                <GraphNode data={[12, [10, 1]]} />
-            </div>
-        )
+    return (
+        graphMGR.generateGraph(mdptype)
+    )
 
 
-    }
+
 
 
 

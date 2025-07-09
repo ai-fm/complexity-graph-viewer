@@ -19,12 +19,12 @@ export default function MDPGraphContainer() {
   //define exported function to allow dropdown to pick displayed MDPs
   setGraphType = function (pGraphtype) {
     setGraphtype(pGraphtype)
-
   }
 
   return (
     <div id="graphViewContainer" style="flex-direction:row; flex-grow: 1; " >
       <ComplexityGraph mdptype={graphtype} />
+
     </div>
   );
 }

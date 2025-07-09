@@ -1,6 +1,6 @@
 
 
-import { moveGraphItem } from "./base_gnode";
+import GraphNode, { moveGraphItem } from "./base_gnode";
 import "./generate_graph.css";
 export class GraphManager {
     xoffset = 0;
@@ -9,8 +9,9 @@ export class GraphManager {
     lastY = 0;
     zoom = 1;
     gvc: HTMLElement | null = null;
+    gvc_rect: DOMRect | null = null;
+    graphitems: HTMLCollectionOf<Element> | null = null;
     constructor() {
-
         console.log("created")
     }
 
@@ -22,15 +23,38 @@ export class GraphManager {
         console.log("Created ", node, " or should have.", elem)
     }
 
+    generateGraph(mdptype: string) {
+        if (mdptype == "MDP") {
+            return (
+                <div>
+                    <GraphNode data={[20, [0, 1]]} />
+                    <GraphNode data={[12, [10, 1]]} />
+                </div>
+            )
+
+
+        }
+    }
+
     fetchGVC() {
         this.gvc = document.getElementById("graphViewContainer");
+        if (this.gvc != null) { this.gvc_rect = this.gvc.getBoundingClientRect(); }
+        else { console.log(this.gvc, this.gvc_rect, "Something has gone very wrong; GraphManager gvc nonnul, gvcrect null") }
+    }
+
+    fetchGraphItems() {
+        this.graphitems = document.getElementsByClassName("graphitem");
+    }
+
+    fetchIfNull() {
+        if (this.gvc == null) { this.fetchGVC() }
+        if (this.graphitems == null) { this.fetchGraphItems() }
     }
 
     handleMouseDownEvent(event: MouseEvent) {
-
-        if (this.gvc != null) {
-            const gvc_rect = this.gvc.getBoundingClientRect();
-            if ((gvc_rect.top < event.clientY) && (event.clientY < gvc_rect.bottom) && (gvc_rect.left < event.clientX) && (event.clientX < gvc_rect.right)) {
+        this.fetchIfNull()
+        if ((this.gvc != null) && (this.gvc_rect != null)) {
+            if ((this.gvc_rect.top < event.clientY) && (event.clientY < this.gvc_rect.bottom) && (this.gvc_rect.left < event.clientX) && (event.clientX < this.gvc_rect.right)) {
                 this.lastX = event.clientX; this.lastY = event.clientY;
 
             }
@@ -38,15 +62,14 @@ export class GraphManager {
     }
 
     handleMouseMoveEvent(event: MouseEvent) {
-        if (this.gvc != null) {
-            const gvc_rect = this.gvc.getBoundingClientRect();
-            if ((gvc_rect.top < event.clientY) && (event.clientY < gvc_rect.bottom) && (gvc_rect.left < event.clientX) && (event.clientX < gvc_rect.right)) {
-                const graphitems = document.getElementsByClassName("graphitem")
+        this.fetchIfNull()
+        if ((this.gvc != null) && (this.graphitems != null) && (this.gvc_rect != null)) {
+            if ((this.gvc_rect.top < event.clientY) && (event.clientY < this.gvc_rect.bottom) && (this.gvc_rect.left < event.clientX) && (event.clientX < this.gvc_rect.right)) {
                 this.xoffset -= this.lastX - event.clientX;
                 this.yoffset -= this.lastY - event.clientY;
                 this.lastX = event.clientX; this.lastY = event.clientY;
                 this.zoom *= 1;
-                for (const i of graphitems) {
+                for (const i of this.graphitems) {
                     moveGraphItem(i, this.xoffset, this.yoffset, this.zoom);
                 }
 
@@ -56,6 +79,8 @@ export class GraphManager {
     }
 
 }
+
+
 
 /**import "./base_gnode.css";
 export let moveGraphItem: (elem: Element, offsetX: number, offsetY: number, zoom: number) => void

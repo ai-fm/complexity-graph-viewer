@@ -3,6 +3,9 @@ import "./MDPApp.css";
 import MDPGraphContainer from "./MDPGraphContainer";
 import MDPTypeDropdown from "./MDPTypeDropdown";
 import { GraphManager } from "./graph_nodes/GraphManager";
+//This is the graphmanager, responsible for creating new graphs from the dropdown and in a graph moving the nodes around.
+//temp disclaimer a lot of that functionality is still in other places
+export const graphMGR = new GraphManager();
 
 function MDPApp() {
 
@@ -11,9 +14,7 @@ function MDPApp() {
 
   let mousedown = false
 
-  //This is the graphmanager class, responsible for creating new graphs from the dropdown and in a graph moving the nodes around.
-  //temp disclaimer a lot of that functionality is still in other places
-  const graphMGR = new GraphManager();
+
 
   onmousedown = (event) => {
     mousedown = true
@@ -41,7 +42,6 @@ function MDPApp() {
         <MDPGraphContainer>
 
         </MDPGraphContainer>
-        {graphMGR.fetchGVC()}
         <div style="display:flex; flex-direction:column" id="inputColumn">
           <div id="MDPTypeDropdownContainer">
             <MDPTypeDropdown>
