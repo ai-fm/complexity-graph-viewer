@@ -1,5 +1,5 @@
 import { useState } from "preact/hooks";
-import { graphMGR } from "./MDPApp";
+import { graphMGR } from "./main";
 import "./MDPTypeDropdown.css";
 import nodes from "./nodes/nodes";
 export let dropdownval: string;
