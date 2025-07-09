@@ -1,4 +1,6 @@
-import GraphNode, { moveGraphItem } from "./base_gnode";
+import { moveGraphItem } from "./base_gnode";
+
+//import GraphNode, { moveGraphItem } from "./base_gnode";
 export class GraphManager {
     xoffset = 0;
     yoffset = 0;
@@ -8,9 +10,16 @@ export class GraphManager {
     gvc: HTMLElement | null = null;
     gvc_rect: DOMRect | null = null;
     graphitems: HTMLCollectionOf<Element> | null = null;
+    graphitemdata: number[][] = [[]];
+    graphtype = "MDP";
 
     constructor() {
         console.log("created")
+    }
+
+
+    setGraphType(type: string) {
+        this.graphtype = type;
     }
 
     testattach(elem: HTMLElement | null) {
@@ -20,34 +29,27 @@ export class GraphManager {
         console.log("Created ", node, " or should have.", elem)
     }
 
-    generateGraph(mdptype: string) {
-        if (mdptype == "MDP") {
-            return (
-                <div>
-                    <GraphNode data={[20, [0, 1]]} />
-                    <GraphNode data={[12, [10, 1]]} />
-                </div>
-            )
+    loadGraphElems() {
+        if (this.graphtype == "MDP") {
+            //misnamed, for now. generating nodes in code starting now.
+            this.generateGraphItems();
         }
     }
 
     fetchGVC() {
-        this.gvc = document.getElementById("graphViewContainer");
-        if (this.gvc != null) { this.gvc_rect = this.gvc.getBoundingClientRect(); }
-        else { console.log(this.gvc, this.gvc_rect, "Something has gone very wrong; GraphManager gvc nonnul, gvcrect null") }
+        if (this.gvc == null) {
+            this.gvc = document.getElementById("graphViewContainer");
+            if (this.gvc != null) { this.gvc_rect = this.gvc.getBoundingClientRect(); }
+            else { console.log(this.gvc, this.gvc_rect, "Something has gone very wrong; GraphManager gvc nonnul, gvcrect null") }
+        }
     }
 
-    fetchGraphItems() {
+    generateGraphItems() {
         this.graphitems = document.getElementsByClassName("graphitem");
     }
 
-    fetchIfNull() {
-        if (this.gvc == null) { this.fetchGVC() }
-        if (this.graphitems == null) { this.fetchGraphItems() }
-    }
-
     handleMouseDownEvent(event: MouseEvent) {
-        this.fetchIfNull()
+        this.fetchGVC()
         if ((this.gvc != null) && (this.gvc_rect != null)) {
             if ((this.gvc_rect.top < event.clientY) && (event.clientY < this.gvc_rect.bottom) && (this.gvc_rect.left < event.clientX) && (event.clientX < this.gvc_rect.right)) {
                 this.lastX = event.clientX;
@@ -57,7 +59,7 @@ export class GraphManager {
     }
 
     handleMouseMoveEvent(event: MouseEvent) {
-        this.fetchIfNull()
+        this.fetchGVC()
         if ((this.gvc != null) && (this.graphitems != null) && (this.gvc_rect != null)) {
             if ((this.gvc_rect.top < event.clientY) && (event.clientY < this.gvc_rect.bottom) && (this.gvc_rect.left < event.clientX) && (event.clientX < this.gvc_rect.right)) {
                 this.xoffset -= this.lastX - event.clientX;
@@ -70,4 +72,6 @@ export class GraphManager {
             }
         }
     }
+
+
 }
