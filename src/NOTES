@@ -4,12 +4,9 @@ Make it also handle mouseevents, maybe? MDPApp has central mouseevent setter but
 
 
 TODOS: 
--> make node generate from position in params
--> make nodes identifiable via ID in an actionable way
-- implement zoom
+- make zoom keep consistent position
 - make results one result per paper instead of one per result in jsons
 - make graph element clickable popup info view
-- generate graph from json
 - load in node data from results 
 - proper nodes
 - connecting arrows
@@ -21,11 +18,6 @@ Implement subgraphs (i.e. POMDP reachability subgraph for just differing approac
 Implement By-Problem view instead of By-Type view
 Settings
 More options beneath dropdown
-
-regarding dropdown:
-//modified standard dropdown form from https://preactjs.com/guide/v10/forms
-//TODO customize and adapt
-//TODO use form logic instead
 
 
 /node-category-values:

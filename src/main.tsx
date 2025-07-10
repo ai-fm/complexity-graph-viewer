@@ -10,9 +10,11 @@ export const graphMGR = new GraphManager();
 //initialize event handlers
 let mousedown = false
 
+export function p(...t: (number | string)[]) { console.log(t) }
+
 onmousedown = (event) => {
     mousedown = true
-    graphMGR.handleMouseDownEvent(event)
+    if ((event.target == graphMGR.gvc) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseDownEvent(event) }
 }
 
 onmouseup = () => {
@@ -21,11 +23,16 @@ onmouseup = () => {
 }
 
 onmousemove = (event) => {
-    if (mousedown) { graphMGR.handleMouseMoveEvent(event) }
+    if (mousedown) {
+        if ((event.target == graphMGR.gvc) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseMoveEvent(event) }
+    }
+}
+
+onwheel = (event) => {
+    if ((event.target == graphMGR.gvc) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseWheelEvent(event) }
 }
 
 //load correct graph view controller into graphmanager
-graphMGR.fetchGVC()
-console.log(graphMGR.gvc, "gvcaaaaaaa")
+graphMGR.initGraphMGR()
 //load initial graph
-graphMGR.generateGraphItems()
+graphMGR.loadGraphElems(0);

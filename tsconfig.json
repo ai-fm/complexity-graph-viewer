@@ -26,6 +26,7 @@
   "include": [
     "src",
     "complexity_result_jsons/json_directory/index.ts",
+    "complexity_graph_configs",
   ],
   "references": [
     {

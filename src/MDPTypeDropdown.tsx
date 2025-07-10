@@ -14,7 +14,8 @@ export default function MDPTypeDropdown() {
       {/* id used to find form in code to append all options on loading in of the window. Options loaded from node import*/}
       <select id="selectMDP" onChange={(e) => {
         //update graph in graph viewer and value in dropdown
-        graphMGR.setGraphType(e.currentTarget.value);
+        graphMGR.updateGraphType(e.currentTarget.value);
+
         setValue(e.currentTarget.value)
       }}>
         {window.onload = function () { { addOptions(MDPTypes, document.getElementById("selectMDP")); } }}

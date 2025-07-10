@@ -1,6 +1,6 @@
 
+import jsons from "../../complexity_result_jsons/json_directory/index.ts";
 import validCategories from "../../mdp_configs/node-category-values.json";
-import jsons from "../../mdp_node_jsons/json_directory/index.ts";
 //read all nodes from indexed raw jsons and convert them into array iff valid according to category values.
 
 function validateNode(rawJson: { mdpType: string; title?: string; authors?: string[]; problemType: string; problemApproach: string; problemNotes?: string; complexity: string; horizonType: string; generalProofType: string; proofNotes?: string; url?: string; rewardConstraints?: string; mdpRepresentation?: string; determinism?: string; dependence?: string; policyMemory?: string; analysisType?: string; ambiguitySetRectangularity?: string; ambiguitySetConvexness?: string; }) {
