@@ -6,7 +6,7 @@ import validCategories from "../../mdp_configs/node-category-values.json";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function validateNode(rawJson: { title?: string; authors?: string[]; results: any; url?: string; }) {
   //set to defaults if not set for the values that have default values
-  rawJson.results.forEach((elem: { problemType: string | null; rewardConstraints: string | null; mdpRepresentation: string | null; }) => {
+  rawJson.results.forEach((elem: { problemType: string; rewardConstraints?: string; mdpRepresentation?: string; }) => {
     if (elem.problemType == null) { elem.problemType = "Reward Maximisation" };
     if (elem.rewardConstraints == null) { elem.rewardConstraints = "None" };
     if (elem.mdpRepresentation == null) { elem.mdpRepresentation = "Flat" };

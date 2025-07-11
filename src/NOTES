@@ -17,8 +17,12 @@ Far-off todos:
 Implement subgraphs (i.e. POMDP reachability subgraph for just differing approaches to it)
 Implement By-Problem view instead of By-Type view
 Settings
-More options beneath dropdown
+More options beneath dropdown (as in, filtering)
 make maxtitlelength for node title length limitation dynamic
+remove "any" type for mdp results and specify actual type
+
+Graph exporter: using a set graph as a base, move around/add nodes as you see fit (buttonevents disabled), hit save button to bring up prompt to name it to then export to other folder, from which it can be moved manually into graph configs to use in future
+
 
 /node-category-values:
 TODO make complexity class only have class names and suffix have suffixes

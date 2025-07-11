@@ -101,12 +101,24 @@ export class GraphManager {
     }
 
     makeparagraph(text: string, makebreak?: boolean) {
+        //commented out code handles automatically dividing paragraphs in new paragraphs, which turns out to be unneccesary.
+        /*const maxtextlength = 70;
+        if (text.length > maxtextlength) {
+            let splitpos = Math.max(text.lastIndexOf(" ", maxtextlength), text.lastIndexOf("/", maxtextlength), text.lastIndexOf(",", maxtextlength))
+            if (splitpos == -1) { splitpos = maxtextlength }
+            this.makeparagraph(text.substring(0, splitpos))
+            this.makeparagraph(text.substring(splitpos + 1))
+            return;
+        }
+        else {*/
         const para = document.createElement("p")
         para.setAttribute("class", "nodeDataDisplayElem")
+        para.style = "position:relative;left:10px;word-wrap: break-word;"
         para.textContent = text;
         this.ndc?.append(para)
         this.nodeitems.push(para)
         if (makebreak) { this.makebreak() }
+        //}
     }
 
     makebreak() {
@@ -124,11 +136,30 @@ export class GraphManager {
     }
 
     makeresult(resNumber: number, restitle: string, resData: { mdpType: string; problemType: string; problemApproach: string; problemNotes: string; complexity: string; horizonType: string; generalProofType: string; proofNotes: string; determinism?: undefined; dependence?: undefined; complexityNotes?: undefined; } | { mdpType: string; problemType: string; problemApproach: string; problemNotes: string; complexity: string; horizonType: string; determinism: string; dependence: string; generalProofType: string; proofNotes: string; complexityNotes?: undefined; } | { mdpType: string; problemType: string; problemApproach: string; problemNotes: string; complexity: string; horizonType: string; determinism: string; generalProofType: string; proofNotes: string; dependence?: undefined; complexityNotes?: undefined; } | { mdpType: string; problemType: string; problemApproach: string; problemNotes: string; complexity: string; complexityNotes: string; horizonType: string; dependence: string; generalProofType: string; proofNotes: string; determinism?: undefined; } | { mdpType: string; problemType: string; problemApproach: string; problemNotes: string; complexity: string; complexityNotes: string; horizonType: string; determinism: string; generalProofType: string; proofNotes: string; dependence?: undefined; }) {
-        const maxtitlelength = 50
-        const title = (restitle.length > maxtitlelength) ? restitle.substring(0, maxtitlelength) + "..." : restitle;
-        this.makeparagraph("Result " + resNumber + ", from \"" + title + "\":")
+        this.makeparagraph("Result " + resNumber + ", from \"" + restitle + "\":")
         this.makeparagraph("Problem: " + resData.problemType)
         this.makehrule()
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    fetchResults(mdptype: string, problemtype: string, nodeResults: any[], nodeResPapers: string[]) {
+        function addIfValid(result: { mdpType: string; problemType: string; problemApproach: string; problemNotes: string; complexity: string; horizonType: string; generalProofType: string; proofNotes: string; determinism?: undefined; dependence?: undefined; complexityNotes?: undefined; } | { mdpType: string; problemType: string; problemApproach: string; problemNotes: string; complexity: string; horizonType: string; determinism: string; dependence: string; generalProofType: string; proofNotes: string; complexityNotes?: undefined; } | { mdpType: string; problemType: string; problemApproach: string; problemNotes: string; complexity: string; horizonType: string; determinism: string; generalProofType: string; proofNotes: string; dependence?: undefined; complexityNotes?: undefined; } | { mdpType: string; problemType: string; problemApproach: string; problemNotes: string; complexity: string; complexityNotes: string; horizonType: string; dependence: string; generalProofType: string; proofNotes: string; determinism?: undefined; } | { mdpType: string; problemType: string; problemApproach: string; problemNotes: string; complexity: string; complexityNotes: string; horizonType: string; determinism: string; generalProofType: string; proofNotes: string; dependence?: undefined; }) {
+
+            if (
+                (result.mdpType == mdptype) &&
+                (result.problemType == problemtype)
+            ) {
+                nodeResults.push(result)
+                return true;
+            }
+
+        }
+        resultNodes.forEach((paperJson) => {
+            paperJson.results.forEach((result) => {
+                if (addIfValid(result)) { nodeResPapers.push(paperJson.title) }
+            })
+        })
+
     }
 
     //display json results for clicked nodes, if possible
@@ -139,10 +170,25 @@ export class GraphManager {
             i.remove()
         }
 
+        //rename for clarity
+        let problem = node.textContent
+        problem ??= "Untitled"
+        const mdptype = this.graphtype
 
-        const clickedNodeInfo = "Displaying information for " + node.textContent + " in " + this.graphtype + "(s):"
-        this.makeparagraph(clickedNodeInfo, true)
-        this.makeresult(0, resultNodes[0].title, resultNodes[0].results[0])
+
+
+        const HeadlineText = "Displaying information for " + problem + " in " + mdptype + "(s):"
+        this.makeparagraph(HeadlineText, true)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const nodeResults: any[] = [];
+        const nodeResultTitles: string[] = [];
+        this.fetchResults(mdptype, problem, nodeResults, nodeResultTitles)
+        if (nodeResults.length == 0) { this.makeparagraph("Sorry, no results found. You can add additional results in complexity_result_jsons\\json_directory following the guide template. Add them into the import list in index.ts, and the program should handle the rest.") }
+        for (const i in nodeResults) {
+            const ii = parseInt(i)
+            this.makeresult(ii + 1, nodeResultTitles[i], nodeResults[i])
+
+        }
 
     }
 

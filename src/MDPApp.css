@@ -36,7 +36,10 @@ body {
   margin-top: 2.5vh;
   margin-right: 2.5vh;
   height: 75vh;
+  width: 60vh;
   border: 0.1vh solid #21f3f0;
   background-color: transparent;
   border-radius: 5%;
+  overflow-y: scroll;
+  overflow-x: hidden;
 }

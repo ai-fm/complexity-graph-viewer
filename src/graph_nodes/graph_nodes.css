@@ -2,7 +2,7 @@
   left: 0px;
   top: 0px;
   position: absolute;
-  height: 10vh;
+  height: auto;
   width: 10vh;
   user-select: none;
   -moz-user-select: none;
