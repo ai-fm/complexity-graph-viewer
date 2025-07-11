@@ -8,14 +8,15 @@
             "title": "Reachability"
         },
         {
-            "posX": 50,
-            "posY": 50,
-            "type": "test"
+            "posX": 150,
+            "posY": 150,
+            "type": "ClickableGraphNode"
         },
         {
-            "posX": 250,
+            "posX": 0,
             "posY": 250,
-            "type": "test"
+            "type": "ClickableGraphNode",
+            "title": "Parity"
         }
     ]
 }

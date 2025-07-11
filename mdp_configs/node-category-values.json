@@ -6,7 +6,8 @@
     ],
     "problemTypes": [
         "Reward Maximisation",
-        "Cost Minimization"
+        "Cost Minimization",
+        "Reachability"
     ],
     "problemApproach": [
         "Policy Existence",

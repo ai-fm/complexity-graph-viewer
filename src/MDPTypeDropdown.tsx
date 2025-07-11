@@ -1,12 +1,14 @@
 import { useState } from "preact/hooks";
 import { graphMGR } from "./main";
+
 import "./MDPTypeDropdown.css";
-import nodes from "./nodes/nodes";
+import { nodes } from "./nodes/nodes";
 export let dropdownval: string;
 
 export default function MDPTypeDropdown() {
-  const [value, setValue] = useState('');
-  const MDPTypes = nodes.map(entry => entry.mdpType)
+  const [, setValue] = useState('');
+  const MDPTypes = nodes.map(entry => entry.results.map(elem => elem.mdpType)).flat()
+
 
   return (
 
@@ -17,7 +19,6 @@ export default function MDPTypeDropdown() {
       }}>
         {window.onload = function () { { addOptions(MDPTypes, document.getElementById("selectMDP")); } }}
       </select>
-      {<p>{value}</p>}
     </div>
   );
 

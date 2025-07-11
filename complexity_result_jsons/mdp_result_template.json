@@ -1,25 +1,29 @@
 {
-    "mdpType": "",
     "title": "",
     "authors": [
         ""
     ],
-    "problemType": "",
-    "problemApproach": "",
-    "problemNotes": "",
-    "complexity": "",
-    "complexityNotes": "",
-    "horizonType": "",
-    "meterminism": "",
-    "dependence": "",
-    "policyMemory": "",
-    "analysisType": "",
-    "discountFactorShape": "",
-    "rewardConstraints": "",
-    "ambiguitySetRectangularity": "",
-    "ambiguitySetConvexness": "",
-    "mdpRepresentation": "",
-    "generalProofType": "",
-    "proofNotes": "",
+    "results": [
+        {
+            "mdpType": "",
+            "problemType": "",
+            "problemApproach": "",
+            "problemNotes": "",
+            "complexity": "",
+            "complexityNotes": "",
+            "horizonType": "",
+            "determinism": "",
+            "dependence": "",
+            "policyMemory": "",
+            "analysisType": "",
+            "discountFactorShape": "",
+            "rewardConstraints": "",
+            "ambiguitySetRectangularity": "",
+            "ambiguitySetConvexness": "",
+            "mdpRepresentation": "",
+            "generalProofType": "",
+            "proofNotes": ""
+        }
+    ],
     "url": ""
 }

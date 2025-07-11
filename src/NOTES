@@ -18,7 +18,7 @@ Implement subgraphs (i.e. POMDP reachability subgraph for just differing approac
 Implement By-Problem view instead of By-Type view
 Settings
 More options beneath dropdown
-
+make maxtitlelength for node title length limitation dynamic
 
 /node-category-values:
 TODO make complexity class only have class names and suffix have suffixes

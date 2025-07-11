@@ -19,7 +19,7 @@ body {
   border-radius: 5% 5%;
   margin: 2.5vh;
   clip-path: inset(0px round 5%);
-
+  zoom: 100%;
   overflow: hidden;
 }
 
@@ -32,7 +32,7 @@ body {
   align-self: flex-end;
 }
 
-#filterCheckboxContainer {
+#filterAndDataContainer {
   margin-top: 2.5vh;
   margin-right: 2.5vh;
   height: 75vh;

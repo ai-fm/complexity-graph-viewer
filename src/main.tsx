@@ -10,7 +10,8 @@ export const graphMGR = new GraphManager();
 //initialize event handlers
 let mousedown = false
 
-export function p(...t: (number | string)[]) { console.log(t) }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function p(...t: any[]) { console.log(t) }
 
 onmousedown = (event) => {
     mousedown = true

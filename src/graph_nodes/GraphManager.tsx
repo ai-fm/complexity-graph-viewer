@@ -1,5 +1,10 @@
 import rawGraphStructures from "../complexity_graph_configs/graphindex";
+
+import validCategories from "../../mdp_configs/node-category-values.json";
+import { graphMGR, p } from "../main";
+import { nodes as resultNodes } from "../nodes/nodes";
 import "./graph_nodes.css";
+p("print import for quicker debug")
 const graphStructures: {
     graphtype: string;
     nodes: {
@@ -20,23 +25,27 @@ export class GraphManager {
     lastY = 0;
     //zoom factor for all graph  elements
     zoom = 1;
-    //graph view controller and its' bounding client rect. 
+    //graph view container and its' bounding client rect. 
     gvc: HTMLElement | null = null;
     gvc_rect: DOMRect | null = null;
+    //node data container for results
+    ndc: HTMLElement | null = null;
     //currently active graph elements
     graphitems: HTMLElement[] = [];
     //positional data and other information about nodes. Read from json and applied to corresponding graphitems
     graphitemdata: (number | string)[][] = [];
+    //currently active node data elements
+    nodeitems: HTMLElement[] = []
     //Graph types that can be rendered, read from complexity_graph_configs. 
     //Graph may be represented in results, thus dropdown, but not have corresponding graph here, leading to no graph changes.
     //Graph may be represented in validGraphTypes but not results, thus being inaccessible.
     validGraphTypes: string[] = [];
     //current graph type. Initialized as first valid type, can alternatively be coded to "MDP" or probably to on initialisation fetch initial Dropdown element
-    graphtype = this.validGraphTypes[0];
-
+    graphtype = "MDP";//this.validGraphTypes[0];
     //If valid, reset graph viewer and unset graph items and data. Then, generate new graph for currently selected type
     //!!! I can't with certainty say this removes the elements instead of simply unbinding them without automatically causing this. 
     //i doubt that will pose a problem in either case, but i am clearly disclosing this here to make finding it a bit easier if it were to.
+    //presume it works as intended -> https://stackoverflow.com/questions/11817716/how-can-i-remove-an-element-that-is-not-in-the-dom
     updateGraphType(type: string) {
         if (this.validGraphTypes.includes(type)) {
             this.xoffset = 0;
@@ -76,6 +85,9 @@ export class GraphManager {
         this.gvc = document.getElementById("graphViewContainer");
         if (this.gvc != null) { this.gvc_rect = this.gvc.getBoundingClientRect() }
 
+        //init ndc
+        this.ndc = document.getElementById("filterAndDataContainer");
+
         //init valid graphtypes
         for (const i in graphStructures) {
             this.validGraphTypes.push(graphStructures[i].graphtype)
@@ -87,77 +99,134 @@ export class GraphManager {
             console.log("Not all graph types are unique!")
         }
     }
-    //Given a nodes json data, initialise it based on its type.
-    createNode(X: number, Y: number, type: string, title: string) {
-        if (this.gvc == null) { return }
-        let nodeTest: HTMLElement
-        if (type == "circle") {
-            nodeTest = document.createElement("img")
-            nodeTest.setAttribute("src", "./src/graph_nodes/node_genericcircle.png")
-        }
-        if (type == "ClickableGraphNode") {
-            nodeTest = document.createElement("button")
-            nodeTest.setAttribute("style", "border-radius:45%;width:auto")
-            nodeTest.textContent = title
-        }
-        else { //use test as default case for invalid assignments
-            nodeTest = document.createElement("img")
-            nodeTest.setAttribute("src", "temp_options_button.png")
+
+    makeparagraph(text: string, makebreak?: boolean) {
+        const para = document.createElement("p")
+        para.setAttribute("class", "nodeDataDisplayElem")
+        para.textContent = text;
+        this.ndc?.append(para)
+        this.nodeitems.push(para)
+        if (makebreak) { this.makebreak() }
+    }
+
+    makebreak() {
+        const br = document.createElement("br")
+        br.setAttribute("class", "nodeDataDisplayElem")
+        this.ndc?.append(br)
+        this.nodeitems.push(br)
+    }
+
+    makehrule() {
+        const hr = document.createElement("hr")
+        hr.setAttribute("class", "nodeDataDisplayElem")
+        this.ndc?.append(hr)
+        this.nodeitems.push(hr)
+    }
+
+    makeresult(resNumber: number, restitle: string, resData: { mdpType: string; problemType: string; problemApproach: string; problemNotes: string; complexity: string; horizonType: string; generalProofType: string; proofNotes: string; determinism?: undefined; dependence?: undefined; complexityNotes?: undefined; } | { mdpType: string; problemType: string; problemApproach: string; problemNotes: string; complexity: string; horizonType: string; determinism: string; dependence: string; generalProofType: string; proofNotes: string; complexityNotes?: undefined; } | { mdpType: string; problemType: string; problemApproach: string; problemNotes: string; complexity: string; horizonType: string; determinism: string; generalProofType: string; proofNotes: string; dependence?: undefined; complexityNotes?: undefined; } | { mdpType: string; problemType: string; problemApproach: string; problemNotes: string; complexity: string; complexityNotes: string; horizonType: string; dependence: string; generalProofType: string; proofNotes: string; determinism?: undefined; } | { mdpType: string; problemType: string; problemApproach: string; problemNotes: string; complexity: string; complexityNotes: string; horizonType: string; determinism: string; generalProofType: string; proofNotes: string; dependence?: undefined; }) {
+        const maxtitlelength = 50
+        const title = (restitle.length > maxtitlelength) ? restitle.substring(0, maxtitlelength) + "..." : restitle;
+        this.makeparagraph("Result " + resNumber + ", from \"" + title + "\":")
+        this.makeparagraph("Problem: " + resData.problemType)
+        this.makehrule()
+    }
+
+    //display json results for clicked nodes, if possible
+    displayNodeData(node: HTMLElement) {
+        if (this.ndc == null) { return }
+        //remove all "old" node info elements
+        for (const i of this.nodeitems) {
+            i.remove()
         }
 
-        nodeTest.setAttribute("class", "graphitem")
-        nodeTest.setAttribute("draggable", "false")
-        nodeTest.setAttribute("style", "position:absolute;left: " + X + "px;top: " + Y + "px;" + nodeTest.getAttribute("style")
-        )
-        console.log(nodeTest.getAttribute("style")
-        )
-        this.gvc.appendChild(nodeTest)
-        this.graphitems.push(nodeTest)
+
+        const clickedNodeInfo = "Displaying information for " + node.textContent + " in " + this.graphtype + "(s):"
+        this.makeparagraph(clickedNodeInfo, true)
+        this.makeresult(0, resultNodes[0].title, resultNodes[0].results[0])
 
     }
 
-    handleMouseDownEvent(event: MouseEvent) {
-        if ((this.gvc != null) && (this.gvc_rect != null)) {
-            //if ((this.gvc_rect.top < event.clientY) && (event.clientY < this.gvc_rect.bottom) && (this.gvc_rect.left < event.clientX) && (event.clientX < this.gvc_rect.right)) {
-            this.lastX = event.clientX;
-            this.lastY = event.clientY;
-            //}
+    //Given a nodes json data, initialise it based on its type.
+    createNode(X: number, Y: number, type: string, title: string) {
+        if (this.gvc == null) { return }
+
+
+        let newNode: HTMLElement
+        if (type == "circle") {
+            newNode = Object.assign(document.createElement("img"), { src: "./src/graph_nodes/node_genericcircle.png" })
         }
+
+        if (type == "ClickableGraphNode") {
+            newNode = Object.assign(document.createElement("button"), { style: "border-radius:45%;width:auto" })
+            //checking if node title = problem type specified in node category values
+            if (validCategories.problemTypes.includes(title)) {
+                newNode.textContent = title
+            }
+            else {
+                newNode.textContent = ("\"" + title + "\"?")
+            }
+            newNode.onclick = function () { graphMGR.displayNodeData(newNode) }
+        }
+        else { //use test as default case for invalid assignments
+            newNode = document.createElement("img")
+            newNode.setAttribute("src", "temp_options_button.png")
+        }
+
+        newNode.setAttribute("class", "graphitem")
+        newNode.setAttribute("draggable", "false")
+        newNode.setAttribute("style", "position:absolute;left: " + X + "px;top: " + Y + "px;" + newNode.getAttribute("style"))
+        this.gvc.appendChild(newNode)
+        this.graphitems.push(newNode)
+
+    }
+
+
+
+    handleMouseDownEvent(event: MouseEvent) {
+        this.lastX = event.clientX;
+        this.lastY = event.clientY;
     }
 
     moveGraphItem(elem: Element, index: number) {
         const h_elem = (elem as HTMLElement)
-        if ((this.gvc != null) && (this.gvc_rect != null)) {
-            const X = (this.graphitemdata[index][0] as number)
-            const Y = (this.graphitemdata[index][1] as number)
-            h_elem.style.left = this.zoom * (X + this.xoffset) + "px";
-            h_elem.style.top = this.zoom * (Y + this.yoffset) + "px";
-        }
+        const X = (this.graphitemdata[index][0] as number)
+        const Y = (this.graphitemdata[index][1] as number)
+        h_elem.style.left = this.zoom * (X + this.xoffset) + "px";
+        h_elem.style.top = this.zoom * (Y + this.yoffset) + "px";
+
     }
 
 
     handleMouseMoveEvent(event: MouseEvent) {
-        if ((this.gvc != null) && (this.gvc_rect != null) && (this.graphitemdata.length > 0)) {
-            this.xoffset -= this.lastX - event.clientX;
-            this.yoffset -= this.lastY - event.clientY;
-            this.lastX = event.clientX; this.lastY = event.clientY;
-            let ind = 0;
-            for (const i of this.graphitems) {
-                this.moveGraphItem(i, ind); ind += 1;
+        this.xoffset -= this.lastX - event.clientX;
+        this.yoffset -= this.lastY - event.clientY;
+        this.lastX = event.clientX; this.lastY = event.clientY;
+        let ind = 0;
+        for (const i of this.graphitems) {
+            this.moveGraphItem(i, ind); ind += 1;
 
-            }
         }
+
     }
 
     handleMouseWheelEvent(event: WheelEvent) {
+        if (this.gvc == null) { return }
+
         if (event.deltaY > 0) {
             this.zoom *= 1.1
         }
         else if (event.deltaY < 0) {
             this.zoom /= 1.1
         }
+
+        for (const i of this.graphitems) {
+            i.style.zoom = this.zoom + "";
+
+
+        }
         const ev = new MouseEvent("mousemove", { clientX: this.lastX, clientY: this.lastY })
 
         this.handleMouseMoveEvent(ev);
     }
 }
+
