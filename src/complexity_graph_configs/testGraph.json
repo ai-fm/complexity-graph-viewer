@@ -4,7 +4,8 @@
         {
             "posX": 0,
             "posY": 0,
-            "type": "test"
+            "type": "ClickableGraphNode",
+            "title": "Reachability"
         },
         {
             "posX": 50,

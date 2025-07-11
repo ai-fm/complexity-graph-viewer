@@ -1,29 +1,42 @@
-import graphStructures from "../complexity_graph_configs/graphindex";
-import { p } from "../main";
+import rawGraphStructures from "../complexity_graph_configs/graphindex";
 import "./graph_nodes.css";
+const graphStructures: {
+    graphtype: string;
+    nodes: {
+        posX: number;
+        posY: number;
+        type: string;
+        title?: string;
+    }[];
+}[] = rawGraphStructures;
 
+//GraphManager is responsible for handling construction, movement and unloading/loading of the graph elements.
 export class GraphManager {
+    //offsets represent mouse movement away from "default" position
     xoffset = 0;
     yoffset = 0;
+    //used in movement dragging calculation
     lastX = 0;
     lastY = 0;
+    //zoom factor for all graph  elements
     zoom = 1;
-
+    //graph view controller and its' bounding client rect. 
     gvc: HTMLElement | null = null;
     gvc_rect: DOMRect | null = null;
-    graphitems: HTMLElement[] = [];//HTMLCollectionOf<Element> | null = null;
-    graphitemdata: (number | string)[][] = [];//[0, 0, "test"], [50, 50, "err"], [250, 250, "test"]]; //posX,posY,nodetype. values debug, to be loaded from json
-
+    //currently active graph elements
+    graphitems: HTMLElement[] = [];
+    //positional data and other information about nodes. Read from json and applied to corresponding graphitems
+    graphitemdata: (number | string)[][] = [];
+    //Graph types that can be rendered, read from complexity_graph_configs. 
+    //Graph may be represented in results, thus dropdown, but not have corresponding graph here, leading to no graph changes.
+    //Graph may be represented in validGraphTypes but not results, thus being inaccessible.
     validGraphTypes: string[] = [];
+    //current graph type. Initialized as first valid type, can alternatively be coded to "MDP" or probably to on initialisation fetch initial Dropdown element
     graphtype = this.validGraphTypes[0];
 
-
-    constructor() {
-        p("created")
-    }
-
-
-
+    //If valid, reset graph viewer and unset graph items and data. Then, generate new graph for currently selected type
+    //!!! I can't with certainty say this removes the elements instead of simply unbinding them without automatically causing this. 
+    //i doubt that will pose a problem in either case, but i am clearly disclosing this here to make finding it a bit easier if it were to.
     updateGraphType(type: string) {
         if (this.validGraphTypes.includes(type)) {
             this.xoffset = 0;
@@ -37,60 +50,67 @@ export class GraphManager {
             }
             this.graphitems = []
             this.graphitemdata = []
+
             this.loadGraphElems(this.validGraphTypes.indexOf(type));
         }
         else { console.log("Graph type doesnt have corresponding graph!") }
     }
 
 
-
+    //for a set graph type, fetch node data, add it to graphitemdata array and pass it on to createNode
     loadGraphElems(typeIndex: number) {
         for (const i in graphStructures[typeIndex].nodes) {
             const elemX = graphStructures[typeIndex].nodes[i].posX;
             const elemY = graphStructures[typeIndex].nodes[i].posY;
             const elemType = graphStructures[typeIndex].nodes[i].type;
-            this.graphitemdata.push([elemX, elemY, elemType]);
-            this.makeTestNode(elemX, elemY, elemType);
+            let elemNodeTitle = graphStructures[typeIndex].nodes[i].title;
+            elemNodeTitle ??= "Untitled"
+            this.graphitemdata.push([elemX, elemY, elemType, elemNodeTitle]);
+            this.createNode(elemX, elemY, elemType, elemNodeTitle);
         }
     }
 
+    //initialise correct parameters 
     initGraphMGR() {
         //init gvc
-        if (this.gvc == null) {
-            this.gvc = document.getElementById("graphViewContainer");
-            if (this.gvc != null) { this.gvc_rect = this.gvc.getBoundingClientRect() }
-            else { console.log(this.gvc, this.gvc_rect, "Something has gone very wrong; GraphManager gvc nonnul, gvcrect null") }
-        }
+        this.gvc = document.getElementById("graphViewContainer");
+        if (this.gvc != null) { this.gvc_rect = this.gvc.getBoundingClientRect() }
+
         //init valid graphtypes
         for (const i in graphStructures) {
             this.validGraphTypes.push(graphStructures[i].graphtype)
         }
 
         //https://barker.codes/blog/unique-array-values-in-javascript/#check-if-every-value-is-unique
-        //checking is all MDP graph types are unique and if not throwing error (but continuing as normal, using first occurance of graph for every)
+        //checking if all MDP graph types are unique and if not throwing error (but continuing as normal, using first occurance of graph for every)
         if (!(this.validGraphTypes.every((value, _index, array) => { return array.indexOf(value) === array.lastIndexOf(value); }))) {
             console.log("Not all graph types are unique!")
         }
     }
-
-    makeTestNode(X: number, Y: number, type: string) {
+    //Given a nodes json data, initialise it based on its type.
+    createNode(X: number, Y: number, type: string, title: string) {
         if (this.gvc == null) { return }
         let nodeTest: HTMLElement
         if (type == "circle") {
             nodeTest = document.createElement("img")
-            nodeTest.setAttribute("draggable", "false")
-            nodeTest.setAttribute("class", "graphitem")
             nodeTest.setAttribute("src", "./src/graph_nodes/node_genericcircle.png")
-            nodeTest.setAttribute("style", "position:absolute;left: " + X + "px;top: " + Y + "px")
+        }
+        if (type == "ClickableGraphNode") {
+            nodeTest = document.createElement("button")
+            nodeTest.setAttribute("style", "border-radius:45%;width:auto")
+            nodeTest.textContent = title
         }
         else { //use test as default case for invalid assignments
             nodeTest = document.createElement("img")
-            nodeTest.setAttribute("draggable", "false")
-            nodeTest.setAttribute("class", "graphitem")
             nodeTest.setAttribute("src", "temp_options_button.png")
-            nodeTest.setAttribute("style", "position:absolute;left: " + X + "px;top: " + Y + "px")
         }
-        console.log(nodeTest.getAttribute("class"))
+
+        nodeTest.setAttribute("class", "graphitem")
+        nodeTest.setAttribute("draggable", "false")
+        nodeTest.setAttribute("style", "position:absolute;left: " + X + "px;top: " + Y + "px;" + nodeTest.getAttribute("style")
+        )
+        console.log(nodeTest.getAttribute("style")
+        )
         this.gvc.appendChild(nodeTest)
         this.graphitems.push(nodeTest)
 
@@ -118,7 +138,6 @@ export class GraphManager {
 
     handleMouseMoveEvent(event: MouseEvent) {
         if ((this.gvc != null) && (this.gvc_rect != null) && (this.graphitemdata.length > 0)) {
-            //if ((this.gvc_rect.top < event.clientY) && (event.clientY < this.gvc_rect.bottom) && (this.gvc_rect.left < event.clientX) && (event.clientX < this.gvc_rect.right)) {
             this.xoffset -= this.lastX - event.clientX;
             this.yoffset -= this.lastY - event.clientY;
             this.lastX = event.clientX; this.lastY = event.clientY;
@@ -127,7 +146,6 @@ export class GraphManager {
                 this.moveGraphItem(i, ind); ind += 1;
 
             }
-            //}
         }
     }
 
