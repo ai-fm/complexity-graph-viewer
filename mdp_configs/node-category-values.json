@@ -16,17 +16,13 @@
     ],
     "complexityClasses": [
         "NC",
-        "NC-hard",
-        "NC-complete",
         "P",
-        "P-hard",
-        "P-complete",
         "NP",
-        "NP-hard",
-        "NP-complete",
-        "PSPACE",
-        "PSPACE-hard",
-        "PSPACE-complete"
+        "PSPACE"
+    ],
+    "complexitySuffix": [
+        "hard",
+        "complete"
     ],
     "horizonTypes": [
         "Finite Horizon",
