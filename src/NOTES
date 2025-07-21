@@ -1,13 +1,6 @@
-Current complicatedish idea, noted down to not lose track: Implement graph manager that reads dropdown and from that reads graph type. 
-Has array of nodes (implemented from json?) and for that array of nodes has info on that node to properly generate and position it since html elem note parameter stuff is a pain atm. 
-Make it also handle mouseevents, maybe? MDPApp has central mouseevent setter but passes on to GM subfunc with neccesary data?
-
-
 TODOS: 
 - make zoom keep consistent position
-- make results one result per paper instead of one per result in jsons
 - make graph element clickable popup info view
-- load in node data from results 
 - proper nodes
 - connecting arrows
 - make actual complexity result graph 
@@ -23,18 +16,3 @@ remove "any" type for mdp results and specify actual type
 
 Graph exporter: using a set graph as a base, move around/add nodes as you see fit (buttonevents disabled), hit save button to bring up prompt to name it to then export to other folder, from which it can be moved manually into graph configs to use in future
 
-
-/node-category-values:
-TODO make complexity class only have class names and suffix have suffixes
-"complexityClasses": [
-"NC",
-"P",
-"NP",
-"PSPACE"
-],
-"complexitySuffix": [
-"complete",
-"Complete",
-"hard",
-"Hard",
-],

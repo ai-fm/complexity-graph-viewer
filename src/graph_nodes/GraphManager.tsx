@@ -12,6 +12,12 @@ const graphStructures: {
         posY: number;
         type: string;
         title?: string;
+        children?: {
+            posX: number;
+            posY: number;
+            type: string;
+            title?: string;
+        }[]
     }[];
 }[] = rawGraphStructures;
 
@@ -61,22 +67,38 @@ export class GraphManager {
             this.graphitemdata = []
 
             this.loadGraphElems(this.validGraphTypes.indexOf(type));
+            return true
         }
-        else { console.log("Graph type doesnt have corresponding graph!") }
+        else { console.log("Graph type doesnt have corresponding graph!"); return false; }
     }
 
 
     //for a set graph type, fetch node data, add it to graphitemdata array and pass it on to createNode
     loadGraphElems(typeIndex: number) {
         for (const i in graphStructures[typeIndex].nodes) {
-            const elemX = graphStructures[typeIndex].nodes[i].posX;
-            const elemY = graphStructures[typeIndex].nodes[i].posY;
-            const elemType = graphStructures[typeIndex].nodes[i].type;
-            let elemNodeTitle = graphStructures[typeIndex].nodes[i].title;
-            elemNodeTitle ??= "Untitled"
-            this.graphitemdata.push([elemX, elemY, elemType, elemNodeTitle]);
-            this.createNode(elemX, elemY, elemType, elemNodeTitle);
+            this.loadGraphElem(graphStructures[typeIndex].nodes[i])
+
         }
+    }
+
+    loadGraphElem(elem: {
+        posX: number; posY: number; type: string; title?: string; children?: {
+            posX: number;
+            posY: number;
+            type: string;
+            title?: string;
+        }[]; childDegree?: number;
+    }, parent?: HTMLElement) {
+        const elemX = elem.posX;
+        const elemY = elem.posY;
+        const elemType = elem.type;
+        let elemNodeTitle = elem.title;
+        elemNodeTitle ??= "Untitled"
+        const children = elem.children;
+        let childDeg = elem.childDegree;
+        childDeg ??= 0;
+        this.graphitemdata.push([elemX, elemY, elemType, elemNodeTitle]);
+        this.createNode(elemX, elemY, elemType, elemNodeTitle, childDeg, children, parent);
     }
 
     //initialise correct parameters 
@@ -96,21 +118,11 @@ export class GraphManager {
         //https://barker.codes/blog/unique-array-values-in-javascript/#check-if-every-value-is-unique
         //checking if all MDP graph types are unique and if not throwing error (but continuing as normal, using first occurance of graph for every)
         if (!(this.validGraphTypes.every((value, _index, array) => { return array.indexOf(value) === array.lastIndexOf(value); }))) {
-            console.log("Not all graph types are unique!")
+            p("Not all graph types are unique!")
         }
     }
 
     makeparagraph(text: string, makebreak?: boolean) {
-        //commented out code handles automatically dividing paragraphs in new paragraphs, which turns out to be unneccesary.
-        /*const maxtextlength = 70;
-        if (text.length > maxtextlength) {
-            let splitpos = Math.max(text.lastIndexOf(" ", maxtextlength), text.lastIndexOf("/", maxtextlength), text.lastIndexOf(",", maxtextlength))
-            if (splitpos == -1) { splitpos = maxtextlength }
-            this.makeparagraph(text.substring(0, splitpos))
-            this.makeparagraph(text.substring(splitpos + 1))
-            return;
-        }
-        else {*/
         const para = document.createElement("p")
         para.setAttribute("class", "nodeDataDisplayElem")
         para.style = "position:relative;left:10px;word-wrap: break-word;"
@@ -118,7 +130,7 @@ export class GraphManager {
         this.ndc?.append(para)
         this.nodeitems.push(para)
         if (makebreak) { this.makebreak() }
-        //}
+
     }
 
     makebreak() {
@@ -204,17 +216,15 @@ export class GraphManager {
     }
 
     //Given a nodes json data, initialise it based on its type.
-    createNode(X: number, Y: number, type: string, title: string) {
+    createNode(X: number, Y: number, type: string, title: string, childDegree: number, children?: { posX: number; posY: number; type: string; title?: string; }[], pParent?: HTMLElement) {
         if (this.gvc == null) { return }
-
-
+        let parent = pParent
+        parent ??= this.gvc
         let newNode: HTMLElement
-        if (type == "circle") {
-            newNode = Object.assign(document.createElement("img"), { src: "./src/graph_nodes/node_genericcircle.png" })
-        }
-
         if (type == "ClickableGraphNode") {
-            newNode = Object.assign(document.createElement("button"), { style: "border-radius:45%;width:auto" })
+            newNode = document.createElement("button")
+            newNode.style.borderRadius = "45%"
+            newNode.style.display = "inline-block"
             //checking if node title = problem type specified in node category values
             if (validCategories.problemTypes.includes(title)) {
                 newNode.textContent = title
@@ -223,16 +233,56 @@ export class GraphManager {
                 newNode.textContent = ("\"" + title + "\"?")
             }
             newNode.onclick = function () { graphMGR.displayNodeData(newNode) }
+
+
+        }
+        else if (type == "ClickableSubNode") {
+            newNode = document.createElement("button")
+            newNode.style.borderRadius = "45%"
+            newNode.setAttribute("class", newNode.getAttribute("class") + " child node")
+
+
+            newNode.style.width = "0px"
+            //checking if node title = problem type specified in node category values
+            if (validCategories.problemTypes.includes(title)) {
+                newNode.textContent = title
+            }
+            else {
+                newNode.textContent = ("\"" + title + "\"?")
+            }
+            newNode.onclick = function () { graphMGR.displayNodeData(newNode) }
+
+
         }
         else { //use test as default case for invalid assignments
             newNode = document.createElement("img")
             newNode.setAttribute("src", "temp_options_button.png")
         }
+        newNode.style.transform = ("scale(" + (1 * (0.75 ** childDegree)))
 
-        newNode.setAttribute("class", "graphitem")
+        if (children != null) {
+            for (const i of children) {
+                this.loadGraphElem(i, newNode)
+            }
+        }
+        newNode.style.width = "auto";
+        newNode.setAttribute("class", newNode.getAttribute("class") + " graphitem")
         newNode.setAttribute("draggable", "false")
-        newNode.setAttribute("style", "position:absolute;left: " + X + "px;top: " + Y + "px;" + newNode.getAttribute("style"))
-        this.gvc.appendChild(newNode)
+        //newNode.style.position = (childDegree <= 0) ? "absolute" : "relative"//
+        newNode.style.verticalAlign = "middle"
+        if (childDegree <= 0) {
+            newNode.style.position = "relative"//
+
+        }
+        else {
+            newNode.style.position = "absolute"
+
+        }
+        //newNode.style.position = "absolute"
+        newNode.style.left = X + "px"
+        newNode.style.top = Y + "px"
+        parent.appendChild(newNode)
+
         this.graphitems.push(newNode)
 
     }
@@ -244,24 +294,16 @@ export class GraphManager {
         this.lastY = event.clientY;
     }
 
-    moveGraphItem(elem: Element, index: number) {
-        const h_elem = (elem as HTMLElement)
-        const X = (this.graphitemdata[index][0] as number)
-        const Y = (this.graphitemdata[index][1] as number)
-        h_elem.style.left = this.zoom * (X + this.xoffset) + "px";
-        h_elem.style.top = this.zoom * (Y + this.yoffset) + "px";
 
-    }
 
 
     handleMouseMoveEvent(event: MouseEvent) {
-        this.xoffset -= this.lastX - event.clientX;
-        this.yoffset -= this.lastY - event.clientY;
-        this.lastX = event.clientX; this.lastY = event.clientY;
-        let ind = 0;
-        for (const i of this.graphitems) {
-            this.moveGraphItem(i, ind); ind += 1;
 
+        for (const i of this.graphitems) {
+            if (!i.getAttribute("class")?.includes("child node")) {
+                i.style.left = (parseInt(i.style.left) + event.movementX) + "px"
+                i.style.top = (parseInt(i.style.top) + event.movementY) + "px"
+            }
         }
 
     }
@@ -269,21 +311,20 @@ export class GraphManager {
     handleMouseWheelEvent(event: WheelEvent) {
         if (this.gvc == null) { return }
 
-        if (event.deltaY > 0) {
+        if (event.deltaY < 0) {
             this.zoom *= 1.1
         }
-        else if (event.deltaY < 0) {
+        else if (event.deltaY > 0) {
             this.zoom /= 1.1
         }
 
         for (const i of this.graphitems) {
-            i.style.zoom = this.zoom + "";
+            const itemzoom = (i.style.zoom.includes("%")) ? parseInt(i.style.zoom, 10) / 100 : parseInt(i.style.zoom, 10);
+            i.style.zoom = itemzoom * this.zoom + "";
 
 
         }
-        const ev = new MouseEvent("mousemove", { clientX: this.lastX, clientY: this.lastY })
 
-        this.handleMouseMoveEvent(ev);
     }
 }
 

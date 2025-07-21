@@ -4,7 +4,7 @@
         {
             "posX": 100,
             "posY": 0,
-            "type": "circle"
+            "type": "test"
         },
         {
             "posX": 0,
@@ -15,6 +15,21 @@
             "posX": 500,
             "posY": 50,
             "type": "circle"
+        },
+        {
+            "posX": 0,
+            "posY": 250,
+            "type": "ClickableGraphNode",
+            "title": "Cost Minimization",
+            "children": [
+                {
+                    "posX": 20,
+                    "posY": 250,
+                    "type": "ClickableSubNode",
+                    "title": "Policy Existence",
+                    "childDegree": 1
+                }
+            ]
         }
     ]
 }

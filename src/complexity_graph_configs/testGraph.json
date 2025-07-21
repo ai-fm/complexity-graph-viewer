@@ -10,13 +10,31 @@
         {
             "posX": 150,
             "posY": 150,
-            "type": "ClickableGraphNode"
+            "type": "ClickableGraphNode",
+            "children": [
+                {
+                    "posX": 0,
+                    "posY": 25,
+                    "type": "ClickableSubNode",
+                    "title": "test",
+                    "childDegree": 1
+                }
+            ]
         },
         {
             "posX": 0,
             "posY": 250,
             "type": "ClickableGraphNode",
-            "title": "Cost Minimization"
+            "title": "Cost Minimization",
+            "children": [
+                {
+                    "posX": 0,
+                    "posY": 25,
+                    "type": "ClickableSubNode",
+                    "title": "Policy Existence",
+                    "childDegree": 1
+                }
+            ]
         }
     ]
 }
