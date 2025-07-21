@@ -309,6 +309,7 @@ export class GraphManager {
     }
 
     handleMouseWheelEvent(event: WheelEvent) {
+
         if (this.gvc == null) { return }
 
         if (event.deltaY < 0) {
@@ -317,12 +318,11 @@ export class GraphManager {
         else if (event.deltaY > 0) {
             this.zoom /= 1.1
         }
+        //this.gvc.style.zoom = this.zoom + ""
 
-        for (const i of this.graphitems) {
-            const itemzoom = (i.style.zoom.includes("%")) ? parseInt(i.style.zoom, 10) / 100 : parseInt(i.style.zoom, 10);
-            i.style.zoom = itemzoom * this.zoom + "";
-
-
+        for (const xi of this.gvc.children) {
+            const i = xi as HTMLElement
+            i.style.zoom = this.zoom + "";
         }
 
     }
