@@ -14,6 +14,13 @@ body {
 
 
 #graphViewContainer {
+  height: 100%;
+  background-color: transparent;
+  box-sizing: content-box;
+  zoom: 100%;
+}
+
+#graphViewContainerBorder {
   border: 0.5vh solid #21f3f0;
   background-color: transparent;
   box-sizing: border-box;
@@ -23,6 +30,7 @@ body {
   zoom: 100%;
   overflow: hidden;
 }
+
 
 .settingsicon {
   margin-top: 2.5vh;

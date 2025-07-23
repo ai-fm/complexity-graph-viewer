@@ -13,9 +13,9 @@ let mousedown = false
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function p(...t: any[]) { console.log(t) }
 
-onmousedown = (event) => {
+onmousedown = () => {
     mousedown = true
-    if ((event.target == graphMGR.gvc) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseDownEvent(event) }
+    //if ((event.target == graphMGR.gvc) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseDownEvent(event) }
 }
 
 onmouseup = () => {
@@ -25,12 +25,12 @@ onmouseup = () => {
 
 onmousemove = (event) => {
     if (mousedown) {
-        if ((event.target == graphMGR.gvc) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseMoveEvent(event) }
+        if ((event.target == graphMGR.gvc?.parentNode) || (event.target == graphMGR.gvc) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseMoveEvent(event) }
     }
 }
 
 onwheel = (event) => {
-    if ((event.target == graphMGR.gvc) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseWheelEvent(event) }
+    if ((event.target == graphMGR.gvc?.parentNode) || (event.target == graphMGR.gvc) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseWheelEvent(event) }
 }
 
 //load correct graph view controller into graphmanager
