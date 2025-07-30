@@ -296,12 +296,14 @@ export class GraphManager {
 
 
 
-    handleMouseMoveEvent(event: MouseEvent) {
+    handleMouseMoveEvent(event: MouseEvent, mousedown: boolean) {
 
-        for (const i of this.graphitems) {
-            if (!i.getAttribute("class")?.includes("child node")) {
-                i.style.left = (parseInt(i.style.left) + event.movementX) + "px"
-                i.style.top = (parseInt(i.style.top) + event.movementY) + "px"
+        if (mousedown) {
+            for (const i of this.graphitems) {
+                if (!i.getAttribute("class")?.includes("child node")) {
+                    i.style.left = (parseInt(i.style.left) + event.movementX) + "px"
+                    i.style.top = (parseInt(i.style.top) + event.movementY) + "px"
+                }
             }
         }
 
