@@ -24,9 +24,8 @@ onmouseup = () => {
 }
 
 onmousemove = (event) => {
-    if (mousedown) {
-        if ((event.target == graphMGR.gvc?.parentNode) || (event.target == graphMGR.gvc) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseMoveEvent(event) }
-    }
+    if ((event.target == graphMGR.gvc?.parentNode) || (event.target == graphMGR.gvc) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseMoveEvent(event, mousedown) }
+
 }
 
 onwheel = (event) => {
