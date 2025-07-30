@@ -1,10 +1,11 @@
 TODOS: 
-- make zoom keep consistent position
-- make graph element clickable popup info view
+- Make child nodes work: Child nodes filter all parent node results down. 
+-- maybe make child nodes automatically reorder based on variable? (generic node -> policy comp-> horizon-> determinism becomes generic->policy comp-> det->horizon or filter out: generic-> policy comp-> horizon)
+- make zoom keep consistent position (again)
 - proper nodes
 - connecting arrows
 - make actual complexity result graph 
-- clean up project again. yes, its commented, but this gmdpapp-graphgen-genericnode thing will still make it a bit unorganized and so putting everything back in its proper place might help
+- comment or rename code a bit more, its clear right now and shouldnt be complex however still, it helps
 
 Far-off todos:
 Implement subgraphs (i.e. POMDP reachability subgraph for just differing approaches to it)

@@ -31,8 +31,17 @@
                     "posX": 0,
                     "posY": 25,
                     "type": "ClickableSubNode",
-                    "title": "Policy Existence",
-                    "childDegree": 1
+                    "title": "Policy Computation",
+                    "childDegree": 1,
+                    "children": [
+                        {
+                            "posX": 0,
+                            "posY": 25,
+                            "type": "ClickableSubNode",
+                            "title": "Policy Existence",
+                            "childDegree": 2
+                        }
+                    ]
                 }
             ]
         }

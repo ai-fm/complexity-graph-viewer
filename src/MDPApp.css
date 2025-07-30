@@ -16,7 +16,6 @@ body {
 #graphViewContainer {
   height: 100%;
   background-color: transparent;
-  box-sizing: content-box;
   zoom: 100%;
 }
 
