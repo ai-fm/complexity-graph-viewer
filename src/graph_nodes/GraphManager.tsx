@@ -300,8 +300,8 @@ export class GraphManager {
 
         for (const i of this.graphitems) {
             if (!i.getAttribute("class")?.includes("child node")) {
-                i.style.left = (parseInt(i.style.left) + Math.sign(event.movementX)) + "px"
-                i.style.top = (parseInt(i.style.top) + Math.sign(event.movementY)) + "px"
+                i.style.left = (parseInt(i.style.left) + event.movementX) + "px"
+                i.style.top = (parseInt(i.style.top) + event.movementY) + "px"
             }
         }
 
