@@ -23,6 +23,7 @@ const graphStructures: {
 
 //GraphManager is responsible for handling construction, movement and unloading/loading of the graph elements.
 export class GraphManager {
+
     //offsets represent mouse movement away from "default" position
     xoffset = 0;
     yoffset = 0;
@@ -217,6 +218,7 @@ export class GraphManager {
 
     //Given a nodes json data, initialise it based on its type.
     createNode(X: number, Y: number, type: string, title: string, childDegree: number, children?: { posX: number; posY: number; type: string; title?: string; }[], pParent?: HTMLElement) {
+
         if (this.gvc == null) { return }
         let parent = pParent
         parent ??= this.gvc
@@ -268,24 +270,15 @@ export class GraphManager {
         newNode.style.width = "auto";
         newNode.setAttribute("class", newNode.getAttribute("class") + " graphitem")
         newNode.setAttribute("draggable", "false")
-        //newNode.style.position = (childDegree <= 0) ? "absolute" : "relative"//
         newNode.style.verticalAlign = "middle"
-        if (childDegree <= 0) {
-            newNode.style.position = "relative"//
-            newNode.style.transformOrigin = "0 0"
-        }
-        else {
-            newNode.style.position = "absolute"
+        newNode.style.position = "absolute"
 
-        }
-        //newNode.style.position = "absolute"
         newNode.style.left = X + "px"
         newNode.style.top = Y + "px"
 
 
-        parent.appendChild(newNode)
-
         this.graphitems.push(newNode)
+        parent.appendChild(newNode)
 
     }
 
@@ -309,31 +302,24 @@ export class GraphManager {
 
     }
 
+
+
+
+
     handleMouseWheelEvent(event: WheelEvent) {
         if (this.gvc == null) { return }
-
-
 
         if (event.deltaY < 0) {
             this.zoom *= 1.1
         }
         else if (event.deltaY > 0) {
+
             this.zoom /= 1.1
         }
-        this.gvc.style.transformOrigin = ("" + event.x + "px " + event.y + "px")
+
         this.gvc.style.scale = this.zoom + ""
-        const moveX = 0//event.x - this.lastX
-        const moveY = 0//event.y - this.lastY
-        this.lastX = event.x
-        this.lastY = event.y
+        this.gvc.style.transformOrigin = ("")
 
-
-        for (const i of this.graphitems) {
-            if (!i.getAttribute("class")?.includes("child node")) {
-                i.style.left = (parseInt(i.style.left) + moveX) + "px"
-                i.style.top = (parseInt(i.style.top) + moveY) + "px"
-            }
-        }
     }
 }
 
