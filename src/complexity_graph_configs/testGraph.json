@@ -5,18 +5,21 @@
             "posX": 0,
             "posY": 0,
             "type": "ClickableGraphNode",
-            "title": "Reachability"
+            "title": "Reachability",
+            "id": "1"
         },
         {
             "posX": 150,
             "posY": 150,
             "type": "ClickableGraphNode",
+            "id": "2",
             "children": [
                 {
                     "posX": 0,
                     "posY": 25,
                     "type": "ClickableSubNode",
                     "title": "test",
+                    "id": "2.1",
                     "childDegree": 1
                 }
             ]
@@ -26,12 +29,14 @@
             "posY": 250,
             "type": "ClickableGraphNode",
             "title": "Cost Minimization",
+            "id": "3",
             "children": [
                 {
                     "posX": 0,
                     "posY": 25,
                     "type": "ClickableSubNode",
                     "title": "Policy Computation",
+                    "id": "3.1",
                     "childDegree": 1,
                     "children": [
                         {
@@ -39,11 +44,24 @@
                             "posY": 25,
                             "type": "ClickableSubNode",
                             "title": "Policy Existence",
+                            "id": "3.1.1",
                             "childDegree": 2
                         }
                     ]
                 }
             ]
+        }
+    ],
+    "connectors": [
+        {
+            "idFrom": "1",
+            "idTo": "2",
+            "type": "line"
+        },
+        {
+            "idFrom": "1",
+            "idTo": "3",
+            "type": "line"
         }
     ]
 }

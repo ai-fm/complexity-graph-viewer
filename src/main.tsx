@@ -24,15 +24,16 @@ onmouseup = () => {
 }
 
 onmousemove = (event) => {
-    if ((event.target == graphMGR.gvc?.parentNode) || (event.target == graphMGR.gvc) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseMoveEvent(event, mousedown) }
+    if ((event.target == graphMGR.gvc?.parentNode) || (event.target == graphMGR.gvc) || (event.target == graphMGR.cnv) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseMoveEvent(event, mousedown) }
 
 }
 
 onwheel = (event) => {
-    if ((event.target == graphMGR.gvc?.parentNode) || (event.target == graphMGR.gvc) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseWheelEvent(event) }
+    if ((event.target == graphMGR.gvc?.parentNode) || (event.target == graphMGR.gvc) || (event.target == graphMGR.cnv) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseWheelEvent(event) }
 }
 
 //load correct graph view controller into graphmanager
 graphMGR.initGraphMGR()
 //load initial graph
 graphMGR.loadGraphElems(0);
+document.onclick = (event) => { p(event.x, event.y) }

@@ -4,29 +4,34 @@
         {
             "posX": 100,
             "posY": 0,
-            "type": "test"
+            "type": "test",
+            "id": "1"
         },
         {
             "posX": 0,
             "posY": 50,
-            "type": "test"
+            "type": "test",
+            "id": "2"
         },
         {
             "posX": 500,
             "posY": 50,
-            "type": "circle"
+            "type": "circle",
+            "id": "3"
         },
         {
             "posX": 0,
             "posY": 250,
             "type": "ClickableGraphNode",
             "title": "Cost Minimization",
+            "id": "4",
             "children": [
                 {
                     "posX": 20,
                     "posY": 250,
                     "type": "ClickableSubNode",
                     "title": "Policy Existence",
+                    "id": "4.1",
                     "childDegree": 1
                 }
             ]

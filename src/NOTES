@@ -1,8 +1,7 @@
 TODOS: 
 - Make child nodes work: Child nodes filter all parent node results down. 
 -- maybe make child nodes automatically reorder based on variable? (generic node -> policy comp-> horizon-> determinism becomes generic->policy comp-> det->horizon or filter out: generic-> policy comp-> horizon)
-- make zoom keep consistent position (again)
-- proper nodes
+
 - connecting arrows
 - make actual complexity result graph 
 - comment or rename code a bit more, its clear right now and shouldnt be complex however still, it helps

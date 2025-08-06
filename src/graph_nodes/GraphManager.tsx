@@ -1,6 +1,5 @@
-import rawGraphStructures from "../complexity_graph_configs/graphindex";
-
 import validCategories from "../../mdp_configs/node-category-values.json";
+import rawGraphStructures from "../complexity_graph_configs/graphindex";
 import { graphMGR, p } from "../main";
 import { nodes as resultNodes } from "../nodes/nodes";
 import "./graph_nodes.css";
@@ -12,21 +11,26 @@ const graphStructures: {
         posY: number;
         type: string;
         title?: string;
+        id: string;
         children?: {
             posX: number;
             posY: number;
             type: string;
             title?: string;
+            id: string;
         }[]
+    }[],
+    connectors?: {
+        idFrom: string,
+        idTo: string,
+        type: string
     }[];
 }[] = rawGraphStructures;
 
 //GraphManager is responsible for handling construction, movement and unloading/loading of the graph elements.
 export class GraphManager {
 
-    //offsets represent mouse movement away from "default" position
-    xoffset = 0;
-    yoffset = 0;
+
     //used in movement offset calculations for zoom to prevent "warping"
     lastX = 0;
     lastY = 0;
@@ -37,6 +41,9 @@ export class GraphManager {
     gvc_rect: DOMRect | null = null;
     //node data container for results
     ndc: HTMLElement | null = null;
+    //canvas for lines between nodes.
+    cnv: HTMLCanvasElement | null = null;
+    conns: { idFrom: string; idTo: string; type: string; }[] | undefined = undefined
     //currently active graph elements
     graphitems: HTMLElement[] = [];
     //positional data and other information about nodes. Read from json and applied to corresponding graphitems
@@ -49,45 +56,54 @@ export class GraphManager {
     validGraphTypes: string[] = [];
     //current graph type. Initialized as first valid type, can alternatively be coded to "MDP" or probably to on initialisation fetch initial Dropdown element
     graphtype = "MDP";//this.validGraphTypes[0];
-    //If valid, reset graph viewer and unset graph items and data. Then, generate new graph for currently selected type
-    //!!! I can't with certainty say this removes the elements instead of simply unbinding them without automatically causing this. 
-    //i doubt that will pose a problem in either case, but i am clearly disclosing this here to make finding it a bit easier if it were to.
-    //presume it works as intended -> https://stackoverflow.com/questions/11817716/how-can-i-remove-an-element-that-is-not-in-the-dom
+    //Given valid type, reset graph viewer and unset graph items and data. Then, generate new graph for currently selected type.
     updateGraphType(type: string) {
         if (this.validGraphTypes.includes(type)) {
-            this.xoffset = 0;
-            this.yoffset = 0;
             this.lastX = 0;
             this.lastY = 0;
             this.zoom = 1;
             this.graphtype = type;
-            for (const i in this.graphitems) {
-                this.graphitems[i].remove()
-            }
+            for (const i in this.graphitems) { this.graphitems[i].remove() }
             this.graphitems = []
             this.graphitemdata = []
-
             this.loadGraphElems(this.validGraphTypes.indexOf(type));
             return true
         }
         else { console.log("Graph type doesnt have corresponding graph!"); return false; }
     }
 
-
-    //for a set graph type, fetch node data, add it to graphitemdata array and pass it on to createNode
+    //for a set graph type, fetch node data, add it to graphitemdata array and pass it on to createNode.
+    //also checks for duplicate ids.
     loadGraphElems(typeIndex: number) {
-        for (const i in graphStructures[typeIndex].nodes) {
-            this.loadGraphElem(graphStructures[typeIndex].nodes[i])
+        for (const i in graphStructures[typeIndex].nodes) { this.loadGraphElem(graphStructures[typeIndex].nodes[i]) }
 
+        const ids = []
+        for (const i of this.graphitemdata) {
+            const id = i[4]
+            if (ids.indexOf(id) != -1) { p("Duplicate id: " + id) }
+            ids.push(id)
         }
+
+        this.cnv = document.createElement("canvas")
+        let wt = this.gvc?.parentElement?.getBoundingClientRect().width; let ht = this.gvc?.parentElement?.getBoundingClientRect().height
+        wt ??= 1; ht ??= 1
+
+        this.cnv.width = wt
+        this.cnv.height = ht
+
+        this.gvc?.appendChild(this.cnv)
+        this.conns = graphStructures[typeIndex].connectors
+        this.loadConnectors()
     }
 
+    //Load in a given element by passing its information data to node data array and its graph element data to html element.
     loadGraphElem(elem: {
-        posX: number; posY: number; type: string; title?: string; children?: {
+        posX: number; posY: number; type: string; title?: string; id: string; children?: {
             posX: number;
             posY: number;
             type: string;
             title?: string;
+            id: string;
         }[]; childDegree?: number;
     }, parent?: HTMLElement) {
         const elemX = elem.posX;
@@ -95,11 +111,52 @@ export class GraphManager {
         const elemType = elem.type;
         let elemNodeTitle = elem.title;
         elemNodeTitle ??= "Untitled"
+        const elemID = elem.id;
         const children = elem.children;
         let childDeg = elem.childDegree;
         childDeg ??= 0;
-        this.graphitemdata.push([elemX, elemY, elemType, elemNodeTitle]);
-        this.createNode(elemX, elemY, elemType, elemNodeTitle, childDeg, children, parent);
+        this.createNode(elemX, elemY, elemType, elemNodeTitle, elemID, childDeg, children, parent);
+        this.graphitemdata.push([elemX, elemY, elemType, elemNodeTitle, elemID]);
+    }
+
+
+
+    loadConnectors() {
+        if ((this.cnv == null) || (this.conns == undefined) || (this.gvc == null)) { return }
+        const ctx = this.cnv.getContext("2d");
+        if (ctx == null) { p("Context is null"); return }
+        ctx.clearRect(0, 0, this.cnv.width, this.cnv.height)
+
+
+
+
+        //adapted from https://jsfiddle.net/m1erickson/86f4C/
+        for (const conn of this.conns) {
+            const connFrom = conn.idFrom;
+            const connTo = conn.idTo;
+            const elemFrom = document.getElementById(connFrom)
+            const elemTo = document.getElementById(connTo)
+            if ((elemFrom == null) || (elemTo == null)) { continue }
+            const pos1 = elemFrom.getBoundingClientRect()
+            //gvc left or top are inherent offset in gvc. Makes canvas thats otherwise unaffected by this offset work properly.
+            const pos1centerX = (pos1.left + 0.5 * (pos1.right - pos1.left)) / this.zoom - this.gvc?.getBoundingClientRect().left
+            const pos1centerY = (pos1.top + 0.5 * (pos1.bottom - pos1.top)) / this.zoom - this.gvc?.getBoundingClientRect().top
+            const pos2 = elemTo.getBoundingClientRect()
+            const pos2centerX = (pos2.left + 0.5 * (pos2.right - pos2.left)) / this.zoom - this.gvc?.getBoundingClientRect().left
+            const pos2centerY = (pos2.top + 0.5 * (pos2.bottom - pos2.top)) / this.zoom - this.gvc?.getBoundingClientRect().top
+            const connType = conn.type;
+
+            if (connType == "line") {
+                p(elemFrom.getBoundingClientRect().left)
+                ctx.beginPath();
+                ctx.moveTo(pos1centerX, pos1centerY);
+                p("start:", pos1.right, pos1.bottom, elemFrom.getBoundingClientRect().right, elemFrom.getBoundingClientRect().bottom)
+                ctx.lineTo(pos2centerX, pos2centerY);
+                ctx.stroke();
+            }
+
+        }
+
     }
 
     //initialise correct parameters 
@@ -158,10 +215,6 @@ export class GraphManager {
         this.makeparagraph("Complexity: " + complexity)
         this.makeparagraph("General approach: " + resData.generalProofType)
 
-
-
-
-
         this.makehrule()
     }
 
@@ -217,7 +270,7 @@ export class GraphManager {
     }
 
     //Given a nodes json data, initialise it based on its type.
-    createNode(X: number, Y: number, type: string, title: string, childDegree: number, children?: { posX: number; posY: number; type: string; title?: string; }[], pParent?: HTMLElement) {
+    createNode(X: number, Y: number, type: string, title: string, id: string, childDegree: number, children?: { posX: number; posY: number; type: string; title?: string; id: string }[], pParent?: HTMLElement) {
 
         if (this.gvc == null) { return }
         let parent = pParent
@@ -277,6 +330,8 @@ export class GraphManager {
         newNode.style.top = Y + "px"
 
 
+        newNode.id = id
+
         this.graphitems.push(newNode)
         parent.appendChild(newNode)
 
@@ -298,6 +353,7 @@ export class GraphManager {
                     i.style.top = (parseInt(i.style.top) + event.movementY) + "px"
                 }
             }
+            this.loadConnectors()
         }
 
     }
@@ -320,6 +376,7 @@ export class GraphManager {
         this.gvc.style.scale = this.zoom + ""
         this.gvc.style.transformOrigin = ("")
 
+        this.loadConnectors()
     }
 }
 
