@@ -39,6 +39,7 @@ export class GraphManager {
     //graph view container and its' bounding client rect. 
     gvc: HTMLElement | null = null;
     gvc_rect: DOMRect | null = null;
+    gvcoffset = this.gvc?.getBoundingClientRect().left
     //node data container for results
     ndc: HTMLElement | null = null;
     //canvas for lines between nodes.
@@ -88,10 +89,10 @@ export class GraphManager {
         let wt = this.gvc?.parentElement?.getBoundingClientRect().width; let ht = this.gvc?.parentElement?.getBoundingClientRect().height
         wt ??= 1; ht ??= 1
 
-        this.cnv.width = wt
         this.cnv.height = ht
-
-        this.gvc?.appendChild(this.cnv)
+        this.cnv.width = wt
+        this.cnv.style.position = "fixed"
+        this.gvc?.parentElement!.prepend(this.cnv)
         this.conns = graphStructures[typeIndex].connectors
         this.loadConnectors()
     }
@@ -127,8 +128,7 @@ export class GraphManager {
         if (ctx == null) { p("Context is null"); return }
         ctx.clearRect(0, 0, this.cnv.width, this.cnv.height)
 
-
-
+        this.gvcoffset ??= this.gvc.getBoundingClientRect().left
 
         //adapted from https://jsfiddle.net/m1erickson/86f4C/
         for (const conn of this.conns) {
@@ -139,18 +139,16 @@ export class GraphManager {
             if ((elemFrom == null) || (elemTo == null)) { continue }
             const pos1 = elemFrom.getBoundingClientRect()
             //gvc left or top are inherent offset in gvc. Makes canvas thats otherwise unaffected by this offset work properly.
-            const pos1centerX = (pos1.left + 0.5 * (pos1.right - pos1.left)) / this.zoom - this.gvc?.getBoundingClientRect().left
-            const pos1centerY = (pos1.top + 0.5 * (pos1.bottom - pos1.top)) / this.zoom - this.gvc?.getBoundingClientRect().top
+            const pos1centerX = (pos1.left + 0.5 * (pos1.right - pos1.left)) - this.gvcoffset
+            const pos1centerY = (pos1.top + 0.5 * (pos1.bottom - pos1.top)) - this.gvcoffset
             const pos2 = elemTo.getBoundingClientRect()
-            const pos2centerX = (pos2.left + 0.5 * (pos2.right - pos2.left)) / this.zoom - this.gvc?.getBoundingClientRect().left
-            const pos2centerY = (pos2.top + 0.5 * (pos2.bottom - pos2.top)) / this.zoom - this.gvc?.getBoundingClientRect().top
+            const pos2centerX = (pos2.left + 0.5 * (pos2.right - pos2.left)) - this.gvcoffset
+            const pos2centerY = (pos2.top + 0.5 * (pos2.bottom - pos2.top)) - this.gvcoffset
             const connType = conn.type;
 
             if (connType == "line") {
-                p(elemFrom.getBoundingClientRect().left)
                 ctx.beginPath();
                 ctx.moveTo(pos1centerX, pos1centerY);
-                p("start:", pos1.right, pos1.bottom, elemFrom.getBoundingClientRect().right, elemFrom.getBoundingClientRect().bottom)
                 ctx.lineTo(pos2centerX, pos2centerY);
                 ctx.stroke();
             }
@@ -163,7 +161,10 @@ export class GraphManager {
     initGraphMGR() {
         //init gvc
         this.gvc = document.getElementById("graphViewContainer");
-        if (this.gvc != null) { this.gvc_rect = this.gvc.getBoundingClientRect() }
+        if (this.gvc != null) {
+            this.gvc_rect = this.gvc.getBoundingClientRect()
+            this.gvcoffset = this.gvc.getBoundingClientRect().left
+        }
 
         //init ndc
         this.ndc = document.getElementById("filterAndDataContainer");

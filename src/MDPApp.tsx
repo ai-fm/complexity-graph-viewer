@@ -8,7 +8,8 @@ function MDPApp() {
       <div style="display: flex;">
         <div id="graphViewContainerBorder" style="flex-grow: 1; position:relative">
           <div id="graphViewContainer" style="flex-grow: 1; position:relative">
-          </div></div>
+          </div>
+        </div>
         <div style="display:flex; flex-direction:column" id="inputColumn">
           <div id="MDPTypeDropdownContainer">
             <MDPTypeDropdown />
