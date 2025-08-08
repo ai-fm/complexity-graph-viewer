@@ -453,8 +453,7 @@ export class GraphManager {
         outJson += "]"
 
         outJson += "}"
-        p(outJson)
-        return ""
+        return outJson
     }
 
 
@@ -466,6 +465,6 @@ export class GraphManager {
         var file = new Blob([content]);
         a.href = URL.createObjectURL(file);
         a.download = fileName;
-        //a.click();
+        a.click();
     }
 }
