@@ -4,22 +4,21 @@ import { graphMGR, p } from "../main";
 import { nodes as resultNodes } from "../nodes/nodes";
 import "./graph_nodes.css";
 p("print import for quicker debug")
+
+
+class graphDataNode {
+    posX!: number;
+    posY!: number;
+    type!: string;
+    title?: string;
+    id!: string;
+    children?: graphDataNode[];
+    childDegree?: number;
+}
+
 const graphStructures: {
     graphtype: string;
-    nodes: {
-        posX: number;
-        posY: number;
-        type: string;
-        title?: string;
-        id: string;
-        children?: {
-            posX: number;
-            posY: number;
-            type: string;
-            title?: string;
-            id: string;
-        }[]
-    }[],
+    nodes: graphDataNode[],
     connectors?: {
         idFrom: string,
         idTo: string,
@@ -49,7 +48,7 @@ export class GraphManager {
     //currently active graph elements
     graphitems: HTMLElement[] = [];
     //positional data and other information about nodes. Read from json and applied to corresponding graphitems
-    graphitemdata: (number | string)[][] = [];
+    graphitemdata: graphDataNode[] = []
     //currently active node data elements
     nodeitems: HTMLElement[] = []
     //Graph types that can be rendered, read from complexity_graph_configs. 
@@ -83,7 +82,7 @@ export class GraphManager {
 
         const ids = []
         for (const i of this.graphitemdata) {
-            const id = i[4]
+            const id = i.id
             if (ids.indexOf(id) != -1) { p("Duplicate id: " + id) }
             ids.push(id)
         }
@@ -100,16 +99,10 @@ export class GraphManager {
         this.loadConnectors()
     }
 
+
+
     //Load in a given element by passing its information data to node data array and its graph element data to html element.
-    loadGraphElem(elem: {
-        posX: number; posY: number; type: string; title?: string; id: string; children?: {
-            posX: number;
-            posY: number;
-            type: string;
-            title?: string;
-            id: string;
-        }[]; childDegree?: number;
-    }, parent?: HTMLElement) {
+    loadGraphElem(elem: graphDataNode, parent?: HTMLElement) {
         const elemX = elem.posX;
         const elemY = elem.posY;
         const elemType = elem.type;
@@ -119,8 +112,12 @@ export class GraphManager {
         const children = elem.children;
         let childDeg = elem.childDegree;
         childDeg ??= 0;
-        this.createNode(elemX, elemY, elemType, elemNodeTitle, elemID, childDeg, children, parent);
-        this.graphitemdata.push([elemX, elemY, elemType, elemNodeTitle, elemID]);
+        if (parent == null) {
+            this.createNode(elemX, elemY, elemType, elemNodeTitle, elemID, childDeg, children, parent);
+            this.graphitemdata.push(elem);
+        }
+        else {
+        }
     }
 
 
@@ -414,6 +411,32 @@ export class GraphManager {
         this.loadConnectors()
     }
 
+
+    fetchNodeJsonEntry(node: graphDataNode, list = this.graphitemdata) {
+        let outJson = ""
+        if (node != list[0]) { outJson += "," }
+        outJson += "{"
+        outJson += "\"posX\":" + node.posX + ","
+        outJson += "\"posY\":" + node.posY + ","
+        outJson += "\"type\":" + "\"" + node.type + "\","
+        if (node.title != undefined) { outJson += "\"title\":" + "\"" + node.title + "\"," }
+        outJson += "\"id\":" + "\"" + node.id + "\""
+
+        if (node.children != undefined) {
+
+            outJson += ",\"children\":" + "["
+            for (const i of node.children) {
+                outJson += this.fetchNodeJsonEntry(i, node.children)
+            }
+            outJson += "]"
+        }
+        if (node.childDegree != undefined) { outJson += ",\"childDegree\":" + node.childDegree }
+
+
+        outJson += "}"
+        return outJson
+    }
+
     getGraphAsJson() {
         let outJson = "{"
 
@@ -421,18 +444,7 @@ export class GraphManager {
         outJson += "\"nodes\":["
 
         for (const i of this.graphitemdata) {
-            if (i != this.graphitemdata[0]) { outJson += "," }
-            // graphitemdata shape is
-            //elemX, elemY, elemType, elemNodeTitle, elemID
-            outJson += "{"
-            outJson += "\"posX\":" + "\"" + i[0] + "\","
-            outJson += "\"posY\":" + "\"" + i[1] + "\","
-            outJson += "\"type\":" + "\"" + i[2] + "\","
-            outJson += "\"title\":" + "\"" + i[3] + "\","
-            outJson += "\"id\":" + "\"" + i[4] + "\""
-
-
-            outJson += "}"
+            outJson += this.fetchNodeJsonEntry(i)
         }
 
         outJson += "],"

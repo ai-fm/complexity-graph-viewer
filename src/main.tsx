@@ -41,6 +41,6 @@ graphMGR.loadGraphElems(0);
 document.onclick = (event) => {
     p(event.x, event.y)
 
-
+    graphMGR.download("debug.json")
 
 }
