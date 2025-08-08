@@ -29,6 +29,7 @@ const graphStructures: {
 
 //GraphManager is responsible for handling construction, movement and unloading/loading of the graph elements.
 export class GraphManager {
+
     //check if graphMGR is in edit mode
     editMode = false;
     //used in movement offset calculations for zoom to prevent "warping"
@@ -412,5 +413,47 @@ export class GraphManager {
 
         this.loadConnectors()
     }
-}
 
+    getGraphAsJson() {
+        let outJson = "{"
+
+        outJson += "\"graphtype\": \"" + this.graphtype + "\","
+        outJson += "\"nodes\":["
+
+        for (const i of this.graphitemdata) {
+            if (i != this.graphitemdata[0]) { outJson += "," }
+            // graphitemdata shape is
+            //elemX, elemY, elemType, elemNodeTitle, elemID
+            outJson += "{"
+            outJson += "\"posX\":" + "\"" + i[0] + "\","
+            outJson += "\"posY\":" + "\"" + i[1] + "\","
+            outJson += "\"type\":" + "\"" + i[2] + "\","
+            outJson += "\"title\":" + "\"" + i[3] + "\","
+            outJson += "\"id\":" + "\"" + i[4] + "\""
+
+
+            outJson += "}"
+        }
+
+        outJson += "],"
+        outJson += "\"connectors\":["
+
+        outJson += "]"
+
+        outJson += "}"
+        p(outJson)
+        return ""
+    }
+
+
+
+    //Transparently, this is directly taken from a stackoverflow answer. Will rework or replace if encountering problems.
+    download(fileName: string) {
+        const content = this.getGraphAsJson();
+        var a = document.createElement("a");
+        var file = new Blob([content]);
+        a.href = URL.createObjectURL(file);
+        a.download = fileName;
+        //a.click();
+    }
+}

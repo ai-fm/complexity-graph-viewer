@@ -36,4 +36,11 @@ onwheel = (event) => {
 graphMGR.initGraphMGR()
 //load initial graph
 graphMGR.loadGraphElems(0);
-document.onclick = (event) => { p(event.x, event.y) }
+
+
+document.onclick = (event) => {
+    p(event.x, event.y)
+
+
+
+}
