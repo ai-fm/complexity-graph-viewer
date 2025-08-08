@@ -56,11 +56,16 @@
         {
             "idFrom": "1",
             "idTo": "2",
-            "type": "line"
+            "type": "arrow"
         },
         {
             "idFrom": "1",
             "idTo": "3",
+            "type": "arrow"
+        },
+        {
+            "idFrom": "2",
+            "idTo": "2.1",
             "type": "line"
         }
     ]

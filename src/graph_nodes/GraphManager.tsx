@@ -29,8 +29,8 @@ const graphStructures: {
 
 //GraphManager is responsible for handling construction, movement and unloading/loading of the graph elements.
 export class GraphManager {
-
-
+    //check if graphMGR is in edit mode
+    editMode = false;
     //used in movement offset calculations for zoom to prevent "warping"
     lastX = 0;
     lastY = 0;
@@ -57,6 +57,8 @@ export class GraphManager {
     validGraphTypes: string[] = [];
     //current graph type. Initialized as first valid type, can alternatively be coded to "MDP" or probably to on initialisation fetch initial Dropdown element
     graphtype = "MDP";//this.validGraphTypes[0];
+    //temp temp temp temp
+    tempangle = 0
     //Given valid type, reset graph viewer and unset graph items and data. Then, generate new graph for currently selected type.
     updateGraphType(type: string) {
         if (this.validGraphTypes.includes(type)) {
@@ -145,8 +147,43 @@ export class GraphManager {
             const pos2centerX = (pos2.left + 0.5 * (pos2.right - pos2.left)) - this.gvcoffset
             const pos2centerY = (pos2.top + 0.5 * (pos2.bottom - pos2.top)) - this.gvcoffset
             const connType = conn.type;
+            if (connType == "arrow") {
 
-            if (connType == "line") {
+                const vecX = (pos2centerX - pos1centerX) / ((pos2centerX - pos1centerX) + (pos2centerY - pos1centerY))
+                const vecY = (pos2centerY - pos1centerY) / ((pos2centerX - pos1centerX) + (pos2centerY - pos1centerY))
+
+                const angle = (Math.PI / 180) * 120
+                const vecXL = Math.cos(angle) * vecX - Math.sin(angle) * vecY
+                const vecYL = Math.cos(angle) * vecY + Math.sin(angle) * vecX
+                const vecXR = Math.cos(-angle) * vecX - Math.sin(-angle) * vecY
+                const vecYR = Math.cos(-angle) * vecY + Math.sin(-angle) * vecX
+                p(
+                    vecX, vecY, vecX + vecY, vecXL, vecYL, vecXL + vecYL
+                )
+                const endPosLineX = pos2centerX - (vecX * 30 * this.zoom)
+                const endPosLineY = pos2centerY - (vecY * 30 * this.zoom)
+                const endPosX = pos2centerX - (vecX * 10 * this.zoom)
+                const endPosY = pos2centerY - (vecY * 10 * this.zoom)
+                const linePath = new Path2D("M " + pos1centerX + " " + pos1centerY + //start position
+                    " L " + (endPosLineX) + " " + endPosLineY //end position, scaled
+                )
+
+                ctx.stroke(linePath);
+                ctx.fill(new Path2D(
+                    " M " + (endPosLineX) + " " + endPosLineY + //last end pos
+                    " L " + (endPosLineX + (vecXL * 10 * this.zoom)) + " " + (endPosLineY + (vecYL * 10 * this.zoom)) +// left arrow point 
+                    " L " + endPosX + " " + endPosY + //fin end pos
+                    " L " + (endPosLineX + (vecXR * 10 * this.zoom)) + " " + (endPosLineY + (vecYR * 10 * this.zoom)) // right arrow point 
+
+                ))
+            }
+            else if (connType == "line") {
+                ctx.beginPath();
+                ctx.moveTo(pos1centerX, pos1centerY);
+                ctx.lineTo(pos2centerX, pos2centerY);
+                ctx.stroke();
+            }
+            else {
                 ctx.beginPath();
                 ctx.moveTo(pos1centerX, pos1centerY);
                 ctx.lineTo(pos2centerX, pos2centerY);
@@ -337,10 +374,6 @@ export class GraphManager {
         parent.appendChild(newNode)
 
     }
-
-
-
-
 
 
 
