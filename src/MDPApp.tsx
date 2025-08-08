@@ -17,7 +17,7 @@ function MDPApp() {
           <div id="filterAndDataContainer">
           </div>
           <div id="optionButtonContainer" >
-            <img class="settingsicon" src="temp_options_button.png" >
+            <img id="settingsicon" src="temp_options_button.png" >
             </img>
           </div>
         </div>

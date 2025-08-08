@@ -19,6 +19,7 @@ body {
   zoom: 100%;
 }
 
+
 #graphViewContainerBorder {
   border: 0.5vh solid #21f3f0;
   background-color: transparent;
@@ -30,8 +31,18 @@ body {
   overflow: hidden;
 }
 
+#optionsContainer {
+  border: 0.5vh solid #f32121;
+  background-color: transparent;
+  box-sizing: border-box;
+  width: 95%;
+  height: 95%;
+  border-radius: 5% 5%;
+  margin: 2.5vh;
+  zoom: 100%;
+}
 
-.settingsicon {
+#settingsicon {
   margin-top: 2.5vh;
   margin-right: 2.5vh;
   margin-left: 50vh;
@@ -48,6 +59,4 @@ body {
   border: 0.1vh solid #21f3f0;
   background-color: transparent;
   border-radius: 5%;
-  overflow-y: scroll;
-  overflow-x: hidden;
 }

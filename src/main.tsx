@@ -9,7 +9,7 @@ export const graphMGR = new GraphManager();
 
 //initialize event handlers
 let mousedown = false
-
+let optionsOpen = false
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function p(...t: any[]) { console.log(t) }
 
@@ -37,9 +37,58 @@ graphMGR.initGraphMGR()
 //load initial graph
 graphMGR.loadGraphElems(0);
 
+const optionsButton = document.getElementById("settingsicon")
+//
+//
+//
+// TIDY UP ! MAYBE MERGE APP INTO THIS BY GENERATNG ALL FROM CODE?
+//  Otherwise make this subclass for options
+//
+//
+let optionsDiv = document.getElementById("optionsContainer")
+optionsDiv ??= document.createElement("div")
+optionsDiv.setAttribute("id", "optionsContainer")
+optionsDiv.style.display = optionsOpen ? "block" : "none"
+optionsDiv.style.overflow = "hidden"
+
+export function closeOptions() {
+    if (document.getElementById("optionsContainer") != null) {
+        optionsOpen = false;
+        document.getElementById("optionsContainer")!.style.display = optionsOpen ? "block" : "none"
+    }
+}
+
+let isOptionsInit = false
+
+let container = document.getElementById("filterAndDataContainer")
+container!.prepend(optionsDiv)
+optionsButton!.onclick = (event) => {
+    optionsOpen = !optionsOpen
+    if (optionsOpen) {
+        graphMGR.undisplayNodeData()
+        container!.style.overflowY = "hidden"
+        container!.style.overflowX = "hidden"
+        if (!isOptionsInit) {
+            //lateron this will be a submenu next to other settings, accessed by a button. Right now its gonna be the only setting
+            optionsSubmenuEditGraph(optionsDiv)
+
+
+            isOptionsInit = true;
+        }
+    }
+    optionsDiv.style.display = optionsOpen ? "block" : "none"
+}
+
+
+function optionsSubmenuEditGraph(optionsBorder: HTMLElement) {
+
+    optionsBorder.appendChild(document.createElement("button"))
+    optionsBorder.appendChild(document.createElement("button"))
+
+}
 
 document.onclick = (event) => {
-    p(event.x, event.y)
+    //p(event.x, event.y)
 
     //graphMGR.download("debug.json")
 

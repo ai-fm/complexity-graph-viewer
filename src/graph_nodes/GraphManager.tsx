@@ -1,6 +1,6 @@
 import validCategories from "../../mdp_configs/node-category-values.json";
 import rawGraphStructures from "../complexity_graph_configs/graphindex";
-import { graphMGR, p } from "../main";
+import { closeOptions, graphMGR, p } from "../main";
 import { nodes as resultNodes } from "../nodes/nodes";
 import "./graph_nodes.css";
 p("print import for quicker debug")
@@ -159,9 +159,7 @@ export class GraphManager {
                 const vecYL = Math.cos(angle) * vecY + Math.sin(angle) * vecX
                 const vecXR = Math.cos(-angle) * vecX - Math.sin(-angle) * vecY
                 const vecYR = Math.cos(-angle) * vecY + Math.sin(-angle) * vecX
-                p(
-                    vecX, vecY, vecX + vecY, vecXL, vecYL, vecXL + vecYL
-                )
+
                 const endPosLineX = pos2centerX - (vecX * 30 * this.zoom)
                 const endPosLineY = pos2centerY - (vecY * 30 * this.zoom)
                 const endPosX = pos2centerX - (vecX * 10 * this.zoom)
@@ -279,19 +277,26 @@ export class GraphManager {
 
     }
 
+    undisplayNodeData() {
+        for (const i of this.nodeitems) {
+            i.remove()
+        }
+    }
     //display json results for clicked nodes, if possible
     displayNodeData(node: HTMLElement) {
         if (this.ndc == null) { return }
         //remove all "old" node info elements
-        for (const i of this.nodeitems) {
-            i.remove()
-        }
+        this.undisplayNodeData()
 
-        //rename for clarity
-        let problem = node.textContent
+        this.ndc.style.overflowY = "scroll"
+        closeOptions()
+
+        let problem
+        for (const i of this.graphitemdata) {
+            if (node.id == i.id) { problem = i.title }
+        }
         problem ??= "Untitled"
         const mdptype = this.graphtype
-
 
 
         const HeadlineText = "Displaying information for " + problem + " in " + mdptype + "(s):"
