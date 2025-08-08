@@ -66,6 +66,8 @@ export class GraphManager {
             this.lastY = 0;
             this.zoom = 1;
             this.graphtype = type;
+            const ctx = this.cnv?.getContext("2d");
+            if ((ctx != null) && (this.cnv != null)) { ctx.clearRect(0, 0, this.cnv.width, this.cnv.height) }
             for (const i in this.graphitems) { this.graphitems[i].remove() }
             this.graphitems = []
             this.graphitemdata = []
@@ -117,6 +119,8 @@ export class GraphManager {
             this.graphitemdata.push(elem);
         }
         else {
+            this.createNode(elemX, elemY, elemType, elemNodeTitle, elemID, childDeg, children, parent);
+
         }
     }
 
@@ -412,55 +416,48 @@ export class GraphManager {
     }
 
 
-    fetchNodeJsonEntry(node: graphDataNode, list = this.graphitemdata) {
-        let outJson = ""
-        if (node != list[0]) { outJson += "," }
-        outJson += "{"
-        outJson += "\"posX\":" + node.posX + ","
-        outJson += "\"posY\":" + node.posY + ","
-        outJson += "\"type\":" + "\"" + node.type + "\","
-        if (node.title != undefined) { outJson += "\"title\":" + "\"" + node.title + "\"," }
-        outJson += "\"id\":" + "\"" + node.id + "\""
+    fetchNodeJsonEntry(node: graphDataNode) {
 
+        const childrenJson: graphDataNode[] = []
         if (node.children != undefined) {
+            for (const i of node.children) { childrenJson.push(this.fetchNodeJsonEntry(i)) }
 
-            outJson += ",\"children\":" + "["
-            for (const i of node.children) {
-                outJson += this.fetchNodeJsonEntry(i, node.children)
-            }
-            outJson += "]"
         }
-        if (node.childDegree != undefined) { outJson += ",\"childDegree\":" + node.childDegree }
+        let outDict = {
+            posX: node.posX,
+            posY: node.posY,
+            type: node.type,
+            title: node.title,
+            id: node.id,
+            children: childrenJson,
+            childDegree: node.childDegree
+        }
 
 
-        outJson += "}"
-        return outJson
+        return outDict
     }
 
     getGraphAsJson() {
-        let outJson = "{"
-
-        outJson += "\"graphtype\": \"" + this.graphtype + "\","
-        outJson += "\"nodes\":["
+        const nodeEntries: graphDataNode[] = []
 
         for (const i of this.graphitemdata) {
-            outJson += this.fetchNodeJsonEntry(i)
+            this.graphitemdata.values
+            nodeEntries.push(this.fetchNodeJsonEntry(i))
+        }
+        let outDict = {
+            graphtype: this.graphtype,
+            nodes: nodeEntries,
+            connectors: this.conns
         }
 
-        outJson += "],"
-        outJson += "\"connectors\":["
-
-        outJson += "]"
-
-        outJson += "}"
-        return outJson
+        return outDict
     }
 
 
 
     //Transparently, this is directly taken from a stackoverflow answer. Will rework or replace if encountering problems.
     download(fileName: string) {
-        const content = this.getGraphAsJson();
+        const content = JSON.stringify(this.getGraphAsJson(), null, "\t");
         var a = document.createElement("a");
         var file = new Blob([content]);
         a.href = URL.createObjectURL(file);

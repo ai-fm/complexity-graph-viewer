@@ -1,12 +1,13 @@
 {
-    "graphtype": "MDP",
+    "graphtype": "Observationless MDP",
     "nodes": [
         {
             "posX": 0,
             "posY": 0,
             "type": "ClickableGraphNode",
             "title": "Reachability",
-            "id": "1"
+            "id": "1",
+            "children": []
         },
         {
             "posX": 150,
@@ -20,6 +21,7 @@
                     "type": "ClickableSubNode",
                     "title": "test",
                     "id": "2.1",
+                    "children": [],
                     "childDegree": 1
                 }
             ]
@@ -44,6 +46,7 @@
                             "type": "ClickableSubNode",
                             "title": "Policy Existence",
                             "id": "3.1.1",
+                            "children": [],
                             "childDegree": 2
                         }
                     ],
@@ -52,5 +55,21 @@
             ]
         }
     ],
-    "connectors": []
+    "connectors": [
+        {
+            "idFrom": "1",
+            "idTo": "2",
+            "type": "arrow"
+        },
+        {
+            "idFrom": "1",
+            "idTo": "3",
+            "type": "arrow"
+        },
+        {
+            "idFrom": "2",
+            "idTo": "2.1",
+            "type": "line"
+        }
+    ]
 }
