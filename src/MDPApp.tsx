@@ -14,10 +14,10 @@ function MDPApp() {
           <div id="MDPTypeDropdownContainer">
             <MDPTypeDropdown />
           </div>
-          <div id="filterAndDataContainer">
+          <div id="InformationContainer">
           </div>
           <div id="optionButtonContainer" >
-            <img id="settingsicon" src="temp_options_button.png" >
+            <img id="optionsButton" src="temp_options_button.png" >
             </img>
           </div>
         </div>

@@ -31,18 +31,9 @@ body {
   overflow: hidden;
 }
 
-#optionsContainer {
-  border: 0.5vh solid #f32121;
-  background-color: transparent;
-  box-sizing: border-box;
-  width: 95%;
-  height: 95%;
-  border-radius: 5% 5%;
-  margin: 2.5vh;
-  zoom: 100%;
-}
 
-#settingsicon {
+
+#optionsButton {
   margin-top: 2.5vh;
   margin-right: 2.5vh;
   margin-left: 50vh;
@@ -51,12 +42,12 @@ body {
   align-self: flex-end;
 }
 
-#filterAndDataContainer {
+#InformationContainer {
   margin-top: 2.5vh;
   margin-right: 2.5vh;
   height: 75vh;
   width: 60vh;
-  border: 0.1vh solid #21f3f0;
+  border: 0.5vh solid #21f3f0;
   background-color: transparent;
   border-radius: 5%;
 }
