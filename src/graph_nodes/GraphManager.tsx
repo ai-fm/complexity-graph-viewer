@@ -1,6 +1,6 @@
 import validCategories from "../../mdp_configs/node-category-values.json";
 import rawGraphStructures from "../complexity_graph_configs/graphindex";
-import { graphMGR, mousedown, optionsCTR, p } from "../main";
+import { graphMGR, mousedown, optionsCTR, optionsOpen, p } from "../main";
 import { nodes as resultNodes } from "../nodes/nodes";
 import "./graph_nodes.css";
 p("print import for quicker debug")
@@ -133,7 +133,7 @@ export class GraphManager {
     //general mouse wheel zoom
     handleMouseWheelEvent(event: WheelEvent) {
         if (this.gvc == null) { return }
-        this.zoom *= 1.1 * Math.sign(event.deltaY)
+        this.zoom *= 1.1 ** Math.sign(-event.deltaY)
         this.gvc.style.scale = this.zoom + ""
         this.gvc.style.transformOrigin = ("")
         this.loadConnectors()
@@ -152,13 +152,18 @@ export class GraphManager {
             this.graphtype = type;
             const ctx = this.cnv?.getContext("2d");
             if ((ctx != null) && (this.cnv != null)) { ctx.clearRect(0, 0, this.cnv.width, this.cnv.height) } else { p("unexpected canvas error") }
-            for (const i in this.graphitems) { this.graphitems[i].remove() }
-            this.graphitems = []
-            this.graphitemdata = []
+            this.unloadGraphItems()
             this.loadGraphElems(this.validGraphTypes.indexOf(type));
             return true
         }
         else { console.log("Graph type doesnt have corresponding graph!"); return false; }
+    }
+
+    //
+    unloadGraphItems() {
+        for (const i in this.graphitems) { this.graphitems[i].remove() }
+        this.graphitems = []
+        this.graphitemdata = []
     }
 
     //for a set graph type, fetch node data, add it to graphitemdata array and pass it on to createNode.
@@ -214,8 +219,8 @@ export class GraphManager {
         parent ??= this.gvc
         const newNode = document.createElement("button")
         newNode.style.borderRadius = "45%"
-        newNode.style.transform = ("scale(" + (1 * (0.75 ** childDegree)))
-        newNode.onclick = function () { graphMGR.displayNodeData(newNode) }
+        newNode.style.transform = "scale(" + ((childDegree > 0) ? (childDegree > 1) ? 0.65 : 0.75 : 1) + ")"
+        newNode.onclick = function () { graphMGR.nodeOnClick(newNode) }
         newNode.textContent = validCategories.problemTypes.includes(title) ? title : ("\"" + title + "\"?")
         if (children != null) { children.forEach((i) => this.loadGraphElem(i, newNode)) }
         newNode.style.display = "inline-block"
@@ -231,6 +236,18 @@ export class GraphManager {
 
         this.graphitems.push(newNode)
         parent.appendChild(newNode)
+    }
+
+    nodeOnClick(node: HTMLElement) {
+        if (optionsOpen) {
+            if (optionsCTR.nodeSelectorMode) { ; }
+            else {
+                ;//edit name
+            }
+        }
+        else {
+            graphMGR.displayNodeData(node)
+        }
     }
 
     //loads in connecting lines between nodes.
@@ -316,6 +333,7 @@ export class GraphManager {
         //close the options menu if it currently is covering the right hand screen
         this.ndc.style.overflowY = "scroll"
         this.ndc.style.overflowX = "hidden"
+        this.ndc.style.textAlign = "left"
         optionsCTR.closeOptions()
 
         let problem

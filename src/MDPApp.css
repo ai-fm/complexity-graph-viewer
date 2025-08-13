@@ -31,8 +31,6 @@ body {
   overflow: hidden;
 }
 
-
-
 #optionsButton {
   margin-top: 2.5vh;
   margin-right: 2.5vh;
@@ -44,7 +42,6 @@ body {
 
 #InformationContainer {
   margin-top: 2.5vh;
-  margin-right: 2.5vh;
   height: 75vh;
   width: 60vh;
   border: 0.5vh solid #21f3f0;

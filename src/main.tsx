@@ -26,7 +26,14 @@ onmouseup = () => {
 }
 
 onmousemove = (event) => {
-    if ((event.target == graphMGR.gvc?.parentNode) || (event.target == graphMGR.gvc) || (event.target == graphMGR.cnv) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseMoveEvent(event) }
+    if ((event.target == graphMGR.gvc?.parentNode)
+        || (event.target == graphMGR.gvc)
+        || (event.target == graphMGR.cnv)) { graphMGR.handleMouseMoveEvent(event) }
+    if (graphMGR.graphitems.includes(event.target as HTMLElement)) {
+        if (!optionsCTR.nodeSelectorMode) {
+            graphMGR.handleMouseMoveEvent(event)
+        }
+    }
 }
 
 onwheel = (event) => {
