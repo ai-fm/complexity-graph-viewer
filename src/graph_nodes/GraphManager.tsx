@@ -6,7 +6,7 @@ import "./graph_nodes.css";
 p("print import for quicker debug")
 
 
-class graphDataNode {
+export class graphDataNode {
     posX!: number;
     posY!: number;
     type!: string;
@@ -53,7 +53,8 @@ export class GraphManager {
     //graph view container and its' bounding client rect. 
     gvc: HTMLElement | null = null;
     gvc_rect: DOMRect | null = null;
-    gvcoffset = this.gvc?.getBoundingClientRect().left
+    gvcoffsetL = this.gvc?.getBoundingClientRect().left
+    gvcoffsetT = this.gvc?.getBoundingClientRect().top
     //node data container for results
     ndc: HTMLElement | null = null;
     //canvas for lines between nodes.
@@ -79,7 +80,8 @@ export class GraphManager {
         this.gvc = document.getElementById("graphViewContainer");
         if (this.gvc != null) {
             this.gvc_rect = this.gvc.getBoundingClientRect()
-            this.gvcoffset = this.gvc.getBoundingClientRect().left
+            this.gvcoffsetL = this.gvc.getBoundingClientRect().left
+            this.gvcoffsetT = this.gvc.getBoundingClientRect().top
         }
 
         //init ndc
@@ -113,6 +115,7 @@ export class GraphManager {
         }
     }
 
+
     ////
     //// Event handlers
     ////
@@ -122,12 +125,45 @@ export class GraphManager {
         if (mousedown) {
             for (const i of this.graphitems) {
                 if (!i.getAttribute("class")?.includes("child node")) {
-                    i.style.left = (parseInt(i.style.left) + event.movementX) + "px"
-                    i.style.top = (parseInt(i.style.top) + event.movementY) + "px"
+                    i.style.left = (parseFloat(i.style.left) + event.movementX) + "px"
+                    i.style.top = (parseFloat(i.style.top) + event.movementY) + "px"
                 }
             }
             this.loadConnectors()
         }
+    }
+
+    fetchParentOffset(node: HTMLElement, initial?: boolean) {
+        if (node.parentElement == null) { p("unexpected error in fetchParentOffset:No parent node, even though recursion should stop at gvc"); return [-Infinity, -Infinity] }
+        let a: number, b: number
+        if (initial) {
+
+            a = this.fetchParentOffset(node.parentElement)[0];
+            b = this.fetchParentOffset(node.parentElement)[1];
+        }
+        else if (node != this.gvc) {
+            a = parseFloat(node.style.left) + this.fetchParentOffset(node.parentElement)[0];
+            b = parseFloat(node.style.top) + this.fetchParentOffset(node.parentElement)[1];
+        }
+        else if (node == this.gvc) { return [0, 0] }
+        else { p("unexpected error in fetchParentOffset:invalid path reached"); return [-Infinity, -Infinity] }
+        return [a, b]
+
+    }
+
+    // Move only the ghost class elements. Which should only be the last activated element.
+    handleGhostMovement(node: HTMLElement, event: MouseEvent) {
+        if (this.gvc == null) { return }
+        this.gvcoffsetL ??= this.gvc.getBoundingClientRect().left
+        this.gvcoffsetT ??= this.gvc.getBoundingClientRect().top
+        node.style.opacity = "0.5"
+        let [offsetx, offsety] = this.fetchParentOffset(node, true)
+        offsetx += (this.gvcoffsetL + 0.5 * node.getBoundingClientRect().width)
+        offsety += (this.gvcoffsetT + 0.5 * node.getBoundingClientRect().height)
+        node.style.left = (event.x - offsetx) + "px"
+        node.style.top = (event.y - offsety) + "px"
+
+        this.loadConnectors()
     }
 
     //general mouse wheel zoom
@@ -138,6 +174,7 @@ export class GraphManager {
         this.gvc.style.transformOrigin = ("")
         this.loadConnectors()
     }
+
 
     //// 
     //// Graph Viewer - Graph generation
@@ -193,46 +230,38 @@ export class GraphManager {
 
     //Load in a given element by passing its information data to node data array and its graph element data to html element.
     loadGraphElem(elem: graphDataNode, parent?: HTMLElement) {
-        const elemX = elem.posX;
-        const elemY = elem.posY;
-        const elemType = elem.type;
-        let elemNodeTitle = elem.title;
-        elemNodeTitle ??= "Untitled"
-        const elemID = elem.id;
-        const children = elem.children;
-        let childDeg = elem.childDegree;
-        childDeg ??= 0;
         if (parent == null) {
-            this.createNode(elemX, elemY, elemType, elemNodeTitle, elemID, childDeg, children, parent);
+            this.createNode(elem, parent);
             this.graphitemdata.push(elem);
         }
         else {
-            this.createNode(elemX, elemY, elemType, elemNodeTitle, elemID, childDeg, children, parent);
-
+            this.createNode(elem, parent);
         }
     }
 
     //Given a nodes json data, initialise it based on its type.
-    createNode(X: number, Y: number, type: string, title: string, id: string, childDegree: number, children?: { posX: number; posY: number; type: string; title?: string; id: string }[], pParent?: HTMLElement) {
+    createNode(el: graphDataNode, pParent?: HTMLElement) {//X: number, Y: number, type: string, title: string, id: string, childDegree: number, children?: graphDataNode[], pParent?: HTMLElement) {
         if (this.gvc == null) { return }
         let parent = pParent
         parent ??= this.gvc
         const newNode = document.createElement("button")
         newNode.style.borderRadius = "45%"
-        newNode.style.transform = "scale(" + ((childDegree > 0) ? (childDegree > 1) ? 0.65 : 0.75 : 1) + ")"
-        newNode.onclick = function () { graphMGR.nodeOnClick(newNode) }
-        newNode.textContent = validCategories.problemTypes.includes(title) ? title : ("\"" + title + "\"?")
-        if (children != null) { children.forEach((i) => this.loadGraphElem(i, newNode)) }
+        el.childDegree ??= 0
+        newNode.style.transform = "scale(" + ((el.childDegree > 0) ? (el.childDegree > 1) ? 0.65 : 0.75 : 1) + ")"
+        newNode.onclick = (event) => { graphMGR.nodeOnClick(newNode); event.stopPropagation() }
+        el.title ??= "Untitled"
+        newNode.textContent = validCategories.problemTypes.includes(el.title) ? el.title : ("\"" + el.title + "\"?")
+        if (el.children != null) { el.children.forEach((i) => this.loadGraphElem(i, newNode)) }
         newNode.style.display = "inline-block"
         newNode.style.width = "auto";
         newNode.setAttribute("class", newNode.getAttribute("class") + " graphitem")
-        if (type == "ClickableSubNode") { newNode.setAttribute("class", newNode.getAttribute("class") + " child node") }
+        if (el.type == "ClickableSubNode") { newNode.setAttribute("class", newNode.getAttribute("class") + " child node") }
         newNode.setAttribute("draggable", "false")
         newNode.style.verticalAlign = "middle"
         newNode.style.position = "absolute"
-        newNode.style.left = X + "px"
-        newNode.style.top = Y + "px"
-        newNode.id = id
+        newNode.style.left = el.posX + "px"
+        newNode.style.top = el.posY + "px"
+        newNode.id = el.id
 
         this.graphitems.push(newNode)
         parent.appendChild(newNode)
@@ -240,10 +269,7 @@ export class GraphManager {
 
     nodeOnClick(node: HTMLElement) {
         if (optionsOpen) {
-            if (optionsCTR.nodeSelectorMode) { ; }
-            else {
-                ;//edit name
-            }
+            optionsCTR.handleElemClick(node)
         }
         else {
             graphMGR.displayNodeData(node)
@@ -257,7 +283,8 @@ export class GraphManager {
         if (ctx == null) { p("Context is null"); return }
         ctx.clearRect(0, 0, this.cnv.width, this.cnv.height)
 
-        this.gvcoffset ??= this.gvc.getBoundingClientRect().left
+        this.gvcoffsetL ??= this.gvc.getBoundingClientRect().left
+        this.gvcoffsetT ??= this.gvc.getBoundingClientRect().top
 
         //adapted from https://jsfiddle.net/m1erickson/86f4C/
         for (const conn of this.conns) {
@@ -268,11 +295,11 @@ export class GraphManager {
             if ((elemFrom == null) || (elemTo == null)) { continue }
             const pos1 = elemFrom.getBoundingClientRect()
             //gvc left or top are inherent offset in gvc. Makes canvas thats otherwise unaffected by this offset work properly.
-            const pos1centerX = (pos1.left + 0.5 * (pos1.right - pos1.left)) - this.gvcoffset
-            const pos1centerY = (pos1.top + 0.5 * (pos1.bottom - pos1.top)) - this.gvcoffset
+            const pos1centerX = (pos1.left + 0.5 * (pos1.right - pos1.left)) - this.gvcoffsetL
+            const pos1centerY = (pos1.top + 0.5 * (pos1.bottom - pos1.top)) - this.gvcoffsetT
             const pos2 = elemTo.getBoundingClientRect()
-            const pos2centerX = (pos2.left + 0.5 * (pos2.right - pos2.left)) - this.gvcoffset
-            const pos2centerY = (pos2.top + 0.5 * (pos2.bottom - pos2.top)) - this.gvcoffset
+            const pos2centerX = (pos2.left + 0.5 * (pos2.right - pos2.left)) - this.gvcoffsetL
+            const pos2centerY = (pos2.top + 0.5 * (pos2.bottom - pos2.top)) - this.gvcoffsetT
             const connType = conn.type;
             if (connType == "arrow") {
 

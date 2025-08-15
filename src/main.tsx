@@ -13,6 +13,8 @@ export const optionsCTR = new optionsController();
 export let mousedown = false
 export let optionsOpen = false
 export function setOptionsOpen(isOpen: boolean) { optionsOpen = isOpen }
+
+
 //shorthand print function to save time typing
 // eslint-disable-next-line @typescript-eslint/no-explicit-any 
 export function p(...t: any[]) { console.log(t) }
@@ -26,12 +28,21 @@ onmouseup = () => {
 }
 
 onmousemove = (event) => {
-    if ((event.target == graphMGR.gvc?.parentNode)
+    if (((event.target == graphMGR.gvc?.parentNode)
         || (event.target == graphMGR.gvc)
-        || (event.target == graphMGR.cnv)) { graphMGR.handleMouseMoveEvent(event) }
-    if (graphMGR.graphitems.includes(event.target as HTMLElement)) {
-        if (!optionsCTR.nodeSelectorMode) {
+        || (event.target == graphMGR.cnv))) {
+        if (!optionsOpen) {
             graphMGR.handleMouseMoveEvent(event)
+        } else {
+            optionsCTR.handleDivMovement(event)
+        }
+    }
+    if (graphMGR.graphitems.includes(event.target as HTMLElement)) {
+        if (!optionsOpen) {
+            graphMGR.handleMouseMoveEvent(event)
+        }
+        else {
+            optionsCTR.handleElemMovement(event)
         }
     }
 }

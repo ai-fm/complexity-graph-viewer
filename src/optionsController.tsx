@@ -1,3 +1,4 @@
+import { graphDataNode } from "./graph_nodes/GraphManager"
 import { graphMGR, optionsOpen, p, setOptionsOpen } from "./main"
 
 export class optionsController {
@@ -8,8 +9,11 @@ export class optionsController {
 
     activeOptionMenuElements: HTMLElement[] = []
 
+    //node currently being edited
+    activeEditNode: HTMLElement | null = null
+    //extra var used to fix parent nodes getting selected alongside child nodes
+    editNodeParent: HTMLElement | null | undefined = null
 
-    nodeSelectorMode = false
     ////
     ////Initialise options button and menu.
     ////
@@ -68,6 +72,11 @@ export class optionsController {
             createNewNode.onclick = () => {
                 createNewNode.style.color = "#0000ffff"
                 createNewNode.style.borderColor = "#0000ffff"
+                const ghost = new graphDataNode
+                ghost.type = "ClickableGraphNode"
+                //title ?: string; node title Enter text field before this?
+                //id!: string; set to next free ID 
+                this.makeGhostNode(ghost)
             }
             this.activeOptionMenuElements.push(createNewNode)
             this.oec.appendChild(createNewNode)
@@ -115,6 +124,12 @@ export class optionsController {
         else if (type == "hide") { ; }
     }
 
+    makeGhostNode(node: graphDataNode) {
+        node.children = []
+        node.childDegree = 0
+        graphMGR.loadGraphElem(node)
+    }
+
     makebreak() {
         const br = document.createElement("br")
         this.oec?.appendChild(br)
@@ -130,6 +145,36 @@ export class optionsController {
         this.optionsSubmenu("hide")
     }
 
+
+    handleDivMovement(event: MouseEvent) {
+        if (this.activeEditNode != null) {
+            graphMGR.handleGhostMovement(this.activeEditNode, event);
+        }
+        else {
+            graphMGR.handleMouseMoveEvent(event)
+        }
+    }
+
+    handleElemMovement(event: MouseEvent) {
+        if (this.activeEditNode != null) {
+            graphMGR.handleGhostMovement(this.activeEditNode, event);
+        }
+    }
+
+    handleElemClick(node: HTMLElement) {
+
+        this.activeEditNode = node
+        const prev = this.activeEditNode.onclick
+        //const prevGVC=graphMGR.gvc.onclick
+        this.activeEditNode.onclick = (event) => {
+            if (this.activeEditNode != null) {
+                this.activeEditNode.onclick = prev//() => { ; }
+                this.activeEditNode.style.opacity = "1"
+                this.activeEditNode = null
+                event.stopPropagation()
+            }
+        }
+    }
 
 }
 
