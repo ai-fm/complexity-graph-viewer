@@ -10,7 +10,7 @@ export class graphDataNode {
     posX?: number;
     posY?: number;
     type!: string;
-    title?: string;
+    title?: string | null | undefined;
     id!: string;
     children?: graphDataNode[];
     childDegree?: number;
@@ -428,7 +428,9 @@ export class GraphManager {
     makeparagraph(text: string, makebreak?: boolean) {
         const para = document.createElement("p")
         para.setAttribute("class", "nodeDataDisplayElem")
-        para.style = "position:relative;left:10px;word-wrap: break-word;"
+        para.style.position = "relative"
+        para.style.left = "10px"
+        para.style.wordWrap = "break-word"
         para.textContent = text;
         this.ndc.append(para)
         this.nodeitems.push(para)

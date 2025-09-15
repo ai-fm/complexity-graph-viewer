@@ -69,7 +69,8 @@ export class optionsController {
             this.oec.style.textAlign = "center";
 
             const editModeExplanation = document.createElement("p")
-            editModeExplanation.style = "position:relative;word-wrap: break-word;"
+            editModeExplanation.style.position = "relative"
+            editModeExplanation.style.wordWrap = "break-word"
             editModeExplanation.textContent = "Welcome to the graph editor. You can customize a graph using the buttons and fields below. If you are unsure what a button does, just hover over it for a tooltip. Changes here don't affect the graph configs. To export this graph, simply hit the download button and move it into \\src\\complexity_graph_configs."
             this.activeOptionMenuElements.push(editModeExplanation)
             this.oec.appendChild(editModeExplanation)
