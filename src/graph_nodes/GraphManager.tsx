@@ -213,13 +213,14 @@ export class GraphManager {
 
     //Load in a given element by passing its information data to node data array and its graph element data to html element.
     loadGraphElem(elem: graphDataNode, parent?: HTMLElement) {
-        if (parent == null) {
-            this.createNode(elem, parent);
-            this.graphitemdata.push(elem);
-        }
-        else {
-            this.createNode(elem, parent);
-        }
+        //if (parent == null) {
+        this.createNode(elem, parent);
+        this.graphitemdata.push(elem);
+        //}
+        //else {
+        // this.createNode(elem, parent);
+
+        //}
 
     }
 
@@ -493,7 +494,7 @@ export class GraphManager {
     getGraphAsJson() {
         const nodeEntries: graphDataNode[] = []
         for (const i of this.graphitemdata) {
-            nodeEntries.push(this.fetchNodeJsonEntry(i))
+            if (i.type == "ClickableGraphNode") { nodeEntries.push(this.fetchNodeJsonEntry(i)) }
         }
         const outDict = {
             graphtype: this.graphtype,

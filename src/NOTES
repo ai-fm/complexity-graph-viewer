@@ -1,18 +1,15 @@
 TODOS: 
-child nodes (w ids)
+
 connectors
 
 
-make graph editing less buggy and so on
+! Recently changed graphitems to take all, incl children. This hasnt caused any problems but just in case, here is a disclaimer.
 
-
-MAKE GVC AND SIMILAR STATIC WHY ARENT THEY STATIC ALREADY SO MANY POINTLESS IFNULLRETURN LINES
 - Make child nodes work: Child nodes filter all parent node results down. 
 -- maybe make child nodes automatically reorder based on variable? (generic node -> policy comp-> horizon-> determinism becomes generic->policy comp-> det->horizon or filter out: generic-> policy comp-> horizon)
 
 - make actual complexity result graph 
 
-Far-off todos:
 Implement subgraphs (i.e. POMDP reachability subgraph for just differing approaches to it)
 Implement By-Problem view instead of By-Type view
 Settings
@@ -21,3 +18,4 @@ make maxtitlelength for node title length limitation dynamic
 remove "any" type for mdp results and specify actual type
 
 
+make graph editing less buggy and so on (fix weird behaviour when making new child nodes, fix child nodes moving slower)

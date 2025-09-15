@@ -39,16 +39,21 @@ export class optionsController {
     }
 
     //fetch next free id in graphitems
-    fetchNextFreeID(maxid: number): string {
+    fetchNextFreeID(maxid: number, prefix = "", sibs?: Element[]): string {
         let taken = false;
-        graphMGR.graphitems.forEach(el => {
-            if (el.id == ("" + maxid)) { taken = true }
+        let siblings = sibs;
+        siblings ??= graphMGR.graphitems
+
+        siblings.forEach((el: { id: string }) => {
+            if (el.id.includes("SP")) { return }
+            if (el.id == (prefix + maxid)) { taken = true }
+            p(el.id, prefix, maxid, el.id == (prefix + maxid))
         });
         if (taken == false) {
-            return ("" + maxid)
+            return (prefix + maxid)
         }
         else {
-            return this.fetchNextFreeID(maxid + 1)
+            return this.fetchNextFreeID(maxid + 1, prefix, siblings)
         }
     }
 
@@ -85,12 +90,8 @@ export class optionsController {
             createNewNode.textContent = "Create new node"
             createNewNode.style.display = "inline"
             createNewNode.style.width = "90%"
-            createNewNode.title = "Click to activate. While active, click anywhere on the graph viewer to place it down at that spot."
-            createNewNode.onclick = () => {
-                const ghost = new graphDataNode
-                ghost.type = "ClickableGraphNode"
-                this.makeGhostNode(ghost)
-            }
+            createNewNode.title = "Click to create a node. Click that node again to name it."
+            createNewNode.onclick = () => { this.makeGhostNode() }
             this.activeOptionMenuElements.push(createNewNode)
             this.oec.appendChild(createNewNode)
 
@@ -102,9 +103,29 @@ export class optionsController {
             createChildNode.style.display = "inline"
             createChildNode.style.width = "90%"
             createNewNode.title = "Click to activate. While active, click a parent node to link it to, then a second place at which it will automatically generate linked to it."
-            createChildNode.onclick = () => {
+            createChildNode.onclick = (event) => {
                 createChildNode.style.color = "#0000ffff"
                 createChildNode.style.borderColor = "#0000ffff"
+                this.graphtextedit(false)
+                event.stopImmediatePropagation()
+
+                //this is potentially very inefficient-setting all graph elements onclicks to something else temporarily. I'll rework this when i have a working build. its not like its harmful, its just a bit inefficient.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any 
+                const prev: any[] = [] //explicit any this time because its type annotation is a pain and event handlers need extra type. On later review, maybe rework
+                for (const i of graphMGR.graphitems) {
+                    prev.push(i.onclick)
+                    i.onclick = () => {
+                        createChildNode.style.color = "#000000ff"
+                        createChildNode.style.borderColor = ""
+                        this.graphtextedit(true)
+
+                        this.makeGhostChildNode(i);
+
+                        for (const j in graphMGR.graphitems) {
+                            graphMGR.graphitems[j].onclick = prev[j]
+                        }
+                    }
+                }
             }
             this.activeOptionMenuElements.push(createChildNode)
             this.oec.appendChild(createChildNode)
@@ -134,28 +155,73 @@ export class optionsController {
             this.activeOptionMenuElements.push(downloadBTN)
             this.oec.appendChild(downloadBTN)
 
-            for (const i of graphMGR.graphitemtext) {
-                i.contentEditable = "true";
-            }
+            this.graphtextedit(true)
 
         }
         else if (type == "hide") {
-            for (const i of graphMGR.graphitemtext) {
-                i.contentEditable = "false";
-            }
+            this.graphtextedit(false)
         }
     }
 
-    makeGhostNode(node: graphDataNode) {
+    graphtextedit(bool: boolean) {
+        for (const i of graphMGR.graphitemtext) {
+            i.contentEditable = "" + bool;
+        }
+    }
+
+    makeGhostNode() {
+        const node = new graphDataNode
+        node.type = "ClickableGraphNode"
         node.title = "new"
         node.id = this.fetchNextFreeID(1);
-        p(node.id)
         node.children = []
         node.childDegree = 0
         graphMGR.loadGraphElem(node)
         document.getElementById(node.id)?.dispatchEvent(new MouseEvent('dblclick'))
         const sp = document.getElementById(node.id + "SP"); if (sp != null) { sp.contentEditable = "true"; } //maybe clean this part up?
     }
+
+
+
+    recurseChildDeg(node: HTMLElement, degree: number) {
+        //graph data equivalent
+        for (const i of graphMGR.graphitemdata) {
+            if (i.id == node.id) {
+                if (i.childDegree == degree) {
+                    i.childDegree += 1;
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    this.recurseChildDeg(node.parentElement!, degree + 1)
+                }
+            }
+        }
+
+    }
+
+    makeGhostChildNode(parent: HTMLElement) {
+        const node = new graphDataNode
+        node.type = "ClickableSubNode"
+        node.title = "new"
+        node.id = this.fetchNextFreeID(1, parent.id + ".", [...parent.children])
+        node.children = []
+        node.childDegree = 0
+        this.recurseChildDeg(parent, 0)
+        node.posX = 0;
+        node.posY = 20;
+        graphMGR.loadGraphElem(node, parent)
+
+        for (const i of graphMGR.graphitemdata) {
+            if (i.id == parent.id) {
+                i.children ??= []
+                i.children.push(node)
+            }
+        }
+
+
+
+        document.getElementById(node.id)?.dispatchEvent(new MouseEvent('dblclick'))
+        const sp = document.getElementById(node.id + "SP"); if (sp != null) { sp.contentEditable = "true"; } //maybe clean this part up?
+    }
+
 
     makebreak() {
         const br = document.createElement("br")
@@ -222,11 +288,15 @@ export class optionsController {
 
         const prev = this.activeEditNode.onclick
         const gvcprev = graphMGR.gvc.onclick
+        const gvcp = graphMGR.gvc.parentElement; if (gvcp == null) { return }
+        const gvcpprev = gvcp.onclick
+
         this.activeEditNode.onclick = (event) => {
             if (this.activeEditNode != null) {
                 for (const i of graphMGR.graphitemdata) {
                     this.setNewPos(i, node)
                 }
+                gvcp.onclick = gvcpprev
                 graphMGR.gvc.onclick = gvcprev
                 this.activeEditNode.onclick = prev
                 this.activeEditNode.style.opacity = "1"
@@ -239,6 +309,20 @@ export class optionsController {
                 for (const i of graphMGR.graphitemdata) {
                     this.setNewPos(i, node)
                 }
+                gvcp.onclick = gvcpprev
+                graphMGR.gvc.onclick = gvcprev
+                this.activeEditNode.onclick = prev
+                this.activeEditNode.style.opacity = "1"
+                this.activeEditNode = null
+                event.stopPropagation()
+            }
+        }
+        gvcp.onclick = (event) => {
+            if (this.activeEditNode != null) {
+                for (const i of graphMGR.graphitemdata) {
+                    this.setNewPos(i, node)
+                }
+                gvcp.onclick = gvcpprev
                 graphMGR.gvc.onclick = gvcprev
                 this.activeEditNode.onclick = prev
                 this.activeEditNode.style.opacity = "1"
