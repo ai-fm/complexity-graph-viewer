@@ -38,6 +38,10 @@ export class optionsController {
         }
     }
 
+    //fetch next free id in graphitems
+    fetchNextFreeID() {
+        return "unimp"
+    }
 
     optionsSubmenu(type: string) {
         if (this.oec == null) { p("OptionsElementsContainer is empty!"); return }
@@ -71,12 +75,8 @@ export class optionsController {
             createNewNode.style.width = "90%"
             createNewNode.title = "Click to activate. While active, click anywhere on the graph viewer to place it down at that spot."
             createNewNode.onclick = () => {
-                createNewNode.style.color = "#0000ffff"
-                createNewNode.style.borderColor = "#0000ffff"
                 const ghost = new graphDataNode
                 ghost.type = "ClickableGraphNode"
-                //title ?: string; node title Enter text field before this?
-                //id!: string; set to next free ID 
                 this.makeGhostNode(ghost)
             }
             this.activeOptionMenuElements.push(createNewNode)
@@ -122,22 +122,26 @@ export class optionsController {
             this.activeOptionMenuElements.push(downloadBTN)
             this.oec.appendChild(downloadBTN)
 
-            for (const i of graphMGR.graphitems) {
+            for (const i of graphMGR.graphitemtext) {
                 i.contentEditable = "true";
             }
 
         }
         else if (type == "hide") {
-            for (const i of graphMGR.graphitems) {
+            for (const i of graphMGR.graphitemtext) {
                 i.contentEditable = "false";
             }
         }
     }
 
     makeGhostNode(node: graphDataNode) {
+        node.title = "Node"
+        node.id = this.fetchNextFreeID();
         node.children = []
         node.childDegree = 0
         graphMGR.loadGraphElem(node)
+        document.getElementById(node.id)?.dispatchEvent(new MouseEvent('dblclick'))
+        const sp = document.getElementById(node.id + "SP"); if (sp != null) { sp.contentEditable = "true"; } //maybe clean this part up?
     }
 
     makebreak() {

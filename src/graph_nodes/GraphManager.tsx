@@ -60,6 +60,8 @@ export class GraphManager {
     conns: { idFrom: string; idTo: string; type: string; }[] | undefined = undefined
     //currently active graph elements
     graphitems: HTMLElement[] = [];
+    //stores button span elements that store their title, to avoid some of the issues that come with making it tied to textcontent (i.e. empty textcontent deleting child nodes, no space, etc)
+    graphitemtext: HTMLElement[] = [];
     //positional data and other information about nodes. Read from json and applied to corresponding graphitems
     graphitemdata: graphDataNode[] = []
     //currently active node data elements
@@ -67,7 +69,7 @@ export class GraphManager {
     //Graph types that can be rendered, read from complexity_graph_configs. 
     validGraphTypes: string[] = [];
     //current graph type. Initialized as first valid type, can alternatively be coded to "MDP" or probably to on initialisation fetch initial Dropdown element
-    graphtype = this.validGraphTypes[0];
+    graphtype = "Unininitalized"
 
     constructor() {
         let candidate = document.getElementById("graphViewContainer");
@@ -82,6 +84,7 @@ export class GraphManager {
             p("throw placeholder standin print: ndc invalid"); candidate = document.createElement("p")
         }
         this.ndc = candidate
+
     }
 
 
@@ -217,6 +220,7 @@ export class GraphManager {
         else {
             this.createNode(elem, parent);
         }
+
     }
 
     //Given a nodes json data, initialise it based on its type.
@@ -227,13 +231,24 @@ export class GraphManager {
         newNode.style.borderRadius = "45%"
         el.childDegree ??= 0
         newNode.style.transform = "scale(" + ((el.childDegree > 0) ? (el.childDegree > 1) ? 0.65 : 0.75 : 1) + ")"
+
+        //span to hold buttons text instead of button. avoids some issues.
+        const txtspan = document.createElement("span")
+
         //display data on click. passed through handler.
-        newNode.onclick = (event) => { graphMGR.nodeOnClick(newNode, event); }
+        newNode.onclick = (event) => {
+            //empty span failsafe [Buttons can get emptied out text and onchange and emptied functions dont seem to fire, so instead, putting it here]
+            const sp = document.getElementById(newNode.id + "SP") //var for null check
+            if (sp != null && sp.textContent == "") { sp.textContent = "<>"; }
+
+            graphMGR.nodeOnClick(newNode, event);
+        }
         //edit node content on dbclick. passed through handler, edit mode only
         newNode.ondblclick = (event) => { graphMGR.nodeOnDBLClick(newNode, event); }
 
         el.title ??= "Untitled"
-        newNode.textContent = validCategories.problemTypes.includes(el.title) ? el.title : ("\"" + el.title + "\"?")
+        txtspan.textContent = validCategories.problemTypes.includes(el.title) ? el.title : ("\"" + el.title + "\"?")
+
         if (el.children != null) { el.children.forEach((i) => this.loadGraphElem(i, newNode)) }
         newNode.style.display = "inline-block"
         newNode.style.width = "auto";
@@ -246,9 +261,14 @@ export class GraphManager {
         newNode.style.left = el.posX + "px"
         newNode.style.top = el.posY + "px"
         newNode.id = el.id
+        txtspan.id = el.id + "SP"
+
 
         this.graphitems.push(newNode)
         parent.appendChild(newNode)
+
+        this.graphitemtext.push(txtspan)
+        newNode.appendChild(txtspan)
     }
 
 
@@ -456,24 +476,11 @@ export class GraphManager {
             for (const i of node.children) { childrenJson.push(this.fetchNodeJsonEntry(i)) }
         }
 
-        //fetch titles from graph. shouldve been done with onchange for each node, but one global update at the end doesnt hurt.
-        //most of this is formatting since child nodes textcontent is appended to parent node textcontent.
-        const gnode = document.getElementById(node.id)
-        if (gnode == null) { p("No corresponding graph element for " + node.id + " upon download attempt."); const err = new graphDataNode; err.id = node.id; err.title = "error"; return err }
-        let title
-        if (gnode.children.length == 0) {
-            title = gnode.textContent
-        }
-        else {
-            title = gnode.textContent.substring(0, gnode.textContent.indexOf(gnode.children[0].textContent))
-        }
-
-
         const outDict = {
             posX: node.posX,
             posY: node.posY,
             type: node.type,
-            title: title,
+            title: document.getElementById(node.id + "SP")?.textContent,//span text container of element
             id: node.id,
             children: childrenJson,
             childDegree: node.childDegree

@@ -17,7 +17,7 @@ export default function MDPTypeDropdown() {
         graphMGR.updateGraphType(e.currentTarget.value);
         setValue(e.currentTarget.value)
       }}>
-        {window.onload = function () { { addOptions(graphMGR.addMDPTypes(MDPTypes), document.getElementById("selectMDP")); } }}
+        {window.onload = function () { { addOptions(graphMGR.addMDPTypes(MDPTypes), document.getElementById("selectMDP")); graphMGR.graphtype = MDPTypes[0] } }}
       </select>
     </div>
   );
