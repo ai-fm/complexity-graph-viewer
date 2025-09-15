@@ -133,6 +133,75 @@ export class optionsController {
             this.makebreak()
             this.makebreak()
 
+            const createNewConn = document.createElement("button")
+            createNewConn.textContent = "Create new connect"
+            createNewConn.style.display = "inline"
+            createNewConn.style.width = "90%"
+            createNewConn.title = "Click two nodes to create or delete a connection between them."
+            createNewConn.onclick = (event) => {
+                createNewConn.style.color = "#0000ffff"
+                createNewConn.style.borderColor = "#0000ffff"
+
+                this.graphtextedit(false)
+                event.stopImmediatePropagation()
+
+
+                let from: string | null = null
+                let to: string | null = null
+                const type = "line"
+                //this is potentially very inefficient-setting all graph elements onclicks to something else temporarily. I'll rework this when i have a working build. its not like its harmful, its just a bit inefficient.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any 
+                const prev: any[] = [] //explicit any this time because its type annotation is a pain and event handlers need extra type. On later review, maybe rework
+                for (const i of graphMGR.graphitems) {
+                    prev.push(i.onclick)
+                    i.onclick = () => {
+                        if (from == null) {
+                            createNewConn.style.color = "#00ff00ff"
+                            createNewConn.style.borderColor = "#00ff00ff"
+                            from = i.id;
+                        }
+                        else {
+
+                            to = i.id;
+
+                            createNewConn.style.color = "#000000ff"
+                            createNewConn.style.borderColor = ""
+                            for (const j in graphMGR.graphitems) {
+                                graphMGR.graphitems[j].onclick = prev[j]
+                            }
+                            graphMGR.conns ??= []
+                            let inConnections = false;
+                            let conn
+                            for (const i of graphMGR.conns) {
+                                if (
+                                    i.idFrom == from && i.idTo == to
+                                ) { inConnections = true; conn = i }
+                            }
+                            p(conn)
+                            conn ??= { idFrom: from, idTo: to, type }
+                            if (inConnections) {
+                                p(conn,)
+                                p(graphMGR.conns)
+                                p(graphMGR.conns.indexOf(conn))
+                                graphMGR.conns.splice(graphMGR.conns.indexOf(conn), 1)
+                            }
+                            else {
+                                graphMGR.conns.push(conn)
+                            }
+                            graphMGR.loadConnectors()
+                        }
+                        p(from, to)
+                    }
+                }
+
+
+
+            }
+            this.activeOptionMenuElements.push(createNewConn)
+            this.oec.appendChild(createNewConn)
+
+            this.makebreak()
+            this.makebreak()
             const downloadName = document.createElement("input")
             downloadName.placeholder = "Name the resulting json file."
             downloadName.style.display = "inline"
