@@ -1,9 +1,6 @@
 TODOS: 
-new nodes have ids 
-child nodes
+child nodes (w ids)
 connectors
-editable graph name
-make buttons use spans for text isntead
 
 
 make graph editing less buggy and so on

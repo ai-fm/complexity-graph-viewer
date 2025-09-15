@@ -247,7 +247,8 @@ export class GraphManager {
         newNode.ondblclick = (event) => { graphMGR.nodeOnDBLClick(newNode, event); }
 
         el.title ??= "Untitled"
-        txtspan.textContent = validCategories.problemTypes.includes(el.title) ? el.title : ("\"" + el.title + "\"?")
+        //if titled new, leave empty for user to name. Else, if invalid, add ""? to name to indicate so.
+        txtspan.textContent = el.title == "new" ? "-" : validCategories.problemTypes.includes(el.title) ? el.title : ("\"" + el.title + "\"?")
 
         if (el.children != null) { el.children.forEach((i) => this.loadGraphElem(i, newNode)) }
         newNode.style.display = "inline-block"

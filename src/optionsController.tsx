@@ -39,10 +39,22 @@ export class optionsController {
     }
 
     //fetch next free id in graphitems
-    fetchNextFreeID() {
-        return "unimp"
+    fetchNextFreeID(maxid: number): string {
+        let taken = false;
+        graphMGR.graphitems.forEach(el => {
+            if (el.id == ("" + maxid)) { taken = true }
+        });
+        if (taken == false) {
+            return ("" + maxid)
+        }
+        else {
+            return this.fetchNextFreeID(maxid + 1)
+        }
     }
 
+
+
+    //this is a lot. maybe break into smaller chunks later.
     optionsSubmenu(type: string) {
         if (this.oec == null) { p("OptionsElementsContainer is empty!"); return }
 
@@ -135,8 +147,9 @@ export class optionsController {
     }
 
     makeGhostNode(node: graphDataNode) {
-        node.title = "Node"
-        node.id = this.fetchNextFreeID();
+        node.title = "new"
+        node.id = this.fetchNextFreeID(1);
+        p(node.id)
         node.children = []
         node.childDegree = 0
         graphMGR.loadGraphElem(node)
