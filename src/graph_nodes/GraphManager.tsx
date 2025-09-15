@@ -1,3 +1,4 @@
+
 import validCategories from "../../mdp_configs/node-category-values.json";
 import rawGraphStructures from "../complexity_graph_configs/graphindex";
 import { graphMGR, mousedown, optionsCTR, optionsOpen, p } from "../main";
@@ -14,6 +15,7 @@ export class graphDataNode {
     id!: string;
     children?: graphDataNode[];
     childDegree?: number;
+    valueType?: string
 }
 
 class complexityResult {
@@ -40,6 +42,7 @@ const graphStructures: {
         type: string
     }[];
 }[] = rawGraphStructures;
+
 
 //GraphManager is responsible for handling construction, movement and unloading/loading of the graph elements.
 export class GraphManager {
@@ -85,6 +88,14 @@ export class GraphManager {
         }
         this.ndc = candidate
 
+
+        for (const i of graphStructures) {
+            for (const j of i.nodes) {
+                let title = "error";
+                if ((j.title != null) && (j.title != undefined)) { title = j.title }
+                j.valueType = this.getValueTypeFromTitle(title)
+            }
+        }
     }
 
 
@@ -188,8 +199,6 @@ export class GraphManager {
             p("Not all graph types are unique!")
         }
 
-
-
         for (const i in graphStructures[typeIndex].nodes) { this.loadGraphElem(graphStructures[typeIndex].nodes[i]) }
 
         const ids = []
@@ -225,7 +234,7 @@ export class GraphManager {
     }
 
     //Given a nodes json data, initialise it based on its type.
-    createNode(el: graphDataNode, pParent?: HTMLElement) {//X: number, Y: number, type: string, title: string, id: string, childDegree: number, children?: graphDataNode[], pParent?: HTMLElement) {
+    createNode(el: graphDataNode, pParent?: HTMLElement) {
         let parent = pParent
         parent ??= this.gvc
         const newNode = document.createElement("button")
@@ -365,8 +374,65 @@ export class GraphManager {
     //// Graph Viewer - active use functions
     ////
 
+    findItemById(id: string): graphDataNode | undefined {
+        for (const i of this.graphitemdata) {
+            if (i.id == id) { return i }
+        }
+    }
+    findTextElemById(id: string): HTMLElement | undefined {
+        for (const i of this.graphitemtext) {
+            if (i.id == (id + "SP")) { return i }
+        }
+    }
+
+    recurseFilters(node: HTMLElement) {
+
+        const par = node.parentElement;
+        p(this.findTextElemById(node.id)?.textContent, this.findItemById(node.id)?.valueType)
+        if (par == null || par == this.gvc) { return }
+        this.recurseFilters(par)
+    }
+
     //display json results for clicked nodes, if possible
     displayNodeData(node: HTMLElement) {
+        //remove all "old" node info elements
+        this.undisplayNodeData()
+
+        //close the options menu if it currently is covering the right hand screen
+        //if in edit mode this wont be able to be called, obviously
+        this.ndc.style.overflowY = "scroll"
+        this.ndc.style.overflowX = "hidden"
+        this.ndc.style.textAlign = "left"
+        optionsCTR.closeOptions()
+
+        p(node)
+        this.recurseFilters(node)
+        p("a")
+        /*
+                let problem
+                for (const i of this.graphitemdata) {
+                    if (node.id == i.id) {
+                        problem = i.title
+                    }
+                }
+                problem ??= "Title not found"
+                const mdptype = this.graphtype
+                
+        
+                const HeadlineText = "Displaying information for " + problem + " in " + mdptype + "(s):"
+                this.makeparagraph(HeadlineText, true)
+                const nodeResults: complexityResult[] = [];
+                const nodeResultTitles: string[] = [];
+                this.fetchResults(mdptype, problem, nodeResults, nodeResultTitles)
+                if (nodeResults.length == 0) { this.makeparagraph("Sorry, no results found. You can add additional results in complexity_result_jsons\\json_directory following the guide template. Add them into the import list in index.ts, and the program should handle the rest.") }
+                for (const i in nodeResults) {
+                    const ii = parseInt(i)
+                    this.makeresult(ii + 1, nodeResultTitles[i], nodeResults[i])
+                }*/
+    }
+
+    //OLD, REDACTED FOR EXPERIMENTAL
+    /*displayNodeData(node: HTMLElement) {
         //remove all "old" node info elements
         this.undisplayNodeData()
 
@@ -398,7 +464,7 @@ export class GraphManager {
             const ii = parseInt(i)
             this.makeresult(ii + 1, nodeResultTitles[i], nodeResults[i])
         }
-    }
+    }*/
 
     //get the names and data for a given mdp type and problem type combination
     fetchResults(mdptype: string, problemtype: string, nodeResults: complexityResult[], nodeResPapers: string[]) {
@@ -479,17 +545,42 @@ export class GraphManager {
         if (node.children != undefined) {
             for (const i of node.children) { childrenJson.push(this.fetchNodeJsonEntry(i)) }
         }
-
+        const title_unsafe = document.getElementById(node.id + "SP")?.textContent
+        let title = "error"
+        if (title_unsafe != undefined) { title = title_unsafe as string }
         const outDict = {
             posX: node.posX,
             posY: node.posY,
             type: node.type,
-            title: document.getElementById(node.id + "SP")?.textContent,//span text container of element
+            title: title,//span text container of element
             id: node.id,
             children: childrenJson,
-            childDegree: node.childDegree
+            childDegree: node.childDegree,
+            valueType: this.getValueTypeFromTitle(title)
         }
         return outDict
+    }
+
+    getValueTypeFromTitle(title: string) {
+
+        if (validCategories.ambiguitySetConvexness.includes(title)) { return "ambiguitySetConvexness"; }
+        if (validCategories.ambiguitySetRectangularity.includes(title)) { return "ambiguitySetRectangularity"; }
+        if (validCategories.analysisTypes.includes(title)) { return "analysisTypes"; }
+        if (validCategories.complexityClasses.includes(title)) { return "complexityClasses"; }
+        if (validCategories.complexitySuffix.includes(title)) { return "complexitySuffix"; }
+        if (validCategories.dependenceTypes.includes(title)) { return "dependenceTypes"; }
+        if (validCategories.determinism.includes(title)) { return "determinism"; }
+        if (validCategories.horizonTypes.includes(title)) { return "horizonTypes"; }
+        if (validCategories.mdpRepresentations.includes(title)) { return "mdpRepresentations"; }
+        if (validCategories.mdpTypes.includes(title)) { return "mdpTypes"; }
+        if (validCategories.policyMemory.includes(title)) { return "policyMemory"; }
+        if (validCategories.problemApproach.includes(title)) { return "problemApproach"; }
+        if (validCategories.problemTypes.includes(title)) { return "problemTypes"; }
+        if (validCategories.proofTypes.includes(title)) { return "proofTypes"; }
+        if (validCategories.rewardConstraints.includes(title)) { return "rewardConstraints"; }
+
+        return "Error"
+
     }
 
     //Get JSON for the current graph as given by graphitemdata and conns (NOT VISIBLE GRAPH DIRECTLY)
@@ -499,7 +590,7 @@ export class GraphManager {
             if (i.type == "ClickableGraphNode") { nodeEntries.push(this.fetchNodeJsonEntry(i)) }
         }
         const outDict = {
-            graphtype: this.graphtype,
+            graphtype: document.getElementById("GraphTitleContainer")?.textContent,
             nodes: nodeEntries,
             connectors: this.conns
         }

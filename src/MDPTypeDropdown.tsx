@@ -4,7 +4,6 @@ import { graphMGR } from "./main";
 import "./MDPTypeDropdown.css";
 import { nodes } from "./nodes/nodes";
 export let dropdownval: string;
-
 export default function MDPTypeDropdown() {
   const [, setValue] = useState('');
   const MDPTypes = nodes.map(entry => entry.results.map(elem => elem.mdpType)).flat()
@@ -13,11 +12,11 @@ export default function MDPTypeDropdown() {
   return (
 
     <div class="form">
-      <select id="selectMDP" onChange={(e) => {
+      <select id="dropdownField" onChange={(e) => {
         graphMGR.updateGraphType(e.currentTarget.value);
         setValue(e.currentTarget.value)
       }}>
-        {window.onload = function () { { addOptions(graphMGR.addMDPTypes(MDPTypes), document.getElementById("selectMDP")); graphMGR.graphtype = MDPTypes[0] } }}
+        {window.onload = function () { { addOptions(graphMGR.addMDPTypes(MDPTypes), document.getElementById("dropdownField")); graphMGR.graphtype = MDPTypes[0] } }}
       </select>
     </div>
   );
@@ -30,7 +29,7 @@ export default function MDPTypeDropdown() {
       const optionElement = document.createElement('option');
       optionElement.textContent = option;
       optionElement.value = option;
-      // simple not null-check. shouldnt be neccesary because this wouldnt be called outside of selectMDP element, but to be on the safe side.
+      // simple not null-check. shouldnt be neccesary because this wouldnt be called outside of dropdownField element, but to be on the safe side.
       if (dropdownElementOptions != null) { dropdownElementOptions.appendChild(optionElement); }
       else { console.log("dropdown initialized as null, this should not be possible? debug") }
     });

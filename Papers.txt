@@ -1,0 +1,6 @@
+A list of all papers represented in the files. 
+If you add results, please include the name of the paper here, preferrably in alphabetical order (though this isnt super important).
+CTRL+F this to look if a paper has already been covered or something. 
+
+Don't treat this list as 100% accurate, there is a fair chance some papers will inevitably slip through the cracks.
+

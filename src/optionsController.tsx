@@ -35,6 +35,25 @@ export class optionsController {
             if (this.oec == null) { p("OptionsMenuContainerDiv is empty!"); return }
             this.oec.style.border = optionsOpen ? "0.5vh solid #f32121" : "0.5vh solid #21f3f0"
             for (const i of this.activeOptionMenuElements) { i.style.visibility = optionsOpen ? "visible" : "hidden" }
+
+            const dropdown = document.getElementById("dropdownField") as HTMLSelectElement
+            dropdown.disabled = optionsOpen; dropdown.hidden = optionsOpen
+            const tdc = document.getElementById("MDPTypeDropdownContainer")
+            if (optionsOpen) {
+                const graphtitle = document.createElement("input")
+
+                graphtitle.contentEditable = "true";
+                graphtitle.placeholder = "Enter graph title here.";
+                graphtitle.id = "GraphTitleContainer"
+                if (tdc != null) { tdc.appendChild(graphtitle) }
+            } else {
+                if (tdc != null) {
+                    const gtc = document.getElementById("GraphTitleContainer")
+                    if (gtc == null) { return }
+                    tdc.removeChild(gtc)
+                }
+
+            }
         }
     }
 
@@ -211,6 +230,7 @@ export class optionsController {
             downloadName.style.border = "0"
             downloadName.style.width = "85%"
             downloadName.title = "This name is used for the file you download. If left blank, uses element name instead."
+            downloadName.id = "A form field element should have an id or name attribute"
             this.activeOptionMenuElements.push(downloadName)
             this.oec.appendChild(downloadName)
 
@@ -306,6 +326,7 @@ export class optionsController {
         setOptionsOpen(false)
         this.oec.style.border = "0.5vh solid #21f3f0"
         this.optionsSubmenu("hide")
+        this.graphtextedit(false)
     }
 
 
