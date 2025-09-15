@@ -1,4 +1,14 @@
 TODOS: 
+new nodes have ids 
+child nodes
+connectors
+editable graph name
+make buttons use spans for text isntead
+
+
+make graph editing less buggy and so on
+
+
 MAKE GVC AND SIMILAR STATIC WHY ARENT THEY STATIC ALREADY SO MANY POINTLESS IFNULLRETURN LINES
 - Make child nodes work: Child nodes filter all parent node results down. 
 -- maybe make child nodes automatically reorder based on variable? (generic node -> policy comp-> horizon-> determinism becomes generic->policy comp-> det->horizon or filter out: generic-> policy comp-> horizon)

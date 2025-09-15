@@ -28,7 +28,7 @@ onmouseup = () => {
 }
 
 onmousemove = (event) => {
-    if (((event.target == graphMGR.gvc?.parentNode)
+    if (((event.target == graphMGR.gvc.parentNode)
         || (event.target == graphMGR.gvc)
         || (event.target == graphMGR.cnv))) {
         if (!optionsOpen) {
@@ -48,17 +48,15 @@ onmousemove = (event) => {
 }
 
 onwheel = (event) => {
-    if ((event.target == graphMGR.gvc?.parentNode) || (event.target == graphMGR.gvc) || (event.target == graphMGR.cnv) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseWheelEvent(event) }
+    if ((event.target == graphMGR.gvc.parentNode) || (event.target == graphMGR.gvc) || (event.target == graphMGR.cnv) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseWheelEvent(event) }
 }
 
-//load correct graph view controller into graphmanager
-graphMGR.initGraphMGR()
+
 //load initial graph
 graphMGR.loadGraphElems(0);
 //initialize the options menu
 optionsCTR.initOptions()
 //debug for location pings and prints
-document.onclick = () => {
-    //p(event.x, event.y)
-    //graphMGR.download("debug.json")
+document.onclick = (event) => {
+    p(event.x, event.y)
 }

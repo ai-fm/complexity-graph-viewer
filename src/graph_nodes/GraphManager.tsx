@@ -7,8 +7,8 @@ p("print import for quicker debug")
 
 
 export class graphDataNode {
-    posX!: number;
-    posY!: number;
+    posX?: number;
+    posY?: number;
     type!: string;
     title?: string;
     id!: string;
@@ -51,12 +51,10 @@ export class GraphManager {
     //zoom factor for all graph  elements
     zoom = 1;
     //graph view container and its' bounding client rect. 
-    gvc: HTMLElement | null = null;
-    gvc_rect: DOMRect | null = null;
-    gvcoffsetL = this.gvc?.getBoundingClientRect().left
-    gvcoffsetT = this.gvc?.getBoundingClientRect().top
+    gvc: HTMLElement
+    gvc_rect: DOMRect
     //node data container for results
-    ndc: HTMLElement | null = null;
+    ndc: HTMLElement
     //canvas for lines between nodes.
     cnv: HTMLCanvasElement | null = null;
     conns: { idFrom: string; idTo: string; type: string; }[] | undefined = undefined
@@ -71,33 +69,23 @@ export class GraphManager {
     //current graph type. Initialized as first valid type, can alternatively be coded to "MDP" or probably to on initialisation fetch initial Dropdown element
     graphtype = this.validGraphTypes[0];
 
-    ////
-    //// Initialise graph viewer correctly
-    ////
-
-    initGraphMGR() {
-        //init gvc
-        this.gvc = document.getElementById("graphViewContainer");
-        if (this.gvc != null) {
-            this.gvc_rect = this.gvc.getBoundingClientRect()
-            this.gvcoffsetL = this.gvc.getBoundingClientRect().left
-            this.gvcoffsetT = this.gvc.getBoundingClientRect().top
+    constructor() {
+        let candidate = document.getElementById("graphViewContainer");
+        if (candidate == null) {
+            p("throw placeholder standin print: gvc invalid"); candidate = document.createElement("p")
         }
+        this.gvc = candidate
+        this.gvc_rect = this.gvc.getBoundingClientRect()
 
-        //init ndc
-        this.ndc = document.getElementById("InformationContainer");
-
-        //init valid graphtypes
-        for (const i in graphStructures) {
-            this.validGraphTypes.push(graphStructures[i].graphtype)
+        candidate = document.getElementById("InformationContainer");
+        if (candidate == null) {
+            p("throw placeholder standin print: ndc invalid"); candidate = document.createElement("p")
         }
-
-        //https://barker.codes/blog/unique-array-values-in-javascript/#check-if-every-value-is-unique
-        //checking if all MDP graph types are unique and if not throwing error (but continuing as normal, using first occurance of graph for every)
-        if (!(this.validGraphTypes.every((value, _index, array) => { return array.indexOf(value) === array.lastIndexOf(value); }))) {
-            p("Not all graph types are unique!")
-        }
+        this.ndc = candidate
     }
+
+
+
 
     ////
     //// Functions relating to inter-component-communication
@@ -133,42 +121,21 @@ export class GraphManager {
         }
     }
 
-    fetchParentOffset(node: HTMLElement, initial?: boolean) {
-        if (node.parentElement == null) { p("unexpected error in fetchParentOffset:No parent node, even though recursion should stop at gvc"); return [-Infinity, -Infinity] }
-        let a: number, b: number
-        if (initial) {
 
-            a = this.fetchParentOffset(node.parentElement)[0];
-            b = this.fetchParentOffset(node.parentElement)[1];
-        }
-        else if (node != this.gvc) {
-            a = parseFloat(node.style.left) + this.fetchParentOffset(node.parentElement)[0];
-            b = parseFloat(node.style.top) + this.fetchParentOffset(node.parentElement)[1];
-        }
-        else if (node == this.gvc) { return [0, 0] }
-        else { p("unexpected error in fetchParentOffset:invalid path reached"); return [-Infinity, -Infinity] }
-        return [a, b]
 
-    }
 
     // Move only the ghost class elements. Which should only be the last activated element.
     handleGhostMovement(node: HTMLElement, event: MouseEvent) {
-        if (this.gvc == null) { return }
-        this.gvcoffsetL ??= this.gvc.getBoundingClientRect().left
-        this.gvcoffsetT ??= this.gvc.getBoundingClientRect().top
-        node.style.opacity = "0.5"
-        let [offsetx, offsety] = this.fetchParentOffset(node, true)
-        offsetx += (this.gvcoffsetL + 0.5 * node.getBoundingClientRect().width)
-        offsety += (this.gvcoffsetT + 0.5 * node.getBoundingClientRect().height)
-        node.style.left = (event.x - offsetx) + "px"
-        node.style.top = (event.y - offsety) + "px"
+        const offsetx = this.gvc.getBoundingClientRect().left + 0.5 * node.getBoundingClientRect().width + optionsCTR.currentGhostOffsetL
+        const offsety = this.gvc.getBoundingClientRect().top + 0.5 * node.getBoundingClientRect().height + optionsCTR.currentGhostOffsetT
+        node.style.left = (event.x - offsetx) / this.zoom + "px"
+        node.style.top = (event.y - offsety) / this.zoom + "px"
 
         this.loadConnectors()
     }
 
     //general mouse wheel zoom
     handleMouseWheelEvent(event: WheelEvent) {
-        if (this.gvc == null) { return }
         this.zoom *= 1.1 ** Math.sign(-event.deltaY)
         this.gvc.style.scale = this.zoom + ""
         this.gvc.style.transformOrigin = ("")
@@ -206,7 +173,20 @@ export class GraphManager {
     //for a set graph type, fetch node data, add it to graphitemdata array and pass it on to createNode.
     //also checks for duplicate ids upon loading that graph in.
     loadGraphElems(typeIndex: number) {
-        if (this.gvc?.parentElement == null) { return }
+
+        //init valid graphtypes
+        for (const i in graphStructures) {
+            this.validGraphTypes.push(graphStructures[i].graphtype)
+        }
+
+        //https://barker.codes/blog/unique-array-values-in-javascript/#check-if-every-value-is-unique
+        //checking if all MDP graph types are unique and if not throwing error (but continuing as normal, using first occurance of graph for every)
+        if (!(this.validGraphTypes.every((value, _index, array) => { return array.indexOf(value) === array.lastIndexOf(value); }))) {
+            p("Not all graph types are unique!")
+        }
+
+
+
         for (const i in graphStructures[typeIndex].nodes) { this.loadGraphElem(graphStructures[typeIndex].nodes[i]) }
 
         const ids = []
@@ -217,13 +197,13 @@ export class GraphManager {
         }
 
         this.cnv = document.createElement("canvas")
-        let wt = this.gvc?.parentElement?.getBoundingClientRect().width; let ht = this.gvc?.parentElement?.getBoundingClientRect().height
+        let wt = this.gvc.parentElement?.getBoundingClientRect().width; let ht = this.gvc.parentElement?.getBoundingClientRect().height
         wt ??= 1; ht ??= 1
 
         this.cnv.height = ht
         this.cnv.width = wt
         this.cnv.style.position = "fixed"
-        this.gvc.parentElement.prepend(this.cnv)
+        this.gvc.parentElement?.prepend(this.cnv)
         this.conns = graphStructures[typeIndex].connectors
         this.loadConnectors()
     }
@@ -241,14 +221,17 @@ export class GraphManager {
 
     //Given a nodes json data, initialise it based on its type.
     createNode(el: graphDataNode, pParent?: HTMLElement) {//X: number, Y: number, type: string, title: string, id: string, childDegree: number, children?: graphDataNode[], pParent?: HTMLElement) {
-        if (this.gvc == null) { return }
         let parent = pParent
         parent ??= this.gvc
         const newNode = document.createElement("button")
         newNode.style.borderRadius = "45%"
         el.childDegree ??= 0
         newNode.style.transform = "scale(" + ((el.childDegree > 0) ? (el.childDegree > 1) ? 0.65 : 0.75 : 1) + ")"
-        newNode.onclick = (event) => { graphMGR.nodeOnClick(newNode); event.stopPropagation() }
+        //display data on click. passed through handler.
+        newNode.onclick = (event) => { graphMGR.nodeOnClick(newNode, event); }
+        //edit node content on dbclick. passed through handler, edit mode only
+        newNode.ondblclick = (event) => { graphMGR.nodeOnDBLClick(newNode, event); }
+
         el.title ??= "Untitled"
         newNode.textContent = validCategories.problemTypes.includes(el.title) ? el.title : ("\"" + el.title + "\"?")
         if (el.children != null) { el.children.forEach((i) => this.loadGraphElem(i, newNode)) }
@@ -259,6 +242,7 @@ export class GraphManager {
         newNode.setAttribute("draggable", "false")
         newNode.style.verticalAlign = "middle"
         newNode.style.position = "absolute"
+        el.posX ??= 0; el.posY ??= 0;
         newNode.style.left = el.posX + "px"
         newNode.style.top = el.posY + "px"
         newNode.id = el.id
@@ -267,24 +251,32 @@ export class GraphManager {
         parent.appendChild(newNode)
     }
 
-    nodeOnClick(node: HTMLElement) {
+
+
+    nodeOnClick(node: HTMLElement, event: MouseEvent) {
+        if (!optionsOpen) { graphMGR.displayNodeData(node) }
+        event.stopPropagation()
+    }
+    nodeOnDBLClick(node: HTMLElement, event: MouseEvent) {
         if (optionsOpen) {
+            node.style.opacity = "0.5"
             optionsCTR.handleElemClick(node)
+
         }
         else {
             graphMGR.displayNodeData(node)
         }
+        event.stopPropagation()
     }
+
+
 
     //loads in connecting lines between nodes.
     loadConnectors() {
-        if ((this.cnv == null) || (this.conns == undefined) || (this.gvc == null)) { return }
+        if ((this.cnv == null) || (this.conns == undefined)) { return }
         const ctx = this.cnv.getContext("2d");
         if (ctx == null) { p("Context is null"); return }
         ctx.clearRect(0, 0, this.cnv.width, this.cnv.height)
-
-        this.gvcoffsetL ??= this.gvc.getBoundingClientRect().left
-        this.gvcoffsetT ??= this.gvc.getBoundingClientRect().top
 
         //adapted from https://jsfiddle.net/m1erickson/86f4C/
         for (const conn of this.conns) {
@@ -295,11 +287,12 @@ export class GraphManager {
             if ((elemFrom == null) || (elemTo == null)) { continue }
             const pos1 = elemFrom.getBoundingClientRect()
             //gvc left or top are inherent offset in gvc. Makes canvas thats otherwise unaffected by this offset work properly.
-            const pos1centerX = (pos1.left + 0.5 * (pos1.right - pos1.left)) - this.gvcoffsetL
-            const pos1centerY = (pos1.top + 0.5 * (pos1.bottom - pos1.top)) - this.gvcoffsetT
+
+            const pos1centerX = (pos1.left + 0.5 * (pos1.right - pos1.left)) - this.gvc_rect.left
+            const pos1centerY = (pos1.top + 0.5 * (pos1.bottom - pos1.top)) - this.gvc_rect.top
             const pos2 = elemTo.getBoundingClientRect()
-            const pos2centerX = (pos2.left + 0.5 * (pos2.right - pos2.left)) - this.gvcoffsetL
-            const pos2centerY = (pos2.top + 0.5 * (pos2.bottom - pos2.top)) - this.gvcoffsetT
+            const pos2centerX = (pos2.left + 0.5 * (pos2.right - pos2.left)) - this.gvc_rect.left
+            const pos2centerY = (pos2.top + 0.5 * (pos2.bottom - pos2.top)) - this.gvc_rect.top
             const connType = conn.type;
             if (connType == "arrow") {
 
@@ -352,20 +345,22 @@ export class GraphManager {
 
     //display json results for clicked nodes, if possible
     displayNodeData(node: HTMLElement) {
-        if (this.ndc == null) { return }
-
         //remove all "old" node info elements
         this.undisplayNodeData()
 
         //close the options menu if it currently is covering the right hand screen
+        //if in edit mode this wont be able to be called, obviously
         this.ndc.style.overflowY = "scroll"
         this.ndc.style.overflowX = "hidden"
         this.ndc.style.textAlign = "left"
         optionsCTR.closeOptions()
 
+
         let problem
         for (const i of this.graphitemdata) {
-            if (node.id == i.id) { problem = i.title }
+            if (node.id == i.id) {
+                problem = i.title
+            }
         }
         problem ??= "Title not found"
         const mdptype = this.graphtype
@@ -413,7 +408,7 @@ export class GraphManager {
         para.setAttribute("class", "nodeDataDisplayElem")
         para.style = "position:relative;left:10px;word-wrap: break-word;"
         para.textContent = text;
-        this.ndc?.append(para)
+        this.ndc.append(para)
         this.nodeitems.push(para)
         if (makebreak) { this.makebreak() }
 
@@ -423,7 +418,7 @@ export class GraphManager {
     makebreak() {
         const br = document.createElement("br")
         br.setAttribute("class", "nodeDataDisplayElem")
-        this.ndc?.append(br)
+        this.ndc.append(br)
         this.nodeitems.push(br)
     }
 
@@ -431,7 +426,7 @@ export class GraphManager {
     makehrule() {
         const hr = document.createElement("hr")
         hr.setAttribute("class", "nodeDataDisplayElem")
-        this.ndc?.append(hr)
+        this.ndc.append(hr)
         this.nodeitems.push(hr)
     }
 
@@ -449,6 +444,7 @@ export class GraphManager {
         this.makehrule()
     }
 
+
     ////
     //// Generate JSON from currently visible graph 
     ////
@@ -459,11 +455,25 @@ export class GraphManager {
         if (node.children != undefined) {
             for (const i of node.children) { childrenJson.push(this.fetchNodeJsonEntry(i)) }
         }
+
+        //fetch titles from graph. shouldve been done with onchange for each node, but one global update at the end doesnt hurt.
+        //most of this is formatting since child nodes textcontent is appended to parent node textcontent.
+        const gnode = document.getElementById(node.id)
+        if (gnode == null) { p("No corresponding graph element for " + node.id + " upon download attempt."); const err = new graphDataNode; err.id = node.id; err.title = "error"; return err }
+        let title
+        if (gnode.children.length == 0) {
+            title = gnode.textContent
+        }
+        else {
+            title = gnode.textContent.substring(0, gnode.textContent.indexOf(gnode.children[0].textContent))
+        }
+
+
         const outDict = {
             posX: node.posX,
             posY: node.posY,
             type: node.type,
-            title: node.title,
+            title: title,
             id: node.id,
             children: childrenJson,
             childDegree: node.childDegree
@@ -489,9 +499,9 @@ export class GraphManager {
     download(fileName: string) {
         const content = JSON.stringify(this.getGraphAsJson(), null, "\t");
         const a = document.createElement("a");
-        const file = new Blob([content]);
+        const file = new Blob([content], { type: "text/json" });;
         a.href = URL.createObjectURL(file);
-        a.download = fileName;
+        a.download = fileName += ".json";
         a.click();
     }
 }

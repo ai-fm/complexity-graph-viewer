@@ -1,0 +1,88 @@
+{
+	"graphtype": "q",
+	"nodes": [
+		{
+			"posX": 321.46,
+			"posY": 39.09,
+			"type": "ClickableGraphNode",
+			"title": "Reachability",
+			"id": "1",
+			"children": [],
+			"childDegree": 0
+		},
+		{
+			"posX": 341.73,
+			"posY": 156.09,
+			"type": "ClickableGraphNode",
+			"title": "Untitled",
+			"id": "2",
+			"children": [
+				{
+					"posX": -141.369,
+					"posY": -136.35,
+					"type": "ClickableSubNode",
+					"title": "test",
+					"id": "2.1",
+					"children": [],
+					"childDegree": 1
+				}
+			],
+			"childDegree": 0
+		},
+		{
+			"posX": 171.17,
+			"posY": 155.09,
+			"type": "ClickableGraphNode",
+			"title": "Cost Minimization",
+			"id": "3",
+			"children": [
+				{
+					"posX": 215.678,
+					"posY": -58.11,
+					"type": "ClickableSubNode",
+					"title": "Cost Minimization",
+					"id": "3.1",
+					"children": [
+						{
+							"posX": -279.792,
+							"posY": -21.4575,
+							"type": "ClickableSubNode",
+							"title": "Policy Existence",
+							"id": "3.1.1",
+							"children": [],
+							"childDegree": 2
+						}
+					],
+					"childDegree": 1
+				},
+				{
+					"posX": 215.678,
+					"posY": -58.11,
+					"type": "ClickableSubNode",
+					"title": "Cost Minimization",
+					"id": "3.1",
+					"children": [],
+					"childDegree": 1
+				}
+			],
+			"childDegree": 0
+		}
+	],
+	"connectors": [
+		{
+			"idFrom": "1",
+			"idTo": "2",
+			"type": "line"
+		},
+		{
+			"idFrom": "1",
+			"idTo": "3",
+			"type": "line"
+		},
+		{
+			"idFrom": "2",
+			"idTo": "2.1",
+			"type": "line"
+		}
+	]
+}

@@ -13,7 +13,8 @@ export class optionsController {
     activeEditNode: HTMLElement | null = null
     //extra var used to fix parent nodes getting selected alongside child nodes
     editNodeParent: HTMLElement | null | undefined = null
-
+    currentGhostOffsetL = 0
+    currentGhostOffsetT = 0
     ////
     ////Initialise options button and menu.
     ////
@@ -120,8 +121,17 @@ export class optionsController {
             downloadBTN.style.width = "90%"
             this.activeOptionMenuElements.push(downloadBTN)
             this.oec.appendChild(downloadBTN)
+
+            for (const i of graphMGR.graphitems) {
+                i.contentEditable = "true";
+            }
+
         }
-        else if (type == "hide") { ; }
+        else if (type == "hide") {
+            for (const i of graphMGR.graphitems) {
+                i.contentEditable = "false";
+            }
+        }
     }
 
     makeGhostNode(node: graphDataNode) {
@@ -161,20 +171,68 @@ export class optionsController {
         }
     }
 
-    handleElemClick(node: HTMLElement) {
+    fetchGhostOffset(node: HTMLElement) {
+        if (node.parentElement == null) { p("node parent is null somehow? error!"); return [Infinity, Infinity] }
+        if (node.parentElement == graphMGR.gvc) { return [0, 0] }
 
+        let x = 0, y = 0
+
+        x += parseFloat(node.parentElement.style.left)
+        y += parseFloat(node.parentElement.style.top)
+
+        x += this.fetchGhostOffset(node.parentElement)[0];
+        y += this.fetchGhostOffset(node.parentElement)[1];
+
+        return [x, y]
+    }
+
+    setNewPos(i: graphDataNode, node: HTMLElement) {
+        if (i.id == node.id) {
+            i.posX = parseFloat(node.style.left)
+            i.posY = parseFloat(node.style.top)
+
+        }
+        if (i.children != undefined) {
+            for (const j of i.children) { this.setNewPos(j, node) }
+        }
+    }
+    handleElemClick(node: HTMLElement) {
+        //still sort of buggy. but good enough for now
         this.activeEditNode = node
+        this.currentGhostOffsetL = this.fetchGhostOffset(this.activeEditNode)[0]
+        this.currentGhostOffsetT = this.fetchGhostOffset(this.activeEditNode)[1]
+
+
         const prev = this.activeEditNode.onclick
-        //const prevGVC=graphMGR.gvc.onclick
+        const gvcprev = graphMGR.gvc.onclick
         this.activeEditNode.onclick = (event) => {
             if (this.activeEditNode != null) {
-                this.activeEditNode.onclick = prev//() => { ; }
+                for (const i of graphMGR.graphitemdata) {
+                    this.setNewPos(i, node)
+                }
+                graphMGR.gvc.onclick = gvcprev
+                this.activeEditNode.onclick = prev
+                this.activeEditNode.style.opacity = "1"
+                this.activeEditNode = null
+                event.stopPropagation()
+            }
+        }
+        graphMGR.gvc.onclick = (event) => {
+            if (this.activeEditNode != null) {
+                for (const i of graphMGR.graphitemdata) {
+                    this.setNewPos(i, node)
+                }
+                graphMGR.gvc.onclick = gvcprev
+                this.activeEditNode.onclick = prev
                 this.activeEditNode.style.opacity = "1"
                 this.activeEditNode = null
                 event.stopPropagation()
             }
         }
     }
+
+
+
 
 }
 

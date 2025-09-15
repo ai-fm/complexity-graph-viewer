@@ -17,6 +17,7 @@ body {
   height: 100%;
   background-color: transparent;
   zoom: 100%;
+  border: 0.1vh solid #000000;
 }
 
 
