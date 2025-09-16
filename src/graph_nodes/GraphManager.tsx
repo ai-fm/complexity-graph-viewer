@@ -394,7 +394,7 @@ export class GraphManager {
     }
 
     //display json results for clicked nodes, if possible
-    displayNodeData(node: HTMLElement) {
+    displayNodedData(node: HTMLElement) {
         //remove all "old" node info elements
         this.undisplayNodeData()
 
@@ -432,7 +432,7 @@ export class GraphManager {
     }
 
     //OLD, REDACTED FOR EXPERIMENTAL
-    /*displayNodeData(node: HTMLElement) {
+    displayNodeData(node: HTMLElement) {
         //remove all "old" node info elements
         this.undisplayNodeData()
 
@@ -464,7 +464,7 @@ export class GraphManager {
             const ii = parseInt(i)
             this.makeresult(ii + 1, nodeResultTitles[i], nodeResults[i])
         }
-    }*/
+    }
 
     //get the names and data for a given mdp type and problem type combination
     fetchResults(mdptype: string, problemtype: string, nodeResults: complexityResult[], nodeResPapers: string[]) {
