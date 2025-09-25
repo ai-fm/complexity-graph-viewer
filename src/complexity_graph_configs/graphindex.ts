@@ -4,7 +4,7 @@
 import blank from "./empty.json";
 import t1 from "./testGraph.json";
 const graphStructures = [
-    blank, t1
+    t1, blank
 ];
 
 export default graphStructures;

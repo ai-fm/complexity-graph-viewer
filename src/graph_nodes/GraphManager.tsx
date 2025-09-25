@@ -152,6 +152,20 @@ export class GraphManager {
     handleMouseWheelEvent(event: WheelEvent) {
         this.zoom *= 1.1 ** Math.sign(-event.deltaY)
         this.gvc.style.scale = this.zoom + ""
+
+        for (const i of this.graphitemdata) {
+            const el = document.getElementById(i.id)
+            if (el == null) { continue }
+            if (i.type == "ClickableSubNode") {
+                p(i)
+                el.style.scale = "" + this.zoom
+            }
+            else {
+                el.style.scale = "" + (1 + Math.log(1 / this.zoom))//"" + 1 / this.zoom
+                p(el.style.scale, this.zoom, Math.log(1 / this.zoom))
+            }
+        }
+
         this.gvc.style.transformOrigin = ("")
         this.loadConnectors()
     }
@@ -240,7 +254,7 @@ export class GraphManager {
         const newNode = document.createElement("button")
         newNode.style.borderRadius = "45%"
         el.childDegree ??= 0
-        newNode.style.transform = "scale(" + ((el.childDegree > 0) ? (el.childDegree > 1) ? 0.65 : 0.75 : 1) + ")"
+        newNode.style.transform = "scale(" + ((el.childDegree > 0) ? 0.75 : 2) + ")"
 
         //span to hold buttons text instead of button. avoids some issues.
         const txtspan = document.createElement("span")
@@ -386,7 +400,7 @@ export class GraphManager {
     }
 
     recurseFilters(node: HTMLElement) {
-
+        //accept multiple valid spellings i.e maximis/Zation
         const par = node.parentElement;
         p(this.findTextElemById(node.id)?.textContent, this.findItemById(node.id)?.valueType)
         if (par == null || par == this.gvc) { return }
@@ -435,6 +449,7 @@ export class GraphManager {
     displayNodeData(node: HTMLElement) {
         //remove all "old" node info elements
         this.undisplayNodeData()
+
 
         //close the options menu if it currently is covering the right hand screen
         //if in edit mode this wont be able to be called, obviously

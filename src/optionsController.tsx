@@ -273,19 +273,6 @@ export class optionsController {
 
 
 
-    recurseChildDeg(node: HTMLElement, degree: number) {
-        //graph data equivalent
-        for (const i of graphMGR.graphitemdata) {
-            if (i.id == node.id) {
-                if (i.childDegree == degree) {
-                    i.childDegree += 1;
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    this.recurseChildDeg(node.parentElement!, degree + 1)
-                }
-            }
-        }
-
-    }
 
     makeGhostChildNode(parent: HTMLElement) {
         const node = new graphDataNode
@@ -293,8 +280,7 @@ export class optionsController {
         node.title = "new"
         node.id = this.fetchNextFreeID(1, parent.id + ".", [...parent.children])
         node.children = []
-        node.childDegree = 0
-        this.recurseChildDeg(parent, 0)
+
         node.posX = 0;
         node.posY = 20;
         graphMGR.loadGraphElem(node, parent)
@@ -302,6 +288,12 @@ export class optionsController {
         for (const i of graphMGR.graphitemdata) {
             if (i.id == parent.id) {
                 i.children ??= []
+                let deg = i.childDegree; deg ??= 0
+                node.childDegree = deg + 1
+                const elem = document.getElementById(node.id)
+                p(elem, node.childDegree)
+                if (elem != null) { elem.style.transform = "scale(" + ((node.childDegree > 0) ? 0.75 : 2) + ")" }
+
                 i.children.push(node)
             }
         }
