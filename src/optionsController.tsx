@@ -149,12 +149,59 @@ export class optionsController {
             }
             this.activeOptionMenuElements.push(createChildNode)
             this.oec.appendChild(createChildNode)
+            this.makebreak()
+            this.makebreak()
+
+            const delNode = document.createElement("button")
+            delNode.textContent = "Delete node"
+            delNode.style.display = "inline"
+            delNode.style.width = "90%"
+            delNode.title = "Click this, and then click a node, in order to delete that node."
+            delNode.onclick = (event) => {
+                delNode.style.color = "#0000ffff"
+                delNode.style.borderColor = "#0000ffff"
+                this.graphtextedit(false)
+                event.stopImmediatePropagation()
+
+                //this is potentially very inefficient-setting all graph elements onclicks to something else temporarily. I'll rework this when i have a working build. its not like its harmful, its just a bit inefficient.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any 
+                const prev: any[] = [] //explicit any this time because its type annotation is a pain and event handlers need extra type. On later review, maybe rework
+                for (const i of graphMGR.graphitems) {
+                    prev.push(i.onclick)
+                    i.onclick = () => {
+                        delNode.style.color = "#000000ff"
+                        delNode.style.borderColor = ""
+                        this.graphtextedit(true)
+                        for (const j in graphMGR.graphitems) {
+                            graphMGR.graphitems[j].onclick = prev[j]
+                        }
+
+                        i.remove();
+
+
+                        const recursiveRemove = (elem: HTMLElement) => {
+                            graphMGR.graphitems.splice(graphMGR.graphitems.indexOf(elem), 1)
+                            const candidate = graphMGR.findItemById(elem.id)
+                            if (candidate != undefined) { graphMGR.graphitemdata.splice(graphMGR.graphitemdata.indexOf(candidate), 1) }
+                            for (const child of elem.children) {
+                                if (child.id.includes("SP")) { continue }
+                                recursiveRemove(child as HTMLElement)
+                            }
+                        }
+                        recursiveRemove(i)
+                        p(graphMGR.graphitems)
+                    }
+                }
+            }
+            this.activeOptionMenuElements.push(delNode)
+            this.oec.appendChild(delNode)
+
 
             this.makebreak()
             this.makebreak()
 
             const createNewConn = document.createElement("button")
-            createNewConn.textContent = "Create new connect"
+            createNewConn.textContent = "Create new connector"
             createNewConn.style.display = "inline"
             createNewConn.style.width = "90%"
             createNewConn.title = "Click two nodes to create or delete a connection between them."
@@ -292,7 +339,7 @@ export class optionsController {
                 node.childDegree = deg + 1
                 const elem = document.getElementById(node.id)
                 p(elem, node.childDegree)
-                if (elem != null) { elem.style.transform = "scale(" + ((node.childDegree > 0) ? 0.75 : 2) + ")" }
+                if (elem != null) { elem.style.transform = "scale(" + ((node.childDegree > 0) ? 0.75 : 1) + ")" }
 
                 i.children.push(node)
             }

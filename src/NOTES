@@ -1,8 +1,5 @@
 TODOS: 
 
-connectors
-
-add delete node button
 make toggle buttons undo toggle and effects when pressed again
 
 ! Recently changed graphitems to take all, incl children. This hasnt caused any problems but just in case, here is a disclaimer.

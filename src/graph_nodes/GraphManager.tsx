@@ -157,12 +157,10 @@ export class GraphManager {
             const el = document.getElementById(i.id)
             if (el == null) { continue }
             if (i.type == "ClickableSubNode") {
-                p(i)
-                el.style.scale = "" + this.zoom
+                el.style.scale = "" + Math.min(1, this.zoom)
             }
             else {
-                el.style.scale = "" + (1 + Math.log(1 / this.zoom))//"" + 1 / this.zoom
-                p(el.style.scale, this.zoom, Math.log(1 / this.zoom))
+                el.style.scale = "" + Math.max(1, 1 + Math.log(1 / this.zoom))//"" + 1 / this.zoom
             }
         }
 
@@ -254,7 +252,7 @@ export class GraphManager {
         const newNode = document.createElement("button")
         newNode.style.borderRadius = "45%"
         el.childDegree ??= 0
-        newNode.style.transform = "scale(" + ((el.childDegree > 0) ? 0.75 : 2) + ")"
+        newNode.style.transform = "scale(" + ((el.childDegree > 0) ? 0.75 : 1.5) + ")"
 
         //span to hold buttons text instead of button. avoids some issues.
         const txtspan = document.createElement("span")
@@ -272,7 +270,7 @@ export class GraphManager {
 
         el.title ??= "Untitled"
         //if titled new, leave empty for user to name. Else, if invalid, add ""? to name to indicate so.
-        txtspan.textContent = el.title == "new" ? "-" : validCategories.problemTypes.includes(el.title) ? el.title : ("\"" + el.title + "\"?")
+        txtspan.textContent = el.title == "new" ? "-" : this.getValueTypeFromTitle(el.title) == "Error" ? ("\"" + el.title + "\"?") : el.title
 
         if (el.children != null) { el.children.forEach((i) => this.loadGraphElem(i, newNode)) }
         newNode.style.display = "inline-block"
@@ -408,7 +406,7 @@ export class GraphManager {
     }
 
     //display json results for clicked nodes, if possible
-    displayNodedData(node: HTMLElement) {
+    displayNodeData(node: HTMLElement) {
         //remove all "old" node info elements
         this.undisplayNodeData()
 
@@ -419,9 +417,7 @@ export class GraphManager {
         this.ndc.style.textAlign = "left"
         optionsCTR.closeOptions()
 
-        p(node)
         this.recurseFilters(node)
-        p("a")
         /*
                 let problem
                 for (const i of this.graphitemdata) {
@@ -446,7 +442,7 @@ export class GraphManager {
     }
 
     //OLD, REDACTED FOR EXPERIMENTAL
-    displayNodeData(node: HTMLElement) {
+    displayNodedData(node: HTMLElement) {
         //remove all "old" node info elements
         this.undisplayNodeData()
 
@@ -577,22 +573,22 @@ export class GraphManager {
     }
 
     getValueTypeFromTitle(title: string) {
+        for (const i of validCategories.ambiguitySetConvexness) { if (i.includes(title)) { return "ambiguitySetConvexness"; } }
+        for (const i of validCategories.ambiguitySetRectangularity) { if (i.includes(title)) { return "ambiguitySetRectangularity"; } }
+        for (const i of validCategories.analysisTypes) { if (i.includes(title)) { return "analysisTypes"; } }
+        for (const i of validCategories.complexityClasses) { if (i.includes(title)) { return "complexityClasses"; } }
+        for (const i of validCategories.complexitySuffix) { if (i.includes(title)) { return "complexitySuffix"; } }
+        for (const i of validCategories.dependenceTypes) { if (i.includes(title)) { return "dependenceTypes"; } }
+        for (const i of validCategories.determinism) { if (i.includes(title)) { return "determinism"; } }
+        for (const i of validCategories.horizonTypes) { if (i.includes(title)) { return "horizonTypes"; } }
+        for (const i of validCategories.mdpRepresentations) { if (i.includes(title)) { return "mdpRepresentations"; } }
+        for (const i of validCategories.mdpTypes) { if (i.includes(title)) { return "mdpTypes"; } }
+        for (const i of validCategories.policyMemory) { if (i.includes(title)) { return "policyMemory"; } }
+        for (const i of validCategories.problemApproach) { if (i.includes(title)) { return "problemApproach"; } }
+        for (const i of validCategories.problemTypes) { if (i.includes(title)) { return "problemTypes"; } }
+        for (const i of validCategories.proofTypes) { if (i.includes(title)) { return "proofTypes"; } }
+        for (const i of validCategories.rewardConstraints) { if (i.includes(title)) { return "rewardConstraints"; } }
 
-        if (validCategories.ambiguitySetConvexness.includes(title)) { return "ambiguitySetConvexness"; }
-        if (validCategories.ambiguitySetRectangularity.includes(title)) { return "ambiguitySetRectangularity"; }
-        if (validCategories.analysisTypes.includes(title)) { return "analysisTypes"; }
-        if (validCategories.complexityClasses.includes(title)) { return "complexityClasses"; }
-        if (validCategories.complexitySuffix.includes(title)) { return "complexitySuffix"; }
-        if (validCategories.dependenceTypes.includes(title)) { return "dependenceTypes"; }
-        if (validCategories.determinism.includes(title)) { return "determinism"; }
-        if (validCategories.horizonTypes.includes(title)) { return "horizonTypes"; }
-        if (validCategories.mdpRepresentations.includes(title)) { return "mdpRepresentations"; }
-        if (validCategories.mdpTypes.includes(title)) { return "mdpTypes"; }
-        if (validCategories.policyMemory.includes(title)) { return "policyMemory"; }
-        if (validCategories.problemApproach.includes(title)) { return "problemApproach"; }
-        if (validCategories.problemTypes.includes(title)) { return "problemTypes"; }
-        if (validCategories.proofTypes.includes(title)) { return "proofTypes"; }
-        if (validCategories.rewardConstraints.includes(title)) { return "rewardConstraints"; }
 
         return "Error"
 

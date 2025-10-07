@@ -1,70 +1,146 @@
 {
     "mdpTypes": [
-        "MDP",
-        "POMDP",
-        "Observationless MDP"
+        [
+            "MDP"
+        ],
+        [
+            "POMDP"
+        ],
+        [
+            "Observationless MDP"
+        ]
     ],
     "problemTypes": [
-        "Reward Maximisation",
-        "Cost Minimization",
-        "Reachability"
+        [
+            "Reward Maximisation",
+            "Reward Maximization",
+            "Cost Minimisation",
+            "Cost Minimization"
+        ],
+        [
+            "Reachability"
+        ]
     ],
     "problemApproach": [
-        "Policy Existence",
-        "Policy Evaluation",
-        "Policy Computation"
+        [
+            "Policy Existence"
+        ],
+        [
+            "Policy Evaluation"
+        ],
+        [
+            "Policy Computation"
+        ]
     ],
     "complexityClasses": [
-        "NC",
-        "P",
-        "NP",
-        "PSPACE"
+        [
+            "NC"
+        ],
+        [
+            "P"
+        ],
+        [
+            "NP"
+        ],
+        [
+            "PSPACE"
+        ]
     ],
     "complexitySuffix": [
-        "hard",
-        "complete"
+        [
+            "hard"
+        ],
+        [
+            "complete"
+        ]
     ],
     "horizonTypes": [
-        "Finite Horizon",
-        "Infinite Horizon Average",
-        "Infinite Horizon Discounted",
-        "Not Clearly Stated",
-        "Other"
+        [
+            "Finite Horizon"
+        ],
+        [
+            "Infinite Horizon Average"
+        ],
+        [
+            "Infinite Horizon Discounted"
+        ],
+        [
+            "Not Clearly Stated"
+        ],
+        [
+            "Other"
+        ]
     ],
     "determinism": [
-        "Deterministic",
-        "Randomized",
-        "Nondeterministic"
+        [
+            "Deterministic"
+        ],
+        [
+            "Randomized"
+        ],
+        [
+            "Nondeterministic"
+        ]
     ],
     "dependenceTypes": [
-        "Stationary",
-        "Nonstationary"
+        [
+            "Stationary"
+        ],
+        [
+            "Nonstationary"
+        ]
     ],
     "policyMemory": [
-        "Finite"
+        [
+            "Finite"
+        ]
     ],
     "analysisTypes": [
-        "Qualitative-Almost sure"
+        [
+            "Qualitative-Almost sure"
+        ]
     ],
     "rewardConstraints": [
-        "None",
-        "Nonnegative Only"
+        [
+            "None"
+        ],
+        [
+            "Nonnegative Only"
+        ]
     ],
     "ambiguitySetRectangularity": [
-        "Nonrectangular"
+        [
+            "Nonrectangular"
+        ]
     ],
     "ambiguitySetConvexness": [
-        "Nonconvex"
+        [
+            "Nonconvex"
+        ]
     ],
     "mdpRepresentations": [
-        "Flat"
+        [
+            "Flat"
+        ]
     ],
     "proofTypes": [
-        "Reduction",
-        "Guess and Verify",
-        "Structure",
-        "Parallelization",
-        "Consequence of other proof",
-        "Other"
+        [
+            "Reduction"
+        ],
+        [
+            "Guess and Verify"
+        ],
+        [
+            "Structure"
+        ],
+        [
+            "Parallelization"
+        ],
+        [
+            "Consequence of other proof"
+        ],
+        [
+            "Other"
+        ]
     ]
 }
