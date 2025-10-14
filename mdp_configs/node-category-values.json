@@ -1,5 +1,5 @@
 {
-    "mdpTypes": [
+    "mdpType": [
         [
             "MDP"
         ],
@@ -10,7 +10,7 @@
             "Observationless MDP"
         ]
     ],
-    "problemTypes": [
+    "problemType": [
         [
             "Reward Maximisation",
             "Reward Maximization",
@@ -32,7 +32,7 @@
             "Policy Computation"
         ]
     ],
-    "complexityClasses": [
+    "complexityClass": [
         [
             "NC"
         ],
@@ -54,7 +54,7 @@
             "complete"
         ]
     ],
-    "horizonTypes": [
+    "horizonType": [
         [
             "Finite Horizon"
         ],
@@ -82,7 +82,7 @@
             "Nondeterministic"
         ]
     ],
-    "dependenceTypes": [
+    "dependenceType": [
         [
             "Stationary"
         ],
@@ -95,12 +95,12 @@
             "Finite"
         ]
     ],
-    "analysisTypes": [
+    "analysisType": [
         [
             "Qualitative-Almost sure"
         ]
     ],
-    "rewardConstraints": [
+    "rewardConstraint": [
         [
             "None"
         ],
@@ -118,12 +118,12 @@
             "Nonconvex"
         ]
     ],
-    "mdpRepresentations": [
+    "mdpRepresentation": [
         [
             "Flat"
         ]
     ],
-    "proofTypes": [
+    "proofType": [
         [
             "Reduction"
         ],

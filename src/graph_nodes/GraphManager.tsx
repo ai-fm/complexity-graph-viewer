@@ -1,9 +1,10 @@
 
-import validCategories from "../../mdp_configs/node-category-values.json";
+import rawValidCategories from "../../mdp_configs/node-category-values.json";
 import rawGraphStructures from "../complexity_graph_configs/graphindex";
 import { graphMGR, mousedown, optionsCTR, optionsOpen, p } from "../main";
 import { nodes as resultNodes } from "../nodes/nodes";
 import "./graph_nodes.css";
+const validCategories = JSON.parse(JSON.stringify(rawValidCategories))
 p("print import for quicker debug")
 
 
@@ -397,13 +398,6 @@ export class GraphManager {
         }
     }
 
-    recurseFilters(node: HTMLElement) {
-        //accept multiple valid spellings i.e maximis/Zation
-        const par = node.parentElement;
-        p(this.findTextElemById(node.id)?.textContent, this.findItemById(node.id)?.valueType)
-        if (par == null || par == this.gvc) { return }
-        this.recurseFilters(par)
-    }
 
     //display json results for clicked nodes, if possible
     displayNodeData(node: HTMLElement) {
@@ -417,59 +411,10 @@ export class GraphManager {
         this.ndc.style.textAlign = "left"
         optionsCTR.closeOptions()
 
-        this.recurseFilters(node)
-        /*
-                let problem
-                for (const i of this.graphitemdata) {
-                    if (node.id == i.id) {
-                        problem = i.title
-                    }
-                }
-                problem ??= "Title not found"
-                const mdptype = this.graphtype
-                
-        
-                const HeadlineText = "Displaying information for " + problem + " in " + mdptype + "(s):"
-                this.makeparagraph(HeadlineText, true)
-                const nodeResults: complexityResult[] = [];
-                const nodeResultTitles: string[] = [];
-                this.fetchResults(mdptype, problem, nodeResults, nodeResultTitles)
-                if (nodeResults.length == 0) { this.makeparagraph("Sorry, no results found. You can add additional results in complexity_result_jsons\\json_directory following the guide template. Add them into the import list in index.ts, and the program should handle the rest.") }
-                for (const i in nodeResults) {
-                    const ii = parseInt(i)
-                    this.makeresult(ii + 1, nodeResultTitles[i], nodeResults[i])
-                }*/
-    }
 
-    //OLD, REDACTED FOR EXPERIMENTAL
-    displayNodedData(node: HTMLElement) {
-        //remove all "old" node info elements
-        this.undisplayNodeData()
-
-
-        //close the options menu if it currently is covering the right hand screen
-        //if in edit mode this wont be able to be called, obviously
-        this.ndc.style.overflowY = "scroll"
-        this.ndc.style.overflowX = "hidden"
-        this.ndc.style.textAlign = "left"
-        optionsCTR.closeOptions()
-
-
-        let problem
-        for (const i of this.graphitemdata) {
-            if (node.id == i.id) {
-                problem = i.title
-            }
-        }
-        problem ??= "Title not found"
-        const mdptype = this.graphtype
-
-
-        const HeadlineText = "Displaying information for " + problem + " in " + mdptype + "(s):"
-        this.makeparagraph(HeadlineText, true)
         const nodeResults: complexityResult[] = [];
         const nodeResultTitles: string[] = [];
-        this.fetchResults(mdptype, problem, nodeResults, nodeResultTitles)
+        this.fetchResults(node, this.graphtype, nodeResults, nodeResultTitles)
         if (nodeResults.length == 0) { this.makeparagraph("Sorry, no results found. You can add additional results in complexity_result_jsons\\json_directory following the guide template. Add them into the import list in index.ts, and the program should handle the rest.") }
         for (const i in nodeResults) {
             const ii = parseInt(i)
@@ -477,25 +422,42 @@ export class GraphManager {
         }
     }
 
-    //get the names and data for a given mdp type and problem type combination
-    fetchResults(mdptype: string, problemtype: string, nodeResults: complexityResult[], nodeResPapers: string[]) {
-        function addIfValid(result: complexityResult) {
 
-            if (
-                (result.mdpType == mdptype) &&
-                (result.problemType == problemtype)
-            ) {
-                nodeResults.push(result)
-                return true;
-            }
-        }
+    fetchResults(node: HTMLElement, mdptype: string, nodeResults: complexityResult[], nodeResPapers: string[]) {
+
+        const [filters, filtervalues] = this.recursiveFilter(node)
+        p(filters, filtervalues)
         resultNodes.forEach((paperJson) => {
             paperJson.results.forEach((result) => {
-                if (addIfValid(result)) { nodeResPapers.push(paperJson.title) }
+                if (result.mdpType == mdptype) {
+                    let validEntry = true
+                    if (filters.includes("Error")) { validEntry = false }
+                    for (const i in filters) {
+                        const k = filters[i] as keyof typeof result
+                        if (result[k] != filtervalues[i]) { validEntry = false }
+                    }
+                    if (validEntry) { nodeResPapers.push(paperJson.title); nodeResults.push(result) }
+                }
             })
         })
 
+
     }
+    recursiveFilter(node: HTMLElement): string[][] {
+
+
+        const par = node.parentElement;
+        let filters = [this.getValueTypeFromTitle(this.findItemById(node.id)?.title)]
+        const candidate = this.findTextElemById(node.id)?.textContent
+        let values: string[] = [(candidate == undefined) ? "error" : (candidate)]
+        if (par != null && par != this.gvc) {
+            const pfilt = this.recursiveFilter(par)
+            filters = filters.concat(pfilt[0])
+            values = values.concat(pfilt[1])
+        }
+        return [filters, values]
+    }
+
 
     ////
     //// Generate output from a clicked graph node to be displayed in the righthand panel
@@ -572,24 +534,10 @@ export class GraphManager {
         return outDict
     }
 
-    getValueTypeFromTitle(title: string) {
-        for (const i of validCategories.ambiguitySetConvexness) { if (i.includes(title)) { return "ambiguitySetConvexness"; } }
-        for (const i of validCategories.ambiguitySetRectangularity) { if (i.includes(title)) { return "ambiguitySetRectangularity"; } }
-        for (const i of validCategories.analysisTypes) { if (i.includes(title)) { return "analysisTypes"; } }
-        for (const i of validCategories.complexityClasses) { if (i.includes(title)) { return "complexityClasses"; } }
-        for (const i of validCategories.complexitySuffix) { if (i.includes(title)) { return "complexitySuffix"; } }
-        for (const i of validCategories.dependenceTypes) { if (i.includes(title)) { return "dependenceTypes"; } }
-        for (const i of validCategories.determinism) { if (i.includes(title)) { return "determinism"; } }
-        for (const i of validCategories.horizonTypes) { if (i.includes(title)) { return "horizonTypes"; } }
-        for (const i of validCategories.mdpRepresentations) { if (i.includes(title)) { return "mdpRepresentations"; } }
-        for (const i of validCategories.mdpTypes) { if (i.includes(title)) { return "mdpTypes"; } }
-        for (const i of validCategories.policyMemory) { if (i.includes(title)) { return "policyMemory"; } }
-        for (const i of validCategories.problemApproach) { if (i.includes(title)) { return "problemApproach"; } }
-        for (const i of validCategories.problemTypes) { if (i.includes(title)) { return "problemTypes"; } }
-        for (const i of validCategories.proofTypes) { if (i.includes(title)) { return "proofTypes"; } }
-        for (const i of validCategories.rewardConstraints) { if (i.includes(title)) { return "rewardConstraints"; } }
-
-
+    getValueTypeFromTitle(title: string | undefined | null) {
+        if (title == null || title == undefined) { return "Error" }
+        let x: keyof typeof validCategories;
+        for (x in validCategories) { for (const i of validCategories[x]) { if (i.includes(title)) { return x; } } }
         return "Error"
 
     }

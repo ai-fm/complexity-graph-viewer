@@ -15,7 +15,52 @@ function validateNode(rawJson: { title?: string; authors?: string[]; results: an
   //Conjuction of all constraints on our node.
   //we presume their string/string[]ness a given here, (for now? i dont think this needs fixing. ts itself is sure enough to assume these types.)
   let validity = true;
-  rawJson.results.forEach((elem: { mdpType: string; problemType: string; problemApproach: string; complexity: string; horizonType: string; determinism: string | null; dependence: string | null; policyMemory: string | null; analysisType: string | null; rewardConstraints: string; ambiguitySetRectangularity: string | null; ambiguitySetConvexness: string | null; mdpRepresentation: string; generalProofType: string; }) => {
+
+  const flatinclude = (candidate: string, categories2D: string[][]) => {
+    for (const arr of categories2D) {
+      if (arr.includes(candidate)) { return true }
+    }
+    return false;
+  }
+
+
+  //this adjustment to flatinclude was mass edited by chatgpt so if it fucks up, manually compare with commented out block. 
+  rawJson.results.forEach((elem: {
+    mdpType: string;
+    problemType: string;
+    problemApproach: string;
+    complexity: string;
+    horizonType: string;
+    determinism: string | null;
+    dependence: string | null;
+    policyMemory: string | null;
+    analysisType: string | null;
+    rewardConstraints: string;
+    ambiguitySetRectangularity: string | null;
+    ambiguitySetConvexness: string | null;
+    mdpRepresentation: string;
+    generalProofType: string;
+  }) => {
+    validity = validity &&
+      flatinclude(elem.mdpType, validCategories.mdpType) &&
+      flatinclude(elem.problemType, validCategories.problemType) &&
+      flatinclude(elem.problemApproach, validCategories.problemApproach) &&
+      flatinclude(elem.complexity, validCategories.complexityClass) &&
+      flatinclude(elem.horizonType, validCategories.horizonType) &&
+      ((elem.determinism == null) ? true : flatinclude(elem.determinism, validCategories.determinism)) &&
+      ((elem.dependence == null) ? true : flatinclude(elem.dependence, validCategories.dependenceType)) &&
+      ((elem.policyMemory == null) ? true : flatinclude(elem.policyMemory, validCategories.policyMemory)) &&
+      ((elem.analysisType == null) ? true : flatinclude(elem.analysisType, validCategories.analysisType)) &&
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      flatinclude(elem.rewardConstraints!, validCategories.rewardConstraint) &&
+      ((elem.ambiguitySetRectangularity == null) ? true : flatinclude(elem.ambiguitySetRectangularity, validCategories.ambiguitySetRectangularity)) &&
+      ((elem.ambiguitySetConvexness == null) ? true : flatinclude(elem.ambiguitySetConvexness, validCategories.ambiguitySetConvexness)) &&
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      flatinclude(elem.mdpRepresentation!, validCategories.mdpRepresentation) &&
+      flatinclude(elem.generalProofType, validCategories.proofType);
+  });
+
+  /*rawJson.results.forEach((elem: { mdpType: string; problemType: string; problemApproach: string; complexity: string; horizonType: string; determinism: string | null; dependence: string | null; policyMemory: string | null; analysisType: string | null; rewardConstraints: string; ambiguitySetRectangularity: string | null; ambiguitySetConvexness: string | null; mdpRepresentation: string; generalProofType: string; }) => {
     validity = validity &&
 
 
@@ -35,7 +80,7 @@ function validateNode(rawJson: { title?: string; authors?: string[]; results: an
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       validCategories.mdpRepresentations.includes(elem.mdpRepresentation!) &&
       validCategories.proofTypes.includes(elem.generalProofType)
-  });
+  });*/
 
   return (validity)
 
