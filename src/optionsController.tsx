@@ -227,11 +227,13 @@ export class optionsController {
                             createNewConn.style.color = "#00ff00ff"
                             createNewConn.style.borderColor = "#00ff00ff"
                             from = i.id;
+                            p("a", from)
+                            event.stopImmediatePropagation()
                         }
                         else {
 
                             to = i.id;
-
+                            p("b", from, to)
                             createNewConn.style.color = "#000000ff"
                             createNewConn.style.borderColor = ""
                             for (const j in graphMGR.graphitems) {
@@ -248,15 +250,13 @@ export class optionsController {
                             p(conn)
                             conn ??= { idFrom: from, idTo: to, type }
                             if (inConnections) {
-                                p(conn,)
-                                p(graphMGR.conns)
-                                p(graphMGR.conns.indexOf(conn))
                                 graphMGR.conns.splice(graphMGR.conns.indexOf(conn), 1)
                             }
                             else {
                                 graphMGR.conns.push(conn)
                             }
                             graphMGR.loadConnectors()
+                            event.stopImmediatePropagation()
                         }
                         p(from, to)
                     }

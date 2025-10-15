@@ -167,13 +167,23 @@
     ],
     "horizonType": [
         [
-            "Finite Horizon"
+            "Finite Horizon",
+            "Finite"
         ],
         [
-            "Infinite Horizon Average"
+            "Infinite",
+            "Infinite Horizon Average",
+            "Infinite Average",
+            "Infinite Horizon Discounted",
+            "Infinite Discounted"
         ],
         [
-            "Infinite Horizon Discounted"
+            "Infinite Horizon Average",
+            "Infinite Average"
+        ],
+        [
+            "Infinite Horizon Discounted",
+            "Infinite Discounted"
         ],
         [
             "Not Clearly Stated"

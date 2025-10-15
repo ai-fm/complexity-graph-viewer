@@ -194,8 +194,10 @@ export class GraphManager {
     //
     unloadGraphItems() {
         for (const i in this.graphitems) { this.graphitems[i].remove() }
+
         this.graphitems = []
         this.graphitemdata = []
+        this.graphitemtext = []
     }
 
     //for a set graph type, fetch node data, add it to graphitemdata array and pass it on to createNode.
@@ -204,13 +206,13 @@ export class GraphManager {
 
         //init valid graphtypes
         for (const i in graphStructures) {
-            this.validGraphTypes.push(graphStructures[i].graphtype)
+            if (!this.validGraphTypes.includes(graphStructures[i].graphtype)) { this.validGraphTypes.push(graphStructures[i].graphtype) }
         }
 
         //https://barker.codes/blog/unique-array-values-in-javascript/#check-if-every-value-is-unique
         //checking if all MDP graph types are unique and if not throwing error (but continuing as normal, using first occurance of graph for every)
         if (!(this.validGraphTypes.every((value, _index, array) => { return array.indexOf(value) === array.lastIndexOf(value); }))) {
-            p("Not all graph types are unique!")
+            p("Not all graph types are unique!", this.validGraphTypes)
         }
 
         for (const i in graphStructures[typeIndex].nodes) { this.loadGraphElem(graphStructures[typeIndex].nodes[i]) }
@@ -434,9 +436,7 @@ export class GraphManager {
 
 
     fetchResults(node: HTMLElement, mdptype: string, nodeResults: complexityResult[], nodeResPapers: string[]) {
-
         const [filters, filtervalues] = this.recursiveFilter(node)
-        p(filters, filtervalues)
         resultNodes.forEach((paperJson) => {
             paperJson.results.forEach((result) => {
                 if (result.mdpType == mdptype) {
@@ -444,7 +444,8 @@ export class GraphManager {
                     if (filters.includes("Error")) { validEntry = false }
                     for (const i in filters) {
                         const k = filters[i] as keyof typeof result
-                        if (result[k] != filtervalues[i]) { validEntry = false }
+
+                        if (!filtervalues.includes(result[k] as string)) { validEntry = false }
                     }
                     if (validEntry) { nodeResPapers.push(paperJson.title); nodeResults.push(result) }
                 }
@@ -455,11 +456,13 @@ export class GraphManager {
     }
     recursiveFilter(node: HTMLElement): string[][] {
 
-
         const par = node.parentElement;
         let filters = [this.getValueTypeFromTitle(this.findItemById(node.id)?.title)]
         const candidate = this.findTextElemById(node.id)?.textContent
         let values: string[] = [(candidate == undefined) ? "error" : (candidate)]
+        for (const i of validCategories[filters[0]]) {
+            if (i.includes(values[0])) { values = i }
+        }
         if (par != null && par != this.gvc) {
             const pfilt = this.recursiveFilter(par)
             filters = filters.concat(pfilt[0])
@@ -533,7 +536,7 @@ export class GraphManager {
         if (title_unsafe != undefined) { title = title_unsafe as string }
         title = title.replace(/</g, "").replace(/>/g, "")
         if ((title.startsWith("\"")) && (title.endsWith("\"?"))) {
-            p(title); title = title.substring(1, title.length - 2); p(title)
+            title = title.substring(1, title.length - 2); p(title)
         }
         const outDict = {
             posX: node.posX,

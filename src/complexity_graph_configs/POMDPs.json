@@ -1,11 +1,11 @@
 {
-	"graphtype": "MDP",
+	"graphtype": "POMDP",
 	"nodes": [
 		{
 			"posX": 438.323,
 			"posY": 364.401,
 			"type": "ClickableGraphNode",
-			"title": "MDP",
+			"title": "POMDP",
 			"id": "1",
 			"children": [],
 			"childDegree": 0,
