@@ -564,7 +564,7 @@ export class GraphManager {
             if (i.type == "ClickableGraphNode") { nodeEntries.push(this.fetchNodeJsonEntry(i)) }
         }
         const outDict = {
-            graphtype: document.getElementById("GraphTitleContainer")?.textContent,
+            graphtype: (document.getElementById("GraphTitleContainer") as HTMLInputElement)?.value,
             nodes: nodeEntries,
             connectors: this.conns
         }

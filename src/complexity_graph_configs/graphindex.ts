@@ -1,9 +1,10 @@
 //mass import graph structures.
 //much like with the mass result indexer, i am under the potentially false belief that this cant be done using a loop or foreach.
 //i would like to be proven wrong
+import mdps from "./MDPs.json";
 import template from "./Template.json";
 const graphStructures = [
-    template
+    mdps, template
 ];
 
 export default graphStructures;

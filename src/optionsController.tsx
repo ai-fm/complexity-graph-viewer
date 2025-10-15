@@ -41,9 +41,10 @@ export class optionsController {
             const tdc = document.getElementById("MDPTypeDropdownContainer")
             if (optionsOpen) {
                 const graphtitle = document.createElement("input")
-
+                graphtitle.type = "text"
                 graphtitle.contentEditable = "true";
                 graphtitle.placeholder = "Enter graph title here.";
+                graphtitle.value = "";
                 graphtitle.id = "GraphTitleContainer"
                 if (tdc != null) { tdc.appendChild(graphtitle) }
             } else {

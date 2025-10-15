@@ -1,0 +1,293 @@
+{
+	"graphtype": "MDP",
+	"nodes": [
+		{
+			"posX": 438.323,
+			"posY": 364.401,
+			"type": "ClickableGraphNode",
+			"title": "MDP",
+			"id": "1",
+			"children": [],
+			"childDegree": 0,
+			"valueType": "mdpType"
+		},
+		{
+			"posX": 136.006,
+			"posY": 394.28,
+			"type": "ClickableGraphNode",
+			"title": "Reachability",
+			"id": "2",
+			"children": [
+				{
+					"posX": -57.8698,
+					"posY": -34.9412,
+					"type": "ClickableSubNode",
+					"title": "Existence",
+					"id": "2.1",
+					"children": [],
+					"childDegree": 1,
+					"valueType": "problemApproach"
+				},
+				{
+					"posX": -60.3547,
+					"posY": 35.0588,
+					"type": "ClickableSubNode",
+					"title": "Computation",
+					"id": "2.3",
+					"children": [],
+					"childDegree": 1,
+					"valueType": "problemApproach"
+				}
+			],
+			"childDegree": 0,
+			"valueType": "problemType"
+		},
+		{
+			"posX": 380.938,
+			"posY": 458.28,
+			"type": "ClickableGraphNode",
+			"title": "Reward Maximisation",
+			"id": "3",
+			"children": [
+				{
+					"posX": -85.0179,
+					"posY": 28.963,
+					"type": "ClickableSubNode",
+					"title": "Existence",
+					"id": "3.1",
+					"children": [],
+					"childDegree": 1,
+					"valueType": "problemApproach"
+				},
+				{
+					"posX": 12.3155,
+					"posY": 45.963,
+					"type": "ClickableSubNode",
+					"title": "Computation",
+					"id": "3.2",
+					"children": [],
+					"childDegree": 1,
+					"valueType": "problemApproach"
+				}
+			],
+			"childDegree": 0,
+			"valueType": "problemType"
+		},
+		{
+			"posX": 477.113,
+			"posY": 298.28,
+			"type": "ClickableGraphNode",
+			"title": "Safety",
+			"id": "4",
+			"children": [
+				{
+					"posX": -85.8146,
+					"posY": -52.0346,
+					"type": "ClickableSubNode",
+					"title": "Existence",
+					"id": "4.1",
+					"children": [],
+					"childDegree": 1,
+					"valueType": "problemApproach"
+				},
+				{
+					"posX": 68.0239,
+					"posY": -48.3982,
+					"type": "ClickableSubNode",
+					"title": "Computation",
+					"id": "4.2",
+					"children": [],
+					"childDegree": 1,
+					"valueType": "problemApproach"
+				}
+			],
+			"childDegree": 0,
+			"valueType": "problemType"
+		},
+		{
+			"posX": 573.446,
+			"posY": 466.28,
+			"type": "ClickableGraphNode",
+			"title": "Büchi",
+			"id": "5",
+			"children": [
+				{
+					"posX": -63.5259,
+					"posY": -35.037,
+					"type": "ClickableSubNode",
+					"title": "Existence",
+					"id": "5.1",
+					"children": [],
+					"childDegree": 1,
+					"valueType": "problemApproach"
+				},
+				{
+					"posX": 33.8075,
+					"posY": -34.037,
+					"type": "ClickableSubNode",
+					"title": "Computation",
+					"id": "5.2",
+					"children": [],
+					"childDegree": 1,
+					"valueType": "problemApproach"
+				}
+			],
+			"childDegree": 0,
+			"valueType": "problemType"
+		},
+		{
+			"posX": 570.899,
+			"posY": 576.28,
+			"type": "ClickableGraphNode",
+			"title": "coBüchi",
+			"id": "6",
+			"children": [
+				{
+					"posX": -6.97886,
+					"posY": 42.963,
+					"type": "ClickableSubNode",
+					"title": "Existence",
+					"id": "6.1",
+					"children": [],
+					"childDegree": 1,
+					"valueType": "problemApproach"
+				},
+				{
+					"posX": 69.3545,
+					"posY": 13.963,
+					"type": "ClickableSubNode",
+					"title": "Computation",
+					"id": "6.2",
+					"children": [],
+					"childDegree": 1,
+					"valueType": "problemApproach"
+				}
+			],
+			"childDegree": 0,
+			"valueType": "problemType"
+		},
+		{
+			"posX": 484.899,
+			"posY": 534.28,
+			"type": "ClickableGraphNode",
+			"title": "Parity",
+			"id": "7",
+			"children": [
+				{
+					"posX": -68.9789,
+					"posY": 44.963,
+					"type": "ClickableSubNode",
+					"title": "Existence",
+					"id": "7.1",
+					"children": [],
+					"childDegree": 1,
+					"valueType": "problemApproach"
+				},
+				{
+					"posX": 0.354479,
+					"posY": 48.963,
+					"type": "ClickableSubNode",
+					"title": "Computation",
+					"id": "7.2",
+					"children": [],
+					"childDegree": 1,
+					"valueType": "problemApproach"
+				}
+			],
+			"childDegree": 0,
+			"valueType": "problemType"
+		}
+	],
+	"connectors": [
+		{
+			"idFrom": "1",
+			"idTo": "2",
+			"type": "line"
+		},
+		{
+			"idFrom": "2",
+			"idTo": "2.1",
+			"type": "line"
+		},
+		{
+			"idFrom": "2",
+			"idTo": "2.3",
+			"type": "line"
+		},
+		{
+			"idFrom": "1",
+			"idTo": "4",
+			"type": "line"
+		},
+		{
+			"idFrom": "4",
+			"idTo": "4.2",
+			"type": "line"
+		},
+		{
+			"idFrom": "4",
+			"idTo": "4.1",
+			"type": "line"
+		},
+		{
+			"idFrom": "1",
+			"idTo": "3",
+			"type": "line"
+		},
+		{
+			"idFrom": "3",
+			"idTo": "3.2",
+			"type": "line"
+		},
+		{
+			"idFrom": "3",
+			"idTo": "3.1",
+			"type": "line"
+		},
+		{
+			"idFrom": "1",
+			"idTo": "7",
+			"type": "line"
+		},
+		{
+			"idFrom": "7",
+			"idTo": "6",
+			"type": "line"
+		},
+		{
+			"idFrom": "6",
+			"idTo": "6.2",
+			"type": "line"
+		},
+		{
+			"idFrom": "6",
+			"idTo": "6.1",
+			"type": "line"
+		},
+		{
+			"idFrom": "7",
+			"idTo": "7.2",
+			"type": "line"
+		},
+		{
+			"idFrom": "7",
+			"idTo": "7.1",
+			"type": "line"
+		},
+		{
+			"idFrom": "7",
+			"idTo": "5",
+			"type": "line"
+		},
+		{
+			"idFrom": "5",
+			"idTo": "5.1",
+			"type": "line"
+		},
+		{
+			"idFrom": "5",
+			"idTo": "5.2",
+			"type": "line"
+		}
+	]
+}
