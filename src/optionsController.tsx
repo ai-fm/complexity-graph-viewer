@@ -309,7 +309,7 @@ export class optionsController {
     makeGhostNode() {
         const node = new graphDataNode
         node.type = "ClickableGraphNode"
-        node.title = "new"
+        node.title = "<>"
         node.id = this.fetchNextFreeID(1);
         node.children = []
         node.childDegree = 0
@@ -324,7 +324,7 @@ export class optionsController {
     makeGhostChildNode(parent: HTMLElement) {
         const node = new graphDataNode
         node.type = "ClickableSubNode"
-        node.title = "new"
+        node.title = "<>"
         node.id = this.fetchNextFreeID(1, parent.id + ".", [...parent.children])
         node.children = []
 

@@ -154,8 +154,10 @@ export class GraphManager {
         this.zoom *= 1.1 ** Math.sign(-event.deltaY)
         this.gvc.style.scale = this.zoom + ""
 
-        for (const i of this.graphitemdata) {
+        /*for (const i of this.graphitemdata) {
             const el = document.getElementById(i.id)
+
+            //if (this.getValueTypeFromTitle((document.getElementById(i.id + "SP"))?.textContent) == "mdpType") { return "scale(3)" }
             if (el == null) { continue }
             if (i.type == "ClickableSubNode") {
                 el.style.scale = "" + Math.min(1, this.zoom)
@@ -163,8 +165,7 @@ export class GraphManager {
             else {
                 el.style.scale = "" + Math.max(1, 1 + Math.log(1 / this.zoom))//"" + 1 / this.zoom
             }
-        }
-
+        }*/
         this.gvc.style.transformOrigin = ("")
         this.loadConnectors()
     }
@@ -246,6 +247,16 @@ export class GraphManager {
 
     }
 
+    getNodeScale(title: string): string {
+
+        if (this.getValueTypeFromTitle(title) == "mdpType") { return "scale(2.5)" }
+        if (this.getValueTypeFromTitle(title) == "problemType") { return "scale(1.5)" }
+        if (this.getValueTypeFromTitle(title) == "problemApproach") { return "scale(0.8)" }//because child node usually 
+        if (this.getValueTypeFromTitle(title) == "horizonType") { return "scale(0.6)" }
+        if (this.getValueTypeFromTitle(title) == "") { return "scale(1)" }
+        return "scale(1)"
+    }
+
     //Given a nodes json data, initialise it based on its type.
     createNode(el: graphDataNode, pParent?: HTMLElement) {
         let parent = pParent
@@ -253,8 +264,7 @@ export class GraphManager {
         const newNode = document.createElement("button")
         newNode.style.borderRadius = "45%"
         el.childDegree ??= 0
-        newNode.style.transform = "scale(" + ((el.childDegree > 0) ? 0.75 : 1.5) + ")"
-
+        newNode.style.transform = this.getNodeScale(el.title as string)
         //span to hold buttons text instead of button. avoids some issues.
         const txtspan = document.createElement("span")
 
@@ -271,7 +281,7 @@ export class GraphManager {
 
         el.title ??= "Untitled"
         //if titled new, leave empty for user to name. Else, if invalid, add ""? to name to indicate so.
-        txtspan.textContent = el.title == "new" ? "-" : this.getValueTypeFromTitle(el.title) == "Error" ? ("\"" + el.title + "\"?") : el.title
+        txtspan.textContent = this.getValueTypeFromTitle(el.title) == "Error" ? ("\"" + el.title + "\"?") : el.title
 
         if (el.children != null) { el.children.forEach((i) => this.loadGraphElem(i, newNode)) }
         newNode.style.display = "inline-block"
@@ -518,9 +528,13 @@ export class GraphManager {
         if (node.children != undefined) {
             for (const i of node.children) { childrenJson.push(this.fetchNodeJsonEntry(i)) }
         }
-        const title_unsafe = document.getElementById(node.id + "SP")?.textContent
+        const title_unsafe = (document.getElementById(node.id + "SP")?.textContent)
         let title = "error"
         if (title_unsafe != undefined) { title = title_unsafe as string }
+        title = title.replace(/</g, "").replace(/>/g, "")
+        if ((title.startsWith("\"")) && (title.endsWith("\"?"))) {
+            p(title); title = title.substring(1, title.length - 2); p(title)
+        }
         const outDict = {
             posX: node.posX,
             posY: node.posY,
@@ -538,6 +552,7 @@ export class GraphManager {
         if (title == null || title == undefined) { return "Error" }
         let x: keyof typeof validCategories;
         for (x in validCategories) { for (const i of validCategories[x]) { if (i.includes(title)) { return x; } } }
+        if (title == "<>") { return "" }
         return "Error"
 
     }

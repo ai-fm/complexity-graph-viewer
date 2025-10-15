@@ -1,13 +1,44 @@
 {
     "mdpType": [
         [
-            "MDP"
+            "MDP",
+            "PIMDP",
+            "Markov Decision Process",
+            "Perfect Information MDP",
+            "Perfect Information Markov Decision Process"
         ],
         [
             "POMDP"
         ],
         [
-            "Observationless MDP"
+            "Observationless MDP",
+            "UOMDP",
+            "Unobservable MDP"
+        ],
+        [
+            "RMDP",
+            "rMDP",
+            "Robust MDP"
+        ],
+        [
+            "MEMDP",
+            "Multiple Environment MDP",
+            "Multi-Environment MDP"
+        ],
+        [
+            "pMDP",
+            "PMDP",
+            "Parametric MDP"
+        ],
+        [
+            "Time-delayed MDP"
+        ],
+        [
+            "MOMDP",
+            "Multiple Objective MDP"
+        ],
+        [
+            "OBMDP"
         ]
     ],
     "problemType": [
@@ -18,21 +49,63 @@
             "Cost Minimization"
         ],
         [
+            "Target Reward",
+            "Exact Reward"
+        ],
+        [
             "Reachability"
+        ],
+        [
+            "Safety"
+        ],
+        [
+            "Büchi",
+            "Buchi"
+        ],
+        [
+            "coBuchi",
+            "coBüchi",
+            "CoBuchi",
+            "CoBüchi"
+        ],
+        [
+            "Parity"
+        ],
+        [
+            "Muller"
+        ],
+        [
+            "Rabin"
+        ],
+        [
+            "Other"
         ]
     ],
     "problemApproach": [
         [
-            "Policy Existence"
+            "Policy Existence",
+            "Existence"
         ],
         [
-            "Policy Evaluation"
+            "Policy Evaluation",
+            "Evaluation"
         ],
         [
-            "Policy Computation"
+            "Policy Computation",
+            "Computation"
+        ],
+        [
+            "Policy Improvement",
+            "Improvement"
         ]
     ],
     "complexityClass": [
+        [
+            "NL"
+        ],
+        [
+            "PL"
+        ],
         [
             "NC"
         ],
@@ -43,7 +116,45 @@
             "NP"
         ],
         [
+            "PP"
+        ],
+        [
+            "ETR",
+            "Existential theory of the reals"
+        ],
+        [
             "PSPACE"
+        ],
+        [
+            "EXP",
+            "EXPTIME"
+        ],
+        [
+            "NEXP",
+            "NEXPTIME"
+        ],
+        [
+            "EXPSPACE"
+        ],
+        [
+            "Decidable not otherwise specified",
+            "Decidable"
+        ],
+        [
+            "Undecidable"
+        ],
+        [
+            "Possibly Open",
+            "Possibly Open Question",
+            "Open?"
+        ],
+        [
+            "Open Question",
+            "Open"
+        ],
+        [
+            "NPPP",
+            "NP^PP"
         ]
     ],
     "complexitySuffix": [
@@ -87,17 +198,53 @@
             "Stationary"
         ],
         [
-            "Nonstationary"
+            "Nonstationary",
+            "Nonstationary General",
+            "Time-dependent",
+            "Time",
+            "History-dependent",
+            "History"
+        ],
+        [
+            "Time-dependent",
+            "Time"
+        ],
+        [
+            "History-dependent",
+            "History"
         ]
     ],
     "policyMemory": [
         [
             "Finite"
+        ],
+        [
+            "Infinite"
+        ],
+        [
+            "Memoryless",
+            "None"
         ]
     ],
     "analysisType": [
         [
-            "Qualitative-Almost sure"
+            "Quantitative"
+        ],
+        [
+            "Qualitative",
+            "Almost-sure",
+            "Positive",
+            "Limit-sure"
+        ],
+        [
+            "Almost-sure"
+        ],
+        [
+            "Positive",
+            "Possible"
+        ],
+        [
+            "Limit-sure"
         ]
     ],
     "rewardConstraint": [
@@ -111,16 +258,46 @@
     "ambiguitySetRectangularity": [
         [
             "Nonrectangular"
+        ],
+        [
+            "s-rectangular"
+        ],
+        [
+            "(s,a)-rectangular",
+            "s,a-rectangular"
         ]
     ],
     "ambiguitySetConvexness": [
         [
             "Nonconvex"
+        ],
+        [
+            "Convex"
         ]
     ],
     "mdpRepresentation": [
         [
             "Flat"
+        ],
+        [
+            "Succinct"
+        ],
+        [
+            "Compressed"
+        ]
+    ],
+    "special": [
+        [
+            "2-MEMDP"
+        ],
+        [
+            "Time-sensitive MEMDP"
+        ],
+        [
+            "MO-OBMDP"
+        ],
+        [
+            "Atypical reward shape"
         ]
     ],
     "proofType": [

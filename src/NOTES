@@ -1,10 +1,13 @@
 TODOS: 
 
 make toggle buttons undo toggle and effects when pressed again
-
-
+make config jsons external instead
+make nodes containing name of graph type 300% size
 - make actual complexity result graph 
 
 Implement By-Problem view instead of By-Type view
 Settings
 More options beneath dropdown (as in, filtering)
+
+
+how does multi-objective achievability fit into categories
