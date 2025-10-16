@@ -1,9 +1,9 @@
 
-import rawValidCategories from "../../mdp_configs/node-category-values.json";
-import rawGraphStructures from "../complexity_graph_configs/graphindex";
-import { graphMGR, mousedown, optionsCTR, optionsOpen, p } from "../main";
-import { nodes as resultNodes } from "../nodes/nodes";
+import rawValidCategories from "../configs/acceptable-values/node-category-values.json";
+import rawGraphStructures from "../configs/complexity_graph_configs/graphindex";
 import "./graph_nodes.css";
+import { graphMGR, mousedown, optionsCTR, optionsOpen, p } from "./main";
+import { nodes as resultNodes } from "./node_validator";
 const validCategories = JSON.parse(JSON.stringify(rawValidCategories))
 p("print import for quicker debug")
 
@@ -35,7 +35,7 @@ class complexityResult {
     special?: string[]
 }
 
-const graphStructures: {
+let graphStructures: {
     graphtype: string;
     nodes: graphDataNode[],
     connectors?: {
@@ -44,6 +44,19 @@ const graphStructures: {
         type: string
     }[];
 }[] = rawGraphStructures;
+
+export function debugsetgraphstruct(dbt: {
+    graphtype: string;
+    nodes: graphDataNode[],
+    connectors?: {
+        idFrom: string,
+        idTo: string,
+        type: string
+    }[];
+}[]) { graphStructures = dbt }
+
+
+
 
 
 //GraphManager is responsible for handling construction, movement and unloading/loading of the graph elements.

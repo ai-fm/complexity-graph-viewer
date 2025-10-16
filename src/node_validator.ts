@@ -1,6 +1,6 @@
 
-import jsons from "../../complexity_result_jsons/json_directory/index.ts";
-import validCategories from "../../mdp_configs/node-category-values.json";
+import validCategories from "../configs/acceptable-values/node-category-values.json";
+import jsons from "../configs/results/index.ts";
 //read all nodes from indexed raw jsons and convert them into array iff valid according to category values.
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

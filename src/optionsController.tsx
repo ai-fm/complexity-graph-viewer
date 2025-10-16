@@ -1,4 +1,4 @@
-import { graphDataNode } from "./graph_nodes/GraphManager"
+import { graphDataNode } from "./GraphManager"
 import { graphMGR, optionsOpen, p, setOptionsOpen } from "./main"
 
 export class optionsController {

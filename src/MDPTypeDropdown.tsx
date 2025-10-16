@@ -2,7 +2,7 @@ import { useState } from "preact/hooks";
 import { graphMGR } from "./main";
 
 import "./MDPTypeDropdown.css";
-import { nodes } from "./nodes/nodes";
+import { nodes } from "./node_validator";
 export let dropdownval: string;
 export default function MDPTypeDropdown() {
   const [, setValue] = useState('');

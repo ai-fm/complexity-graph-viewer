@@ -27,7 +27,9 @@
     "src",
     "complexity_result_jsons/",
     "complexity_graph_configs",
-    "../vite.config.json"
+    "../vite.config.json",
+    "configs/results",
+    "configs/complexity_graph_configs"
   ],
   "references": [
     {

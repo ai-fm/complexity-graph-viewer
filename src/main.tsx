@@ -1,6 +1,6 @@
 import { render } from "preact";
+import { graphDataNode, GraphManager } from "./GraphManager";
 import MDPApp from "./MDPApp";
-import { GraphManager } from "./graph_nodes/GraphManager";
 import { optionsController } from "./optionsController";
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 render(<MDPApp />, document.getElementById("root")!);
@@ -93,22 +93,44 @@ function getConfigURLs(indexURL: string) {
 
 
 function getConfigs(indexURL: string) {
-    const CFGs: string[] = []
+    const CFGs: {
+        graphtype: string;
+        nodes: graphDataNode[],
+        connectors?: {
+            idFrom: string,
+            idTo: string,
+            type: string
+        }[];
+    }[]//|all[]|other[]|index[]|cfgs[]
+        = []
     const URLs = getConfigURLs(indexURL)
     for (const i of URLs) {
-
-        p("url", i)
         const xhr = new XMLHttpRequest();
         xhr.open('GET', i, false);
         xhr.onload = () => {
             if (xhr.responseText != "404: Not Found") {
-                p(xhr.responseText, JSON.parse(xhr.responseText))
                 CFGs.push(JSON.parse(xhr.responseText))
             }
+            else { p("Error:That config doesnt seem to exist.") }
         };
         xhr.send();
     }
-    p(CFGs)
+    return CFGs
 }
 
-getConfigs(debugURL)
+export const debugthing = getConfigs(debugURL)
+//debugsetgraphstruct(debugthing)
+graphMGR.updateGraphType("MDP")
+
+
+
+const xhr = new XMLHttpRequest();
+xhr.open('GET', "https://raw.githubusercontent.com/ai-fm/complexity-graph-viewer/refs/heads/main/mdp_configs/node-category-values.json?token=GHSAT0AAAAAADNEBIBEAMJLS77U6P7AU2TY2HQ62UA"
+    , false);
+xhr.onload = () => {
+    if (xhr.responseText != "404: Not Found") {
+        p(xhr.responseText)
+    }
+    else { p("Error:That config doesnt seem to exist.") }
+};
+xhr.send();

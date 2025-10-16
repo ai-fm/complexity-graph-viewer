@@ -20,6 +20,6 @@ make global filters have a filter to show "special" cases
 
 automate config indexing using github actions
 
-
+make errors a red popup instead of console writes?
 
 maybe add manual "load local configs (from x folder)" button (out of scope, bonus goal)
