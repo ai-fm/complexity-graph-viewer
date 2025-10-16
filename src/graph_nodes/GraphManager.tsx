@@ -32,6 +32,7 @@ class complexityResult {
     determinism?: string;
     dependence?: string;
     complexityNotes?: string;
+    special?: string[]
 }
 
 const graphStructures: {
@@ -74,6 +75,8 @@ export class GraphManager {
     validGraphTypes: string[] = [];
     //current graph type. Initialized as first valid type, can alternatively be coded to "MDP" or probably to on initialisation fetch initial Dropdown element
     graphtype = "Unininitalized"
+    //include special cases with potentially hyperspecific cases, in the specials string array
+    includeSpecialCases = true;
 
     constructor() {
         let candidate = document.getElementById("graphViewContainer");
@@ -444,8 +447,15 @@ export class GraphManager {
                     if (filters.includes("Error")) { validEntry = false }
                     for (const i in filters) {
                         const k = filters[i] as keyof typeof result
+                        if (filters.includes("special") && ("special" in result)) {
+                            if (!result.special?.includes(filtervalues[i])) { validEntry = false; }
+                            if (!this.includeSpecialCases) { validEntry = false; }
 
-                        if (!filtervalues.includes(result[k] as string)) { validEntry = false }
+                            p(result)
+
+                        }
+                        else if (!filtervalues.includes(result[k] as string)) { validEntry = false }
+
                     }
                     if (validEntry) { nodeResPapers.push(paperJson.title); nodeResults.push(result) }
                 }
@@ -460,6 +470,8 @@ export class GraphManager {
         let filters = [this.getValueTypeFromTitle(this.findItemById(node.id)?.title)]
         const candidate = this.findTextElemById(node.id)?.textContent
         let values: string[] = [(candidate == undefined) ? "error" : (candidate)]
+        if (validCategories[filters[0]] == undefined) { p("No valid filters found. Maybe add them to configs?"); return [["Error"], ["Error"]] }
+
         for (const i of validCategories[filters[0]]) {
             if (i.includes(values[0])) { values = i }
         }
@@ -516,7 +528,11 @@ export class GraphManager {
         const complexity = (resData.complexitysuffix == undefined) ? resData.complexity : resData.complexity + "-" + resData.complexitysuffix
         this.makeparagraph("Complexity: " + complexity)
         this.makeparagraph("General approach: " + resData.generalProofType)
-
+        if (resData.special != undefined) {
+            let extraInfo = ""
+            for (const i of resData.special) { extraInfo += i }
+            this.makeparagraph("Special: " + extraInfo)
+        }
         this.makehrule()
     }
 
@@ -536,7 +552,7 @@ export class GraphManager {
         if (title_unsafe != undefined) { title = title_unsafe as string }
         title = title.replace(/</g, "").replace(/>/g, "")
         if ((title.startsWith("\"")) && (title.endsWith("\"?"))) {
-            title = title.substring(1, title.length - 2); p(title)
+            title = title.substring(1, title.length - 2);
         }
         const outDict = {
             posX: node.posX,

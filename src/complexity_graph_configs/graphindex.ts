@@ -7,5 +7,4 @@ import template from "./Template.json";
 const graphStructures = [
     mdps, pomdps, template
 ];
-
 export default graphStructures;
