@@ -6,7 +6,7 @@ export default tseslint.config(
   tseslint.configs.strict,
   tseslint.configs.stylistic,
   {
-    ignores:["eslint.config.js"],
+    ignores:["eslint.config.js","vite.config.ts"],
     languageOptions: {
       parserOptions: {
         project: true,

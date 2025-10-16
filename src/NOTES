@@ -12,3 +12,14 @@ fix connections bug (with 3 depth children esp) (auto tethers to parent if click
 fix creation offset
 
 how does multi-objective achievability fit into categories
+
+
+remember, global filters should affect how nodes are displayed (i.e if side nodes are filtered to only view nonstationary, displayed complexity should update to only view avg of nonstationary)
+make global filters have a filter to show "special" cases 
+
+
+automate config indexing using github actions
+
+
+
+maybe add manual "load local configs (from x folder)" button (out of scope, bonus goal)

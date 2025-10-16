@@ -39,6 +39,12 @@
         ],
         [
             "OBMDP"
+        ],
+        [
+            "pMC",
+            "PMC",
+            "Parametric MC",
+            "Parametric Markov Chain"
         ]
     ],
     "problemType": [
@@ -92,7 +98,9 @@
         ],
         [
             "Policy Computation",
-            "Computation"
+            "Computation",
+            "Unspecified",
+            "Unspecified presuming computation as default"
         ],
         [
             "Policy Improvement",
@@ -298,6 +306,13 @@
     ],
     "special": [
         [
+            "COMMENT:",
+            "Special categories are ment to be exclusive, not inclusive.",
+            "As to say, these will not be included unless you enable either",
+            "all special or that specific one, itll not display.",
+            "(for now, its enabled by default to show all)"
+        ],
+        [
             "2-MEMDP"
         ],
         [
@@ -308,6 +323,10 @@
         ],
         [
             "Atypical reward shape"
+        ],
+        [
+            "pMDP-Fixed number of parameters",
+            "Fixed number of parameters"
         ]
     ],
     "proofType": [
