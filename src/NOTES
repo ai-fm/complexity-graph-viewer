@@ -1,7 +1,7 @@
 TODOS: 
 
 make toggle buttons undo toggle and effects when pressed again
-make config jsons external instead
+
 
 Implement By-Problem view instead of By-Type view
 Settings
@@ -10,8 +10,6 @@ More options beneath dropdown (as in, filtering)
 fix connections bug (with 3 depth children esp) (auto tethers to parent if clicking a child node. parent nodes unaffected)
 -> maybe leave current unintentional functionality as "link to parent"?
 fix creation offset
-
-how does multi-objective achievability fit into categories
 
 
 remember, global filters should affect how nodes are displayed (i.e if side nodes are filtered to only view nonstationary, displayed complexity should update to only view avg of nonstationary)

@@ -62,6 +62,8 @@ document.onclick = (event) => {
 
 
 
+function makeJSONDict(response: string) { return JSON.parse(JSON.stringify(JSON.parse(response))) }
+
 //debug function for testing external cfgs on hosted page
 
 const debugURL = 'https://raw.githubusercontent.com/ClemRub/debug/main/index.json'
@@ -71,10 +73,8 @@ function getConfigURLs(indexURL: string) {
     const xhr = new XMLHttpRequest();
     xhr.open('GET', indexURL, false);
     xhr.onload = () => {
-        //yes, parse(string(parse)). this is intentional and how it works.
-        const index = JSON.parse(JSON.stringify(JSON.parse(xhr.responseText)))
+        const index = makeJSONDict(xhr.responseText)
         let cfgs = []
-        p(index)
         const x = "configs";
         if (x in index) { cfgs = index[x] }
         else { p("Index malformed: No configs") }
@@ -125,11 +125,14 @@ graphMGR.updateGraphType("MDP")
 
 
 const xhr = new XMLHttpRequest();
-xhr.open('GET', "https://raw.githubusercontent.com/ai-fm/complexity-graph-viewer/refs/heads/main/mdp_configs/node-category-values.json?token=GHSAT0AAAAAADNEBIBEAMJLS77U6P7AU2TY2HQ62UA"
+xhr.open('GET', "https://raw.githubusercontent.com/ai-fm/complexity-graph-viewer/refs/heads/main/configs/valid_values/node-category-values.json?token=GHSAT0AAAAAADNEBIBFA5GVXIMGKOOPVPX62HQ7HPQ"
     , false);
 xhr.onload = () => {
     if (xhr.responseText != "404: Not Found") {
-        p(xhr.responseText)
+
+        p(makeJSONDict(xhr.responseText))
+        p("This url resets in 7 days. Public URLs don't.")
+
     }
     else { p("Error:That config doesnt seem to exist.") }
 };

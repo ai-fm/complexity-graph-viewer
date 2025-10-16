@@ -1,6 +1,6 @@
 
-import rawValidCategories from "../configs/acceptable-values/node-category-values.json";
 import rawGraphStructures from "../configs/complexity_graph_configs/graphindex";
+import rawValidCategories from "../configs/valid_values/node-category-values.json";
 import "./graph_nodes.css";
 import { graphMGR, mousedown, optionsCTR, optionsOpen, p } from "./main";
 import { nodes as resultNodes } from "./node_validator";
