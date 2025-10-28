@@ -86,8 +86,8 @@ export class GraphManager {
     nodeitems: HTMLElement[] = []
     //Graph types that can be rendered, read from complexity_graph_configs. 
     validGraphTypes: string[] = [];
-    //current graph type. Initialized as first valid type, can alternatively be coded to "MDP" or probably to on initialisation fetch initial Dropdown element
-    graphtype = "Unininitalized"
+    //current graph type. Initialized to "MDP" as default 
+    graphtype = "MDP"
     //include special cases with potentially hyperspecific cases, in the specials string array
     includeSpecialCases = true;
 
@@ -182,6 +182,16 @@ export class GraphManager {
                 el.style.scale = "" + Math.max(1, 1 + Math.log(1 / this.zoom))//"" + 1 / this.zoom
             }
         }*/
+
+        //fix canvas not loading as it should
+        if (this.cnv != null) {
+            let wt = this.gvc.parentElement?.getBoundingClientRect().width; let ht = this.gvc.parentElement?.getBoundingClientRect().height
+            wt ??= 1; ht ??= 1
+            this.cnv.height = ht
+            this.cnv.width = wt
+            this.cnv.style.position = "fixed"
+        }
+
         this.gvc.style.transformOrigin = ("")
         this.loadConnectors()
     }
@@ -463,8 +473,6 @@ export class GraphManager {
                         if (filters.includes("special") && ("special" in result)) {
                             if (!result.special?.includes(filtervalues[i])) { validEntry = false; }
                             if (!this.includeSpecialCases) { validEntry = false; }
-
-                            p(result)
 
                         }
                         else if (!filtervalues.includes(result[k] as string)) { validEntry = false }
