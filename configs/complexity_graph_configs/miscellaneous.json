@@ -1,19 +1,19 @@
 {
-	"graphtype": "MDP",
+	"graphtype": "Miscellaneous",
 	"nodes": [
 		{
-			"posX": 517.323,
-			"posY": 270.401,
+			"posX": 438.323,
+			"posY": 338.401,
 			"type": "ClickableGraphNode",
-			"title": "MDP",
+			"title": "All",
 			"id": "1",
 			"children": [],
 			"childDegree": 0,
-			"valueType": "mdpType"
+			"valueType": "Error"
 		},
 		{
-			"posX": 266.543,
-			"posY": 196.195,
+			"posX": 187.543,
+			"posY": 264.195,
 			"type": "ClickableGraphNode",
 			"title": "Reachability",
 			"id": "2",
@@ -85,8 +85,8 @@
 			"valueType": "problemType"
 		},
 		{
-			"posX": 275.938,
-			"posY": 388.28,
+			"posX": 196.938,
+			"posY": 456.28,
 			"type": "ClickableGraphNode",
 			"title": "Reward Maximisation",
 			"id": "3",
@@ -158,8 +158,8 @@
 			"valueType": "problemType"
 		},
 		{
-			"posX": 423.531,
-			"posY": 99.195,
+			"posX": 344.531,
+			"posY": 167.195,
 			"type": "ClickableGraphNode",
 			"title": "Safety",
 			"id": "4",
@@ -231,8 +231,8 @@
 			"valueType": "problemType"
 		},
 		{
-			"posX": 739.523,
-			"posY": 238.195,
+			"posX": 660.523,
+			"posY": 306.195,
 			"type": "ClickableGraphNode",
 			"title": "Büchi",
 			"id": "5",
@@ -304,8 +304,8 @@
 			"valueType": "problemType"
 		},
 		{
-			"posX": 814.191,
-			"posY": 366.195,
+			"posX": 735.191,
+			"posY": 434.195,
 			"type": "ClickableGraphNode",
 			"title": "coBüchi",
 			"id": "6",
@@ -377,8 +377,8 @@
 			"valueType": "problemType"
 		},
 		{
-			"posX": 629.523,
-			"posY": 373.195,
+			"posX": 550.523,
+			"posY": 441.195,
 			"type": "ClickableGraphNode",
 			"title": "Parity",
 			"id": "7",

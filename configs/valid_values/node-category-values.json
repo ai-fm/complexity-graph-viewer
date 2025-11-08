@@ -1,6 +1,12 @@
 {
     "mdpType": [
         [
+            "Any",
+            "Arbitrary",
+            "Miscellaneous",
+            "All"
+        ],
+        [
             "MDP",
             "PIMDP",
             "Markov Decision Process",
@@ -100,7 +106,8 @@
             "Policy Computation",
             "Computation",
             "Unspecified",
-            "Unspecified presuming computation as default"
+            "Unspecified presuming computation as default",
+            ""
         ],
         [
             "Policy Improvement",
@@ -202,7 +209,8 @@
     ],
     "determinism": [
         [
-            "Deterministic"
+            "Deterministic",
+            "Pure"
         ],
         [
             "Randomized"
@@ -344,6 +352,9 @@
         ],
         [
             "Consequence of other proof"
+        ],
+        [
+            "Follows from different paper"
         ],
         [
             "Other"

@@ -259,7 +259,205 @@ export class GraphManager {
         this.cnv.style.position = "fixed"
         this.gvc.parentElement?.prepend(this.cnv)
         this.conns = graphStructures[typeIndex].connectors
+
+
+        for (const i of this.graphitems) { this.filterStyliseNodes(i) }
         this.loadConnectors()
+
+    }
+
+
+
+    filterStyliseNodes(node: HTMLElement) {
+        const nodeResults: complexityResult[] = [];
+        const nodeResultTitles: string[] = [];
+        this.fetchResults(node, this.graphtype, nodeResults, nodeResultTitles)
+        //list so it preserves order for lowest, highest
+        //this checks containment in node-category-values and takes first entry from there which matches these. i.e EXPTIME in ["EXP","EXPTIME"]->arr[0]="EXP"-> ff5500 
+        let total = 0
+        const count_list: [string, number, string][] = [
+            ["NL", 0, "#00ffff"],
+            ["PL", 0, "#00ffaa"],
+            ["NC", 0, "#00ff55"],
+            ["P", 0, "#00ff00"],
+
+            ["NP", 0, "#ffdd00"],
+            //conp isnt in my results yet whoops
+
+            ["PP", 0, "#ff9900"],
+
+            ["ETR", 0, "#ff5500"],
+            ["PSPACE", 0, "#ff0000"],
+
+            ["EXP", 0, "#ff0099"],
+
+            ["NEXP", 0, "#ff00ff"],
+
+            ["EXPSPACE", 0, "#d000ff"],
+
+            ["Undecidable", 0, "#0000ff"],
+
+            ["Possibly Open", 0, "#999999"],
+            ["Open Question", 0, "#ffffff"], //THIN BORDERS DONT FORGET!
+
+            ["Decidable not otherwise specified", 0, "#000000"],
+            ["NPPP", 0, "#000000"] //i dont know where between NP and PP and PSPACE  NP^PP is so its here for now. esp because i dont have any results with it why did i add it before coNP etc
+        ]
+        let comp = ""
+        for (const i of nodeResults) {
+            for (const j of validCategories.complexityClass) {
+                if (j.includes(i.complexity)) { comp = j[0] }
+            }
+            for (const k of count_list) {
+                if (k[0] == comp) { k[1] += 1; total += 1 }
+            }
+        }
+
+
+        const nodebg = document.getElementById(node.id + "BG")
+        if (nodebg == undefined) { return }
+        const rect = document.createElement("div")
+
+        const min_rect = -2
+        let max_rect = node.offsetWidth + 10
+
+        rect.style.position = "absolute"
+        rect.style.left = min_rect + "px"
+        rect.style.top = -5 + "px"
+        rect.style.height = node.offsetHeight / 3 + "px"
+        rect.style.width = max_rect + "px"
+
+
+        let offset = 0
+        if (total == 0) {
+
+
+            const spc = document.getElementById(node.id + "SPC")
+            if (spc != null) {
+                spc.textContent = "∅"
+                spc.style.color = "#000000"
+                max_rect = max_rect + spc.offsetWidth
+            }
+
+            // commented out for synthetic data approach: rect.style.backgroundColor = "#000000" 
+            //
+            // The following is just synthetic nonsense data.
+            // eslint-disable-next-line no-constant-condition
+            if (true) {
+                for (const i of count_list) {
+                    i[1] = Math.floor(Math.random() * 50); total += i[1]
+
+                }
+                const step = (1 + max_rect) / total
+                for (const i of count_list) {
+                    if (i[1] > 0) {
+                        const rect_current = document.createElement("div")
+                        rect_current.style.position = "absolute"
+                        rect_current.style.left = offset - 1 + "px"
+                        rect_current.style.top = -1 + "px"
+                        rect_current.style.height = (node.offsetHeight / 3) - 1 + "px"
+                        rect_current.style.width = step * i[1] - 1 + "px"
+                        rect_current.style.backgroundColor = i[2]
+                        const max = document.getElementById(node.id + "MAX")
+                        if (max != null) { max.style.backgroundColor = i[2] }
+
+                        rect_current.style.borderTop = "1px solid #808080"
+                        rect_current.style.borderBottom = "1px solid #808080"
+                        rect_current.style.borderLeft = "1px solid #80808080"
+                        if (offset == 0) {
+                            const min = document.getElementById(node.id + "MIN")
+                            if (min != null) {
+                                min.style.backgroundColor = i[2]
+
+                                rect_current.style.left = offset + "px"
+                                rect_current.style.borderLeft = "1px solid #757575"
+                            }
+                        }
+
+                        rect.appendChild(rect_current)
+
+                        offset += i[1] * step
+                        if (offset >= max_rect) {
+                            rect_current.style.width = step * i[1] - 2 + "px"
+                            rect_current.style.borderRight = "1px solid #757575"
+                        }
+                        //p(total, step, max_rect, min_rect + total * step)
+                    }
+                }
+            }
+
+        }
+        else {
+            const step = (1 + max_rect) / total
+            const spc = document.getElementById(node.id + "SPC")
+            if (spc != null) { spc.textContent = "" }
+            for (const i of count_list) {
+                if (i[1] > 0) {
+
+
+                    if (spc != null) {
+                        if (i[0] == "Possibly Open") { spc.textContent += "?" }
+                        else if (i[0] == "Open") { spc.textContent += "!" }
+
+                        max_rect = max_rect + spc.offsetWidth
+                    }
+
+                    const rect_current = document.createElement("div")
+                    rect_current.style.position = "absolute"
+                    rect_current.style.left = offset - 1 + "px"
+                    rect_current.style.top = -1 + "px"
+                    rect_current.style.height = (node.offsetHeight / 3) - 1 + "px"
+                    rect_current.style.width = step * i[1] - 1 + "px"
+                    rect_current.style.backgroundColor = i[2]
+                    const max = document.getElementById(node.id + "MAX")
+                    if (max != null) { max.style.backgroundColor = i[2] }
+
+                    rect_current.style.borderTop = "1px solid #808080"
+                    rect_current.style.borderBottom = "1px solid #808080"
+                    rect_current.style.borderLeft = "1px solid #80808080"
+                    if (offset == 0) {
+                        const min = document.getElementById(node.id + "MIN")
+                        if (min != null) {
+                            min.style.backgroundColor = i[2]
+
+                            rect_current.style.left = offset + "px"
+                            rect_current.style.borderLeft = "1px solid #757575"
+                        }
+                    }
+
+                    rect.appendChild(rect_current)
+
+                    offset += i[1] * step
+                    if (offset >= max_rect) {
+                        rect_current.style.width = step * i[1] - 2 + "px"
+                        rect_current.style.borderRight = "1px solid #757575"
+                    }
+                    //p(total, step, max_rect, min_rect + total * step)
+
+
+
+                }
+            }
+
+        }
+        const rectheightdummy = document.createElement("div")
+        rectheightdummy.style.height = node.offsetHeight / 3 + "px"
+        node.append(rectheightdummy)
+
+        document.getElementById(node.id + "BG")?.append(rect)
+
+
+        //appended to bg instead because it clip-path crops the node. This works but itd be better to clip or border radius-limit rect itself in here. But i got research-stuff, courses and presentations to do.
+
+
+
+
+        //why does it do thisnode.style.clipPath = "inset(0px round 5%)"
+        //p(rect)
+        //color ideas: NL,PL,NC,P varying shades of green| NP yellow, coNP different yellow|PP orange| ETR red orange into PSPACE red|EXP pink |NEXP blue pink|
+        // EXPSPACE violet | undecidable blue| possibly open light grey, open white| Decidable not otherwise specified violet,Uncategorised problems: NP^PP -> black
+
+
     }
 
     //Load in a given element by passing its information data to node data array and its graph element data to html element.
@@ -275,24 +473,24 @@ export class GraphManager {
 
     }
 
-    getNodeScale(title: string): string {
+    getNodeScale(title: string): number {
 
-        if (this.getValueTypeFromTitle(title) == "mdpType") { return "scale(2.5)" }
-        if (this.getValueTypeFromTitle(title) == "problemType") { return "scale(1.5)" }
-        if (this.getValueTypeFromTitle(title) == "problemApproach") { return "scale(0.8)" }//because child node usually 
-        if (this.getValueTypeFromTitle(title) == "horizonType") { return "scale(0.6)" }
-        if (this.getValueTypeFromTitle(title) == "") { return "scale(1)" }
-        return "scale(1)"
+        if (this.getValueTypeFromTitle(title) == "mdpType") { return 2.5 }
+        if (this.getValueTypeFromTitle(title) == "problemType") { return 1.5 }
+        if (this.getValueTypeFromTitle(title) == "problemApproach") { return 0.8 }//because child node usually 
+        if (this.getValueTypeFromTitle(title) == "horizonType") { return 0.6 }
+        if (this.getValueTypeFromTitle(title) == "") { return 1 }
+        return 1
     }
 
     //Given a nodes json data, initialise it based on its type.
     createNode(el: graphDataNode, pParent?: HTMLElement) {
         let parent = pParent
         parent ??= this.gvc
-        const newNode = document.createElement("button")
-        newNode.style.borderRadius = "45%"
+        const newNode = document.createElement("div")//button") previous button element becomes container for button and other stuff now
+        //newNode.style.borderRadius = "15px"
         el.childDegree ??= 0
-        newNode.style.transform = this.getNodeScale(el.title as string)
+        newNode.style.transform = "scale(" + this.getNodeScale(el.title as string) + ")"
         //span to hold buttons text instead of button. avoids some issues.
         const txtspan = document.createElement("span")
 
@@ -310,9 +508,17 @@ export class GraphManager {
         el.title ??= "Untitled"
         //if titled new, leave empty for user to name. Else, if invalid, add ""? to name to indicate so.
         txtspan.textContent = this.getValueTypeFromTitle(el.title) == "Error" ? ("\"" + el.title + "\"?") : el.title
+        txtspan.style.whiteSpace = "pre-line"
+
+        //this is a hack job to make longer complexities always take two lines and allow easy fetching of line count for longer titles for proper displaying thereof
+        //it works but will look jank for shorter words with spaces between them. this is primarily for showing this off, and while it doesnt need fixing if given the time i will improve upon this
+        txtspan.textContent = txtspan.textContent.replace(" ", "\n")
+
 
         if (el.children != null) { el.children.forEach((i) => this.loadGraphElem(i, newNode)) }
-        newNode.style.display = "inline-block"
+
+        newNode.style.display = "flex"
+        newNode.style.flexDirection = "column-reverse"
         newNode.style.width = "auto";
         newNode.setAttribute("class", newNode.getAttribute("class") + " graphitem")
         if (el.type == "ClickableSubNode") { newNode.setAttribute("class", newNode.getAttribute("class") + " child node") }
@@ -326,11 +532,76 @@ export class GraphManager {
         txtspan.id = el.id + "SP"
 
 
+
+        const nodeDataContainer = document.createElement("div")
+        nodeDataContainer.style.display = "flex"
+        nodeDataContainer.style.flexDirection = "row"
+        nodeDataContainer.style.justifyContent = "center"
+
+        this.graphitemtext.push(txtspan)
+        nodeDataContainer.appendChild(txtspan)
+        const vline = document.createElement("div")
+        vline.style.borderRight = "1px solid #000000"
+        vline.style.width = "3px" //add some space to look better
+        //nodeDataContainer.appendChild(vline)
+
+        const minmaxContainer = document.createElement("div")
+        minmaxContainer.style.display = "flex"
+        minmaxContainer.style.flexDirection = "column"
+        minmaxContainer.style.justifyContent = "space-evenly"
+
+        //fixed and scaled by amount of lines in span
+
+        // eslint-disable-next-line no-control-regex
+        const linecount = 1 + (txtspan.textContent.match(new RegExp("\n", "g")) || []).length
+        const circleWidth = 10 * linecount
+        const circleHeight = 10 * linecount
+        const circleSize = Math.PI * linecount
+
+        const minCir = document.createElement("div")
+        minCir.style.backgroundColor = "#000000"
+        //used as spacing since clippath masks the rest of the square
+        minCir.style.width = circleWidth + "px"
+        minCir.style.height = circleHeight + "px"
+        minCir.style.clipPath = "circle(" + circleSize + "px)"
+        minCir.id = el.id + "MIN"
+        const maxCir = document.createElement("div")
+        maxCir.style.backgroundColor = "#000000"
+        //used as spacing since clippath masks the rest of the square
+        maxCir.style.width = circleWidth + "px"
+        maxCir.style.height = circleHeight + "px"
+        maxCir.style.clipPath = "circle(" + circleSize + "px)"
+        maxCir.id = el.id + "MAX"
+        minmaxContainer.append(minCir)
+        minmaxContainer.append(maxCir)
+
+
+
+        nodeDataContainer.append(minmaxContainer)
+
+        const special = document.createElement("span")
+        special.textContent = ""
+        special.style.color = "red"
+        special.style.fontSize = 16 * linecount + "px"
+        special.id = el.id + "SPC"
+        nodeDataContainer.append(special)
+
+        newNode.append(nodeDataContainer)
+
+
+        const nodeVisualBG = document.createElement("button")
+        nodeVisualBG.id = el.id + "BG"
+        nodeVisualBG.style.position = "absolute"
+        nodeVisualBG.style.left = newNode.offsetLeft - 5 + "px"
+        nodeVisualBG.style.top = newNode.offsetTop + "px"
+        nodeVisualBG.style.bottom = newNode.offsetHeight - 2.5 + "px"
+        nodeVisualBG.style.right = newNode.offsetWidth - 5 + "px"
+        nodeVisualBG.style.zIndex = "-1"
+        newNode.appendChild(nodeVisualBG)
+
         this.graphitems.push(newNode)
         parent.appendChild(newNode)
 
-        this.graphitemtext.push(txtspan)
-        newNode.appendChild(txtspan)
     }
 
 
@@ -465,18 +736,30 @@ export class GraphManager {
         const [filters, filtervalues] = this.recursiveFilter(node)
         resultNodes.forEach((paperJson) => {
             paperJson.results.forEach((result) => {
-                if (result.mdpType == mdptype) {
+                let anyMDPCategory = []
+                for (const i of validCategories.mdpType) {
+                    if (i.includes("Any")) {
+                        anyMDPCategory = i;
+                    }
+                }
+                if ((result.mdpType == mdptype) || (anyMDPCategory.includes(mdptype))) {
                     let validEntry = true
                     if (filters.includes("Error")) { validEntry = false }
                     for (const i in filters) {
+
                         const k = filters[i] as keyof typeof result
                         if (filters.includes("special") && ("special" in result)) {
-                            if (!result.special?.includes(filtervalues[i])) { validEntry = false; }
+                            if (!(result.special as string[]).includes(filtervalues[i])) { validEntry = false; }
                             if (!this.includeSpecialCases) { validEntry = false; }
 
                         }
-                        else if (!filtervalues.includes(result[k] as string)) { validEntry = false }
+                        else if (!filtervalues.includes(result[k] as string)) {
+                            if (filtervalues.includes("Any") && k == "mdpType") { continue }
+                            validEntry = false
 
+                        }
+
+                        p(filtervalues, result[k], k, validEntry)
                     }
                     if (validEntry) { nodeResPapers.push(paperJson.title); nodeResults.push(result) }
                 }
@@ -489,7 +772,8 @@ export class GraphManager {
 
         const par = node.parentElement;
         let filters = [this.getValueTypeFromTitle(this.findItemById(node.id)?.title)]
-        const candidate = this.findTextElemById(node.id)?.textContent
+        const candidate = this.findTextElemById(node.id)?.textContent.replace("\n", " ")
+
         let values: string[] = [(candidate == undefined) ? "error" : (candidate)]
         if (validCategories[filters[0]] == undefined) { p("No valid filters found. Maybe add them to configs?"); return [["Error"], ["Error"]] }
 
@@ -569,15 +853,22 @@ export class GraphManager {
             for (const i of node.children) { childrenJson.push(this.fetchNodeJsonEntry(i)) }
         }
         const title_unsafe = (document.getElementById(node.id + "SP")?.textContent)
+        const htmlnode = document.getElementById(node.id)
+        let left = node.posX
+        let top = node.posY
+        if (htmlnode != null) {
+            left = parseFloat(htmlnode.style.left)
+            top = parseFloat(htmlnode.style.top)
+        }
         let title = "error"
         if (title_unsafe != undefined) { title = title_unsafe as string }
-        title = title.replace(/</g, "").replace(/>/g, "")
+        title = title.replace(/</g, "").replace(/>/g, "").replace(/\r?\n/g, " ")
         if ((title.startsWith("\"")) && (title.endsWith("\"?"))) {
             title = title.substring(1, title.length - 2);
         }
         const outDict = {
-            posX: node.posX,
-            posY: node.posY,
+            posX: left,//node.posX,
+            posY: top,//node.posY,
             type: node.type,
             title: title,//span text container of element
             id: node.id,

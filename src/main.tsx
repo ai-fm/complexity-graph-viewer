@@ -120,7 +120,7 @@ function getConfigs(indexURL: string) {
 
 export const debugthing = getConfigs(debugURL)
 //debugsetgraphstruct(debugthing)
-graphMGR.updateGraphType("MDP")
+//graphMGR.updateGraphType("MDP")
 
 
 
@@ -128,12 +128,12 @@ const xhr = new XMLHttpRequest();
 xhr.open('GET', "https://raw.githubusercontent.com/ai-fm/complexity-graph-viewer/refs/heads/main/configs/valid_values/node-category-values.json?token=GHSAT0AAAAAADNEBIBFA5GVXIMGKOOPVPX62HQ7HPQ"
     , false);
 xhr.onload = () => {
-    if (xhr.responseText != "404: Not Found") {
+    if (!xhr.responseText.includes("404")) {
 
         p(makeJSONDict(xhr.responseText))
         p("This url resets in 7 days. Public URLs don't.")
 
     }
-    else { p("Error:That config doesnt seem to exist.") }
+    else if (xhr.responseText.includes("404")) { p("Link expired or the like, 404") }
 };
 xhr.send();

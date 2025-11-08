@@ -1,7 +1,13 @@
 TODOS: 
 
+
+
+add muller objectives to graph for pomdp
+
 make toggle buttons undo toggle and effects when pressed again
 
+! state somewhere that top bar isnt automatic and extending it requires manual color adjustments else not sensible (default blue)
+! make color list automatic and load from config. allow manual adjustment in options menu and saving it to node-category-values.json
 
 Implement By-Problem view instead of By-Type view
 Settings
@@ -21,3 +27,5 @@ automate config indexing using github actions
 make errors a red popup instead of console writes?
 
 maybe add manual "load local configs (from x folder)" button (out of scope, bonus goal)
+
+allow options menu to edit color 
