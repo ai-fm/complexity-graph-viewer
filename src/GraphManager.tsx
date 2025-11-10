@@ -724,7 +724,7 @@ export class GraphManager {
         const nodeResults: complexityResult[] = [];
         const nodeResultTitles: string[] = [];
         this.fetchResults(node, this.graphtype, nodeResults, nodeResultTitles)
-        if (nodeResults.length == 0) { this.makeparagraph("Sorry, no results found. You can add additional results in complexity_result_jsons\\json_directory following the guide template. Add them into the import list in index.ts, and the program should handle the rest.") }
+        if (nodeResults.length == 0) { this.makeparagraph(this.ndc, "Sorry, no results found. You can add additional results in complexity_result_jsons\\json_directory following the guide template. Add them into the import list in index.ts, and the program should handle the rest.") }
         for (const i in nodeResults) {
             const ii = parseInt(i)
             this.makeresult(ii + 1, nodeResultTitles[i], nodeResults[i])
@@ -772,9 +772,10 @@ export class GraphManager {
 
         const par = node.parentElement;
         let filters = [this.getValueTypeFromTitle(this.findItemById(node.id)?.title)]
-        const candidate = this.findTextElemById(node.id)?.textContent.replace("\n", " ")
-
-        let values: string[] = [(candidate == undefined) ? "error" : (candidate)]
+        const candidate = this.findTextElemById(node.id)
+        let values: string[]
+        if ((candidate == null) || (candidate.textContent == null)) { values = ["error"] }
+        else { values = [candidate.textContent.replace("\n", " ")] }
         if (validCategories[filters[0]] == undefined) { p("No valid filters found. Maybe add them to configs?"); return [["Error"], ["Error"]] }
 
         for (const i of validCategories[filters[0]]) {
@@ -793,52 +794,124 @@ export class GraphManager {
     //// Generate output from a clicked graph node to be displayed in the righthand panel
     ////
 
+    openResultBig(resNumber: number, restitle: string, resData: complexityResult) {
+        if (document.getElementById("bigResultPopup") != null) { document.getElementById("bigResultPopup")?.remove() }
+        const view = document.createElement("div")
+        view.id = "bigResultPopup"
+        view.style.padding = "15px"
+        view.style.display = "flex"
+        view.style.flexDirection = "column"
+
+        const header = document.createElement("div")
+        header.style.display = "flex"
+        header.style.flexDirection = "row"
+        header.style.justifyContent = "space-between"
+        view.append(header)
+
+        const title = this.makeparagraph(header, "Result " + resNumber + " from \"" + restitle + "\":")
+        title.style.fontSize = "25px"
+
+        const exit = document.createElement("button")
+        exit.textContent = "x"
+        exit.style.color = "red"
+        exit.style.fontSize = "30px"
+        header.append(exit)
+
+        const scale = this.gvc.style.scale
+        this.gvc.style.scale = "1"
+
+        for (const i of this.graphitems) {
+            i.style.visibility = "hidden"
+        }
+
+        if (this.cnv != null) { this.cnv.style.visibility = "hidden" }
+
+
+        let x: keyof typeof resData;
+        for (x in resData) {
+            this.makeparagraph(view, x + " : " + resData[x]).style.fontSize = "20px"
+        }
+
+
+
+        exit.onclick = () => {
+
+            this.gvc.style.scale = scale
+
+            for (const i of this.graphitems) {
+                i.style.visibility = "visible"
+            }
+
+            if (this.cnv != null) { this.cnv.style.visibility = "visible" }
+            view.remove()
+        }
+
+        this.gvc.prepend(view)
+        p(resNumber, restitle, resData)
+    }
+
+    makeTitleparagraph(resNumber: number, restitle: string, resData: complexityResult) {
+        const para = document.createElement("p")
+        para.setAttribute("class", "nodeDataDisplayElem")
+        para.style.position = "relative"
+        para.style.left = "10px"
+        para.style.wordWrap = "break-word"
+        para.textContent = "Result " + resNumber + " from \"" + restitle + "\":";
+        para.style.color = "blue"
+        para.onclick = () => { this.openResultBig(resNumber, restitle, resData) }
+        this.ndc.append(para)
+        this.nodeitems.push(para)
+        return para
+    }
+
     //make paragraph element containing text with optional <br> afterwards
-    makeparagraph(text: string, makebreak?: boolean) {
+    makeparagraph(target: HTMLElement, text: string, makebreak?: boolean) {
         const para = document.createElement("p")
         para.setAttribute("class", "nodeDataDisplayElem")
         para.style.position = "relative"
         para.style.left = "10px"
         para.style.wordWrap = "break-word"
         para.textContent = text;
-        this.ndc.append(para)
-        this.nodeitems.push(para)
-        if (makebreak) { this.makebreak() }
+        target.append(para)
+        if (target == this.ndc) { this.nodeitems.push(para) }
+        if (makebreak) { this.makebreak(target) }
+        return para
 
     }
 
     //make break element
-    makebreak() {
+    makebreak(target: HTMLElement) {
         const br = document.createElement("br")
         br.setAttribute("class", "nodeDataDisplayElem")
-        this.ndc.append(br)
-        this.nodeitems.push(br)
+        target.append(br)
+        if (target == this.ndc) { this.nodeitems.push(br) }
     }
 
     //make horizontal divier line
-    makehrule() {
+    makehrule(target: HTMLElement) {
         const hr = document.createElement("hr")
         hr.setAttribute("class", "nodeDataDisplayElem")
-        this.ndc.append(hr)
-        this.nodeitems.push(hr)
+        target.append(hr)
+        if (target == this.ndc) { this.nodeitems.push(hr) }
     }
 
     //Generate result entry from prior functions given a result.
     makeresult(resNumber: number, restitle: string, resData: complexityResult) {
-        this.makeparagraph("Result " + resNumber + ", from \"" + restitle + "\":")
-        this.makeparagraph("Problem: " + resData.problemType + ", " + resData.problemApproach)
-        if (resData.determinism != undefined) { this.makeparagraph("Deterministic? : " + resData.determinism) }
-        if (resData.dependence != undefined) { this.makeparagraph("Stationary?: " + resData.dependence) }
-        this.makeparagraph("Horizon: " + resData.horizonType)
+        const target = this.ndc
+        this.makeTitleparagraph(resNumber, restitle, resData)
+        this.makeparagraph(target, "Problem: " + resData.problemType + ", " + resData.problemApproach)
+        if (resData.determinism != undefined) { this.makeparagraph(target, "Deterministic? : " + resData.determinism) }
+        if (resData.dependence != undefined) { this.makeparagraph(target, "Stationary?: " + resData.dependence) }
+        this.makeparagraph(target, "Horizon: " + resData.horizonType)
         const complexity = (resData.complexitysuffix == undefined) ? resData.complexity : resData.complexity + "-" + resData.complexitysuffix
-        this.makeparagraph("Complexity: " + complexity)
-        this.makeparagraph("General approach: " + resData.generalProofType)
+        this.makeparagraph(target, "Complexity: " + complexity)
+        this.makeparagraph(target, "General approach: " + resData.generalProofType)
         if (resData.special != undefined) {
             let extraInfo = ""
             for (const i of resData.special) { extraInfo += i }
-            this.makeparagraph("Special: " + extraInfo)
+            this.makeparagraph(target, "Special: " + extraInfo)
         }
-        this.makehrule()
+        this.makehrule(target)
     }
 
 

@@ -29,3 +29,5 @@ make errors a red popup instead of console writes?
 maybe add manual "load local configs (from x folder)" button (out of scope, bonus goal)
 
 allow options menu to edit color 
+
+include stochastic game node in RMDP graph

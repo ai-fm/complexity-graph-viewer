@@ -1,16 +1,20 @@
 {
   "name": "mdp-complexity-graph",
-  "private": true,
+  "homepage": "https://aifm.github.io/complexity-graph-viewer/",
+  "private": false,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "predeploy": "bun run vite build",
+    "deploy": "gh-pages -d dist "
   },
   "dependencies": {
     "@tauri-apps/api": "^1",
+    "gh-pages": "^6.3.0",
     "preact": "^10.25.1",
     "zod": "^3.24.2"
   },
