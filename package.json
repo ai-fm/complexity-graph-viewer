@@ -1,6 +1,6 @@
 {
   "name": "mdp-complexity-graph",
-  "homepage": "https://aifm.github.io/complexity-graph-viewer/",
+  "homepage": "https://ai-fm.github.io/complexity-graph-viewer/",
   "private": false,
   "version": "0.1.0",
   "type": "module",
