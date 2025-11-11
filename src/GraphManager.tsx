@@ -343,7 +343,7 @@ export class GraphManager {
             //
             // The following is just synthetic nonsense data.
             // eslint-disable-next-line no-constant-condition
-            if (true) {
+            if (!true) {
                 for (const i of count_list) {
                     i[1] = Math.floor(Math.random() * 50); total += i[1]
 
