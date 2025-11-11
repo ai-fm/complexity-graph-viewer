@@ -14,7 +14,11 @@
             "Perfect Information Markov Decision Process"
         ],
         [
-            "POMDP"
+            "POMDP",
+            "All Observationless MDPs are POMDPs. Observationless further specifies POMDPs.",
+            "Observationless MDP",
+            "UOMDP",
+            "Unobservable MDP"
         ],
         [
             "Observationless MDP",

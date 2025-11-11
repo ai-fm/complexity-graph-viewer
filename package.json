@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "tinacms dev -c \"vite\"",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
@@ -14,6 +14,8 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^1",
+    "@tinacms/cli": "^1.12.2",
+    "fs-extra": "11.3.2",
     "gh-pages": "^6.3.0",
     "preact": "^10.25.1",
     "zod": "^3.24.2"
