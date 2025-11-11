@@ -17,8 +17,8 @@ function MDPApp() {
           <div id="InformationContainer">
           </div>
           <div id="optionButtonContainer" >
-            <img id="optionsButton" src="temp_options_button.png" >
-            </img>
+            <span style="font-size:75px" id="optionsButton" >⚙
+            </span>
           </div>
         </div>
       </div>
@@ -26,4 +26,5 @@ function MDPApp() {
   );
 }
 
+//document.createElement("span").style.fontSize
 export default MDPApp;

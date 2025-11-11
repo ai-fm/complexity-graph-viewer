@@ -21,6 +21,7 @@ export class optionsController {
     initOptions() {
         this.oec = document.getElementById("InformationContainer") as HTMLDivElement
         this.obtn = document.getElementById("optionsButton") as HTMLImageElement
+
         this.obtn.onclick = () => {
             setOptionsOpen(!optionsOpen)
             if (optionsOpen) {
