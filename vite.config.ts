@@ -5,7 +5,10 @@ import { defineConfig } from "vite";
 export default defineConfig(async () => ({
   plugins: [preact()],
   base: "/complexity-graph-viewer/",
-
+  build: {
+    outDir: 'dist',
+  },
+  publicDir: 'public',
 
 
 
