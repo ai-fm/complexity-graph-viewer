@@ -26,3 +26,6 @@ dist-ssr
 node_modules
 .env
 src/NOTES
+
+node_modules
+.env

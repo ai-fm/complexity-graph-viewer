@@ -1,8 +1,14 @@
 TODOS: 
 
+
 help button for advice
 
+add disclaimer that in case of doubt original paper is correct and that this is ment to be an easy overview of the literature that directs you toward the complexity result, not a standin library that directly provides it 
+[it will get more accurate over time anyhow, first results just might be rough since i was just starting out then]
+
 add muller objectives to graph for pomdp
+
+rework config to have seperation between general, specific and special edge cases (current is general&specific, seperately special edge cases)
 
 make toggle buttons undo toggle and effects when pressed again
 
@@ -34,3 +40,5 @@ add automatic deployment instead of manual deploy via gh actions
 add automatic update of index via ghactions
 
 include stochastic game node in RMDP graph
+
+validator that checks if all result configs have valid assignments that can be read in based on node category values
