@@ -11,9 +11,9 @@ export default defineConfig({
   branch: "complexity-graph-viewer",
 
   // Get this from tina.io
-  clientId: "b4a314f1-813e-4b14-b892-d2b5b50c74b3",//process.env.NEXT_PUBLIC_TINA_CLIENT_ID,
+  clientId: process.env.NEXT_PUBLIC_TINA_CLIENT_ID,
   // Get this from tina.io
-  token: "bd49fb845a1d70c726927daa557e46dc264a38d1",//process.env.TINA_TOKEN,
+  token: process.env.TINA_TOKEN,
 
   build: {
     outputFolder: "admin",
