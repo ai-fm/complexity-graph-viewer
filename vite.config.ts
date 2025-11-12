@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
   plugins: [preact()],
-  base: "/complexity-graph-viewer",
+  base: "/complexity-graph-viewer/",
 
 
 
