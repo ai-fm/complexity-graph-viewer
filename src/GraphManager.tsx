@@ -832,7 +832,15 @@ export class GraphManager {
             this.makeparagraph(view, x + " : " + resData[x]).style.fontSize = "20px"
         }
 
-
+        for (const i of resultNodes) {
+            if (i.title == restitle) {
+                const link = document.createElement("a")
+                link.href = i.url
+                link.textContent = "View \"" + i.title + "\""
+                view.append(link)
+                break;
+            }
+        }
 
         exit.onclick = () => {
 
@@ -847,7 +855,7 @@ export class GraphManager {
         }
 
         this.gvc.prepend(view)
-        p(resNumber, restitle, resData)
+
     }
 
     makeTitleparagraph(resNumber: number, restitle: string, resData: complexityResult) {
