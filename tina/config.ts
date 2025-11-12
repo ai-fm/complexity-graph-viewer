@@ -8,7 +8,7 @@ const branch =
   "main";
 
 export default defineConfig({
-  branch,
+  branch: "complexity-graph-viewer",
 
   // Get this from tina.io
   clientId: "b4a314f1-813e-4b14-b892-d2b5b50c74b3",//process.env.NEXT_PUBLIC_TINA_CLIENT_ID,
