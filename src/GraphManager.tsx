@@ -1,8 +1,8 @@
-
 import rawGraphStructures from "../configs/complexity_graph_configs/graphindex";
 import rawValidCategories from "../configs/valid_values/node-category-values.json";
 import "./graph_nodes.css";
-import { graphMGR, mousedown, optionsCTR, optionsOpen, p } from "./main";
+
+import { graphMGR, mdpAPP, mousedown, optionsCTR, optionsOpen, p } from "./global";
 import { nodes as resultNodes } from "./node_validator";
 const validCategories = JSON.parse(JSON.stringify(rawValidCategories))
 p("print import for quicker debug")
@@ -18,6 +18,7 @@ export class graphDataNode {
     childDegree?: number;
     valueType?: string
 }
+
 
 class complexityResult {
     mdpType!: string;
@@ -35,7 +36,7 @@ class complexityResult {
     special?: string[]
 }
 
-let graphStructures: {
+const graphStructures: {
     graphtype: string;
     nodes: graphDataNode[],
     connectors?: {
@@ -45,7 +46,7 @@ let graphStructures: {
     }[];
 }[] = rawGraphStructures;
 
-export function debugsetgraphstruct(dbt: {
+/*export function debugsetgraphstruct(dbt: {
     graphtype: string;
     nodes: graphDataNode[],
     connectors?: {
@@ -53,7 +54,7 @@ export function debugsetgraphstruct(dbt: {
         idTo: string,
         type: string
     }[];
-}[]) { graphStructures = dbt }
+}[]) { graphStructures = dbt }*/
 
 
 
@@ -69,7 +70,6 @@ export class GraphManager {
     //zoom factor for all graph  elements
     zoom = 1;
     //graph view container and its' bounding client rect. 
-    gvc: HTMLElement
     gvc_rect: DOMRect
     //node data container for results
     ndc: HTMLElement
@@ -96,8 +96,8 @@ export class GraphManager {
         if (candidate == null) {
             p("throw placeholder standin print: gvc invalid"); candidate = document.createElement("p")
         }
-        this.gvc = candidate
-        this.gvc_rect = this.gvc.getBoundingClientRect()
+        mdpAPP.gvc = candidate
+        this.gvc_rect = mdpAPP.gvc.getBoundingClientRect()
 
         candidate = document.getElementById("InformationContainer");
         if (candidate == null) {
@@ -157,8 +157,8 @@ export class GraphManager {
 
     // Move only the ghost class elements. Which should only be the last activated element.
     handleGhostMovement(node: HTMLElement, event: MouseEvent) {
-        const offsetx = this.gvc.getBoundingClientRect().left + 0.5 * node.getBoundingClientRect().width + optionsCTR.currentGhostOffsetL
-        const offsety = this.gvc.getBoundingClientRect().top + 0.5 * node.getBoundingClientRect().height + optionsCTR.currentGhostOffsetT
+        const offsetx = mdpAPP.gvc.getBoundingClientRect().left + 0.5 * node.getBoundingClientRect().width + optionsCTR.currentGhostOffsetL
+        const offsety = mdpAPP.gvc.getBoundingClientRect().top + 0.5 * node.getBoundingClientRect().height + optionsCTR.currentGhostOffsetT
         node.style.left = (event.x - offsetx) / this.zoom + "px"
         node.style.top = (event.y - offsety) / this.zoom + "px"
 
@@ -168,31 +168,19 @@ export class GraphManager {
     //general mouse wheel zoom
     handleMouseWheelEvent(event: WheelEvent) {
         this.zoom *= 1.1 ** Math.sign(-event.deltaY)
-        this.gvc.style.scale = this.zoom + ""
+        mdpAPP.gvc.style.scale = this.zoom + ""
 
-        /*for (const i of this.graphitemdata) {
-            const el = document.getElementById(i.id)
-
-            //if (this.getValueTypeFromTitle((document.getElementById(i.id + "SP"))?.textContent) == "mdpType") { return "scale(3)" }
-            if (el == null) { continue }
-            if (i.type == "ClickableSubNode") {
-                el.style.scale = "" + Math.min(1, this.zoom)
-            }
-            else {
-                el.style.scale = "" + Math.max(1, 1 + Math.log(1 / this.zoom))//"" + 1 / this.zoom
-            }
-        }*/
 
         //fix canvas not loading as it should
         if (this.cnv != null) {
-            let wt = this.gvc.parentElement?.getBoundingClientRect().width; let ht = this.gvc.parentElement?.getBoundingClientRect().height
+            let wt = mdpAPP.gvc.parentElement?.getBoundingClientRect().width; let ht = mdpAPP.gvc.parentElement?.getBoundingClientRect().height
             wt ??= 1; ht ??= 1
             this.cnv.height = ht
             this.cnv.width = wt
             this.cnv.style.position = "fixed"
         }
 
-        this.gvc.style.transformOrigin = ("")
+        mdpAPP.gvc.style.transformOrigin = ("")
         this.loadConnectors()
     }
 
@@ -251,13 +239,13 @@ export class GraphManager {
         }
 
         this.cnv = document.createElement("canvas")
-        let wt = this.gvc.parentElement?.getBoundingClientRect().width; let ht = this.gvc.parentElement?.getBoundingClientRect().height
+        let wt = mdpAPP.gvc.parentElement?.getBoundingClientRect().width; let ht = mdpAPP.gvc.parentElement?.getBoundingClientRect().height
         wt ??= 1; ht ??= 1
 
         this.cnv.height = ht
         this.cnv.width = wt
         this.cnv.style.position = "fixed"
-        this.gvc.parentElement?.prepend(this.cnv)
+        mdpAPP.gvc.parentElement?.prepend(this.cnv)
         this.conns = graphStructures[typeIndex].connectors
 
 
@@ -342,8 +330,8 @@ export class GraphManager {
             // commented out for synthetic data approach: rect.style.backgroundColor = "#000000" 
             //
             // The following is just synthetic nonsense data.
-            // eslint-disable-next-line no-constant-condition
-            if (!true) {
+
+            /*if (true) {
                 for (const i of count_list) {
                     i[1] = Math.floor(Math.random() * 50); total += i[1]
 
@@ -384,7 +372,7 @@ export class GraphManager {
                         //p(total, step, max_rect, min_rect + total * step)
                     }
                 }
-            }
+            }*/
 
         }
         else {
@@ -432,7 +420,6 @@ export class GraphManager {
                         rect_current.style.width = step * i[1] - 2 + "px"
                         rect_current.style.borderRight = "1px solid #757575"
                     }
-                    //p(total, step, max_rect, min_rect + total * step)
 
 
 
@@ -446,31 +433,12 @@ export class GraphManager {
 
         document.getElementById(node.id + "BG")?.append(rect)
 
-
-        //appended to bg instead because it clip-path crops the node. This works but itd be better to clip or border radius-limit rect itself in here. But i got research-stuff, courses and presentations to do.
-
-
-
-
-        //why does it do thisnode.style.clipPath = "inset(0px round 5%)"
-        //p(rect)
-        //color ideas: NL,PL,NC,P varying shades of green| NP yellow, coNP different yellow|PP orange| ETR red orange into PSPACE red|EXP pink |NEXP blue pink|
-        // EXPSPACE violet | undecidable blue| possibly open light grey, open white| Decidable not otherwise specified violet,Uncategorised problems: NP^PP -> black
-
-
     }
 
     //Load in a given element by passing its information data to node data array and its graph element data to html element.
     loadGraphElem(elem: graphDataNode, parent?: HTMLElement) {
-        //if (parent == null) {
         this.createNode(elem, parent);
         this.graphitemdata.push(elem);
-        //}
-        //else {
-        // this.createNode(elem, parent);
-
-        //}
-
     }
 
     getNodeScale(title: string): number {
@@ -486,7 +454,7 @@ export class GraphManager {
     //Given a nodes json data, initialise it based on its type.
     createNode(el: graphDataNode, pParent?: HTMLElement) {
         let parent = pParent
-        parent ??= this.gvc
+        parent ??= mdpAPP.gvc
         const newNode = document.createElement("div")//button") previous button element becomes container for button and other stuff now
         //newNode.style.borderRadius = "15px"
         el.childDegree ??= 0
@@ -781,7 +749,7 @@ export class GraphManager {
         for (const i of validCategories[filters[0]]) {
             if (i.includes(values[0])) { values = i }
         }
-        if (par != null && par != this.gvc) {
+        if (par != null && par != mdpAPP.gvc) {
             const pfilt = this.recursiveFilter(par)
             filters = filters.concat(pfilt[0])
             values = values.concat(pfilt[1])
@@ -817,8 +785,8 @@ export class GraphManager {
         exit.style.fontSize = "30px"
         header.append(exit)
 
-        const scale = this.gvc.style.scale
-        this.gvc.style.scale = "1"
+        const scale = mdpAPP.gvc.style.scale
+        mdpAPP.gvc.style.scale = "1"
 
         for (const i of this.graphitems) {
             i.style.visibility = "hidden"
@@ -844,7 +812,7 @@ export class GraphManager {
 
         exit.onclick = () => {
 
-            this.gvc.style.scale = scale
+            mdpAPP.gvc.style.scale = scale
 
             for (const i of this.graphitems) {
                 i.style.visibility = "visible"
@@ -854,7 +822,7 @@ export class GraphManager {
             view.remove()
         }
 
-        this.gvc.prepend(view)
+        mdpAPP.gvc.prepend(view)
 
     }
 

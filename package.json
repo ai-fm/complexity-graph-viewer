@@ -13,12 +13,12 @@
     "deploy": "gh-pages -d dist "
   },
   "dependencies": {
+    "@octokit/core": "^7.0.6",
     "@tauri-apps/api": "^1",
     "@tinacms/cli": "^1.12.2",
     "fs-extra": "11.3.2",
     "gh-pages": "^6.3.0",
     "preact": "^10.25.1",
-    "tinacms": "^2.9.3",
     "zod": "^3.24.2"
   },
   "devDependencies": {

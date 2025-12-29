@@ -1,30 +1,68 @@
-
 import "./MDPApp.css";
-import MDPTypeDropdown from "./MDPTypeDropdown";
-function MDPApp() {
+import { MDPTypeDropdown } from "./MDPTypeDropdown";
 
-  return (
-    <main class="container">
-      <div style="display: flex;">
-        <div id="graphViewContainerBorder" style="flex-grow: 1; position:relative">
-          <div id="graphViewContainer" style="flex-grow: 1; position:relative">
-          </div>
-        </div>
-        <div style="display:flex; flex-direction:column" id="inputColumn">
-          <div id="MDPTypeDropdownContainer">
-            <MDPTypeDropdown />
-          </div>
-          <div id="InformationContainer">
-          </div>
-          <div id="optionButtonContainer" >
-            <span style="font-size:75px" id="optionsButton" >⚙
-            </span>
-          </div>
-        </div>
-      </div>
-    </main >
-  );
+export class MDPApp {
+  renderRoot: HTMLElement
+  appContainer: HTMLElement
+  divContainer: HTMLElement
+  gvcBorder: HTMLElement
+  gvc: HTMLElement
+  inputColumn: HTMLElement
+  dropdownContainer: HTMLElement
+  mdpDropdown: MDPTypeDropdown
+  infoContainer: HTMLElement
+  optionsContainer: HTMLElement
+
+  constructor(renderRoot: HTMLElement) {
+    // If there somehow is no root element, i just dont care to even fix it because that means there somehow is no page(?)
+
+    this.renderRoot = renderRoot
+
+    this.appContainer = document.createElement("div")
+    this.appContainer.className = "container"
+    this.renderRoot.appendChild(this.appContainer)
+
+    this.divContainer = document.createElement("div")
+    this.divContainer.style.display = "flex"
+    this.appContainer.appendChild(this.divContainer)
+
+    this.gvcBorder = document.createElement("div")
+    this.gvcBorder.style.flexGrow = "1"
+    this.gvcBorder.style.position = "relative"
+    this.gvcBorder.id = "graphViewContainerBorder"
+    this.divContainer.appendChild(this.gvcBorder)
+
+    this.gvc = document.createElement("div")
+    this.gvc.style.flexGrow = "1"
+    this.gvc.style.position = "relative"
+    this.gvc.id = "graphViewContainer"
+    this.gvcBorder.appendChild(this.gvc)
+
+    this.inputColumn = document.createElement("div")
+    this.inputColumn.style.display = "flex"
+    this.inputColumn.style.flexDirection = "column"
+    this.inputColumn.id = "inputColumn"
+    this.divContainer.appendChild(this.inputColumn)
+
+    this.dropdownContainer = document.createElement("div")
+    this.dropdownContainer.id = "MDPTypeDropdownContainer"
+    this.inputColumn.appendChild(this.dropdownContainer)
+
+    this.mdpDropdown = new MDPTypeDropdown(this.dropdownContainer)
+
+    this.infoContainer = document.createElement("div")
+    this.infoContainer.id = "InformationContainer"
+    this.inputColumn.appendChild(this.infoContainer)
+
+    this.optionsContainer = document.createElement("div")
+    this.optionsContainer.id = "optionsButtonContainer"
+    this.inputColumn.appendChild(this.optionsContainer)
+
+    const optionsButton = document.createElement("span")
+    optionsButton.style.fontSize = "75px"
+    optionsButton.id = "optionsButton"
+    optionsButton.textContent = "⚙"
+    this.inputColumn.appendChild(optionsButton)
+  }
+
 }
-
-//document.createElement("span").style.fontSize
-export default MDPApp;

@@ -1,34 +1,28 @@
 import { render } from "preact";
-import { graphDataNode, GraphManager } from "./GraphManager";
-import MDPApp from "./MDPApp";
-import { optionsController } from "./optionsController";
+
+import { graphMGR, initialise_singletons, mdpAPP, optionsCTR, optionsOpen, p, setMouseDown } from "./global";
+
+
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-render(<MDPApp />, document.getElementById("root")!);
+render(<main id="render" />, document.getElementById("root")!);
 
-//initialize graphmanager
-export const graphMGR = new GraphManager();
-export const optionsCTR = new optionsController();
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+const renderRoot = document.getElementById("render")!
 
-//initialize event handlers
-export let mousedown = false
-export let optionsOpen = false
-export function setOptionsOpen(isOpen: boolean) { optionsOpen = isOpen }
-
-//shorthand print function to save time typing
-// eslint-disable-next-line @typescript-eslint/no-explicit-any 
-export function p(...t: any[]) { console.log(t) }
+//initialize singletons
+initialise_singletons(renderRoot)
 
 onmousedown = () => {
-    mousedown = true
+    setMouseDown(true)
 }
 
 onmouseup = () => {
-    mousedown = false;
+    setMouseDown(false)
 }
 
 onmousemove = (event) => {
-    if (((event.target == graphMGR.gvc.parentNode)
-        || (event.target == graphMGR.gvc)
+    if (((event.target == mdpAPP.gvc.parentNode)
+        || (event.target == mdpAPP.gvc)
         || (event.target == graphMGR.cnv))) {
         if (!optionsOpen) {
             graphMGR.handleMouseMoveEvent(event)
@@ -47,7 +41,7 @@ onmousemove = (event) => {
 }
 
 onwheel = (event) => {
-    if ((event.target == graphMGR.gvc.parentNode) || (event.target == graphMGR.gvc) || (event.target == graphMGR.cnv) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseWheelEvent(event) }
+    if ((event.target == mdpAPP.gvc.parentNode) || (event.target == mdpAPP.gvc) || (event.target == graphMGR.cnv) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseWheelEvent(event) }
 }
 
 
@@ -61,7 +55,7 @@ document.onclick = (event) => {
 }
 
 
-
+/*
 function makeJSONDict(response: string) { return JSON.parse(JSON.stringify(JSON.parse(response))) }
 
 //debug function for testing external cfgs on hosted page
@@ -136,4 +130,4 @@ xhr.onload = () => {
     }
     else if (xhr.responseText.includes("404")) { p("Link expired or the like, 404") }
 };
-xhr.send();
+xhr.send();*/
