@@ -6,6 +6,7 @@ export default defineConfig(async () => ({
   plugins: [preact()],
   base: "/complexity-graph-viewer",
   build: {
+    target: "es2022",//new browsers only to allow for top level await
     outDir: 'dist',
   },
   publicDir: 'public',

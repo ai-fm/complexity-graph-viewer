@@ -489,7 +489,7 @@ export class optionsController {
                 for (const i in value_elems) {
                     const temp = []
                     for (const j of value_elems[i]) {
-                        if (j.textContent != "new") {
+                        if ((j.textContent != "new") && (j.textContent != "+")) {
                             temp.push(j.textContent)
                         }
                     }
