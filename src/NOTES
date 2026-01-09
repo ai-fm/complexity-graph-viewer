@@ -31,7 +31,7 @@ automate config indexing using github actions
 
 make errors a red popup instead of console writes?
 
-maybe add manual "load local configs (from x folder)" button (out of scope, bonus goal)
+maybe add manual "load local configs (from x folder)" button?
 
 allow options menu to edit color 
 

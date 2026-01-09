@@ -360,6 +360,38 @@ export class optionsController {
             windowPlus.textContent = "+"
             windowPlus.style.border = "0.1vh solid #21f3f0"
             windowPlus.style.margin = "0.1vh"
+            windowPlus.onclick = () => {
+                const windowElem = document.createElement("div")
+                windowElem.className = "editWindowSub"
+                windowElem.style.display = "flex"
+                windowElem.style.flexWrap = "wrap"
+
+
+                const elem = document.createElement("div")
+                elem.style.border = "0.1vh solid #21f3f0"
+                elem.style.margin = "0.1vh"
+                elem.className = "editWindowSub"
+                elem.textContent = "+"
+                const vals: HTMLElement[] = []
+                elem.onclick = () => {
+                    const newElem = document.createElement("div")
+                    newElem.className = "editWindowSub"
+                    newElem.style.border = "0.1vh solid #21f3f0"
+                    newElem.onclick = () => newElem.contentEditable = "true"
+                    newElem.style.margin = "0.1vh"
+                    newElem.textContent = "new"
+                    vals.push(newElem)
+                    windowElem.insertBefore(newElem, elem)
+                }
+                value_elems.push(vals)
+                windowElem.appendChild(elem)
+                editWindow.insertBefore(windowElem, windowPlus)
+
+                const elemRuler = document.createElement("hr")
+                elemRuler.className = "editWindowSub"
+                editWindow.insertBefore(elemRuler, windowPlus)
+
+            }
             editWindow.appendChild(windowPlus)
 
             prev.onclick = () => {
@@ -631,6 +663,8 @@ export class optionsController {
 
         this.makebreak()
 
+
+        //necessary for uploads, not for downloads. //removed because not neccesary for public github repo
         const Vtoken = document.createElement("input")
         Vtoken.placeholder = "Github access token. Not stored but not secure; better than perma uploading one. better solution TBD"
         Vtoken.style.display = "inline"
