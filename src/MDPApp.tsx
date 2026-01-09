@@ -1,5 +1,4 @@
 import "./MDPApp.css";
-import { MDPTypeDropdown } from "./MDPTypeDropdown";
 
 export class MDPApp {
   renderRoot: HTMLElement
@@ -9,7 +8,6 @@ export class MDPApp {
   gvc: HTMLElement
   inputColumn: HTMLElement
   dropdownContainer: HTMLElement
-  mdpDropdown: MDPTypeDropdown
   infoContainer: HTMLElement
   optionsContainer: HTMLElement
 
@@ -19,7 +17,7 @@ export class MDPApp {
     this.renderRoot = renderRoot
 
     this.appContainer = document.createElement("div")
-    this.appContainer.className = "container"
+    this.appContainer.id = "appContainer"
     this.renderRoot.appendChild(this.appContainer)
 
     this.divContainer = document.createElement("div")
@@ -48,8 +46,6 @@ export class MDPApp {
     this.dropdownContainer.id = "MDPTypeDropdownContainer"
     this.inputColumn.appendChild(this.dropdownContainer)
 
-    this.mdpDropdown = new MDPTypeDropdown(this.dropdownContainer)
-
     this.infoContainer = document.createElement("div")
     this.infoContainer.id = "InformationContainer"
     this.inputColumn.appendChild(this.infoContainer)
@@ -63,6 +59,7 @@ export class MDPApp {
     optionsButton.id = "optionsButton"
     optionsButton.textContent = "⚙"
     this.inputColumn.appendChild(optionsButton)
+
   }
 
 }

@@ -35,9 +35,6 @@ maybe add manual "load local configs (from x folder)" button (out of scope, bonu
 
 allow options menu to edit color 
 
-add automatic deployment instead of manual deploy via gh actions 
-add automatic update of index via ghactions
-
 include stochastic game node in RMDP graph
 
 validator that checks if all result configs have valid assignments that can be read in based on node category values

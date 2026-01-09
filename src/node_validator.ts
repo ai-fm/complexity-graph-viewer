@@ -1,10 +1,10 @@
 
 import jsons from "../configs/results/index.ts";
-import validCategories from "../configs/valid_values/node-category-values.json";
+import { getValidCategories } from "./global.ts";
 //read all nodes from indexed raw jsons and convert them into array iff valid according to category values.
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function validateNode(rawJson: { title?: string; authors?: string[]; results: any; url?: string; }) {
+async function validateNode(rawJson: { title?: string; authors?: string[]; results: any; url?: string; }) {
   //set to defaults if not set for the values that have default values
   rawJson.results.forEach((elem: { problemType: string; rewardConstraints?: string; mdpRepresentation?: string; }) => {
     if (elem.problemType == null) { elem.problemType = "Reward Maximisation" };
@@ -23,8 +23,8 @@ function validateNode(rawJson: { title?: string; authors?: string[]; results: an
     return false;
   }
 
+  const validCategories = await getValidCategories()
 
-  //this adjustment to flatinclude was mass edited by chatgpt so if it fucks up, manually compare with commented out block. 
   rawJson.results.forEach((elem: {
     mdpType: string;
     problemType: string;
@@ -59,28 +59,6 @@ function validateNode(rawJson: { title?: string; authors?: string[]; results: an
       flatinclude(elem.mdpRepresentation!, validCategories.mdpRepresentation) &&
       flatinclude(elem.generalProofType, validCategories.proofType);
   });
-
-  /*rawJson.results.forEach((elem: { mdpType: string; problemType: string; problemApproach: string; complexity: string; horizonType: string; determinism: string | null; dependence: string | null; policyMemory: string | null; analysisType: string | null; rewardConstraints: string; ambiguitySetRectangularity: string | null; ambiguitySetConvexness: string | null; mdpRepresentation: string; generalProofType: string; }) => {
-    validity = validity &&
-
-
-      validCategories.mdpTypes.includes(elem.mdpType) &&
-      validCategories.problemTypes.includes(elem.problemType) &&
-      validCategories.problemApproach.includes(elem.problemApproach) &&
-      validCategories.complexityClasses.includes(elem.complexity) &&
-      validCategories.horizonTypes.includes(elem.horizonType) &&
-      ((elem.determinism == null) ? (true) : (validCategories.determinism.includes(elem.determinism))) &&
-      ((elem.dependence == null) ? (true) : (validCategories.dependenceTypes.includes(elem.dependence))) &&
-      ((elem.policyMemory == null) ? (true) : (validCategories.policyMemory.includes(elem.policyMemory))) &&
-      ((elem.analysisType == null) ? (true) : (validCategories.analysisTypes.includes(elem.analysisType))) &&
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      validCategories.rewardConstraints.includes(elem.rewardConstraints!) &&
-      ((elem.ambiguitySetRectangularity == null) ? (true) : (validCategories.ambiguitySetRectangularity.includes(elem.ambiguitySetRectangularity))) &&
-      ((elem.ambiguitySetConvexness == null) ? (true) : (validCategories.ambiguitySetConvexness.includes(elem.ambiguitySetConvexness))) &&
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      validCategories.mdpRepresentations.includes(elem.mdpRepresentation!) &&
-      validCategories.proofTypes.includes(elem.generalProofType)
-  });*/
 
   return (validity)
 

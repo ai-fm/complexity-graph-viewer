@@ -1,9 +1,10 @@
-import { graphMGR } from "./global";
+
+import { p } from "./global";
+import { GraphManager } from "./GraphManager";
 import "./MDPTypeDropdown.css";
-import { nodes } from "./node_validator";
 
 // appends options to empty dropdown option set 
-function addOptions(types: string[], dropdownElementOptions: HTMLElement | null) {
+export function addOptions(types: string[], dropdownElementOptions: HTMLElement | null) {
   const uniqueTypes = Array.from(new Set(types)); //this removes duplicates 
   uniqueTypes.map(option => {
     // generate option element from input string. adjusted from https://stackoverflow.com/a/62342334
@@ -17,11 +18,13 @@ function addOptions(types: string[], dropdownElementOptions: HTMLElement | null)
 }
 
 export class MDPTypeDropdown {
-  dropdownForm: HTMLElement
-  dropdownField: HTMLElement
+  dropdownForm!: HTMLElement;
+  dropdownField!: HTMLElement;
   value: undefined | string
 
-  constructor(parent: HTMLElement) {
+
+  constructor(parent: HTMLElement | null, graphMGR: GraphManager) {
+    if (parent == null) { p("No parent provided for type dropdown"); return }
     this.dropdownForm = document.createElement("div")
     this.dropdownForm.className = "form"
     parent.appendChild(this.dropdownForm)
@@ -35,14 +38,8 @@ export class MDPTypeDropdown {
       this.value = target.value
     }
 
-    this.dropdownForm.appendChild(this.dropdownField)
 
-    window.onload = function () {
-      const MDPTypes = nodes.map(entry => entry.results.map(elem => elem.mdpType)).flat()
-      {
-        addOptions(graphMGR.addMDPTypes(MDPTypes), document.getElementById("dropdownField")); graphMGR.graphtype = MDPTypes[0]
-      }
-    }
+    this.dropdownForm.appendChild(this.dropdownField)
   }
 
 

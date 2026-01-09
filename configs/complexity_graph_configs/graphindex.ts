@@ -5,7 +5,8 @@ import mdps from "./MDPs.json";
 import pomdps from "./POMDPs.json";
 import template from "./Template.json";
 import misc from "./miscellaneous.json";
+import nograph from "./nograph.json";
 const graphStructures = [
-    mdps, pomdps, template, misc
+    mdps, pomdps, template, nograph, misc
 ];
 export default graphStructures;

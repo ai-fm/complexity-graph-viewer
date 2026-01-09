@@ -1,10 +1,10 @@
 import { Octokit } from "@octokit/core";
-import { Buffer } from "buffer";
-import { graphMGR, mdpAPP, optionsOpen, p, setOptionsOpen } from "./global";
-import { graphDataNode } from "./GraphManager";
+import { decode, encode, optionsOpen, p, setOptionsOpen, } from "./global";
+import { graphDataNode, GraphManager } from "./GraphManager";
 
 function openBigJSON() {
-    const parent = mdpAPP.appContainer
+    const parent = document.getElementById("appContainer")
+    if (parent == null) { return }
 
     let frame = document.getElementById("fullscreenView")
 
@@ -104,9 +104,6 @@ function closeBigJSON() {
 }
 
 
-const decode = (str: string): string => Buffer.from(str, 'base64').toString('utf8');
-const encode = (str: string): string => Buffer.from(str, 'utf8').toString('base64')
-
 export class optionsController {
     //options menu button, generated in MDPApp
     obtn: HTMLImageElement | null = null
@@ -125,10 +122,13 @@ export class optionsController {
     //count of current page in editing. Basically, to allow flipping through results.
     editPageCount = 0
 
+    graphMGR: GraphManager;
+
     ////
     ////Initialise options button and menu.
     ////
-    initOptions() {
+    constructor(graphMGR: GraphManager) {
+        this.graphMGR = graphMGR
         this.oec = document.getElementById("InformationContainer") as HTMLDivElement
         this.obtn = document.getElementById("optionsButton") as HTMLImageElement
 
@@ -171,7 +171,7 @@ export class optionsController {
     fetchNextFreeID(maxid: number, prefix = "", sibs?: Element[]): string {
         let taken = false;
         let siblings = sibs;
-        siblings ??= graphMGR.graphitems
+        siblings ??= this.graphMGR.graphitems
 
         siblings.forEach((el: { id: string }) => {
             if (el.id.includes("SP")) { return }
@@ -281,14 +281,16 @@ export class optionsController {
             if (('content' in fetched) && (typeof fetched.content == typeof "")) {
                 content = JSON.parse(decode(fetched.content as string))
             }
+
             let sha: string | undefined = undefined
             if (('sha' in fetched) && (typeof fetched.sha == typeof "")) {
                 sha = fetched.sha as string
-
             }
+            const candidate = openBigJSON()
 
-            const [editWindow, prev, dlButton, ulButton, next] = openBigJSON()
+            if (candidate == undefined) { return }
 
+            const [editWindow, prev, dlButton, ulButton, next] = candidate
             const keys: string[] = []
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const values: any[] = []
@@ -577,14 +579,18 @@ export class optionsController {
                     content += "]"
                 }
                 content += "}"
-                p(content)
                 return JSON.parse(content)
             }
 
 
             dlButton.onclick = () => {
-                content = getContent(this.editPageCount)
-                p(content)
+                content = JSON.stringify(getContent(this.editPageCount))
+                const a = document.createElement("a");
+                const file = new Blob([content], { type: "text/json" });;
+                a.href = URL.createObjectURL(file);
+                a.download = "node-category-values.json";
+                a.click();
+
             }
 
             ulButton.onclick = async () => {
@@ -606,34 +612,11 @@ export class optionsController {
                 if ('sha' in response.data) {
                     sha = response.data.sha
                 }
-
             }
-
         })
-
-
-
-
-        /*const xhr = new XMLHttpRequest();
-        xhr.open('GET', "https://raw.githubusercontent.com/ai-fm/complexity-graph-viewer/refs/heads/main/configs/valid_values/node-category-values.json?token=GHSAT0AAAAAADNEBIBFA5GVXIMGKOOPVPX62HQ7HPQ"
-            , false);
-        xhr.onload = () => {
-            if (!xhr.responseText.includes("404")) {
-
-                p(JSON.parse(xhr.responseText))
-
-
-            }
-            else if (xhr.responseText.includes("404")) { p("Link expired or the like, 404") }
-        };
-        xhr.send();*/
-
-
-
-
-
-        // const message = 'Updated Valid Categories'
     }
+
+
 
     optionsAddResults() {
 
@@ -709,7 +692,7 @@ export class optionsController {
         clearCanvasBTN.style.display = "inline"
         clearCanvasBTN.style.width = "90%"
         clearCanvasBTN.title = "Clears the entire canvas and the data structures generating it, allowing you to start fresh."
-        clearCanvasBTN.onclick = () => { graphMGR.unloadGraphItems(); graphMGR.conns = []; graphMGR.loadConnectors() }
+        clearCanvasBTN.onclick = () => { this.graphMGR.unloadGraphItems(); this.graphMGR.conns = []; this.graphMGR.loadConnectors() }
         this.activeOptionMenuElements.push(clearCanvasBTN)
         this.oec.appendChild(clearCanvasBTN)
 
@@ -742,7 +725,7 @@ export class optionsController {
             //this is potentially very inefficient-setting all graph elements onclicks to something else temporarily. I'll rework this when i have a working build. its not like its harmful, its just a bit inefficient.
             // eslint-disable-next-line @typescript-eslint/no-explicit-any 
             const prev: any[] = [] //explicit any this time because its type annotation is a pain and event handlers need extra type. On later review, maybe rework
-            for (const i of graphMGR.graphitems) {
+            for (const i of this.graphMGR.graphitems) {
                 prev.push(i.onclick)
                 i.onclick = () => {
                     createChildNode.style.color = "#000000ff"
@@ -751,8 +734,8 @@ export class optionsController {
 
                     this.makeGhostChildNode(i);
 
-                    for (const j in graphMGR.graphitems) {
-                        graphMGR.graphitems[j].onclick = prev[j]
+                    for (const j in this.graphMGR.graphitems) {
+                        this.graphMGR.graphitems[j].onclick = prev[j]
                     }
                 }
             }
@@ -776,30 +759,30 @@ export class optionsController {
             //this is potentially very inefficient-setting all graph elements onclicks to something else temporarily. I'll rework this when i have a working build. its not like its harmful, its just a bit inefficient.
             // eslint-disable-next-line @typescript-eslint/no-explicit-any 
             const prev: any[] = [] //explicit any this time because its type annotation is a pain and event handlers need extra type. On later review, maybe rework
-            for (const i of graphMGR.graphitems) {
+            for (const i of this.graphMGR.graphitems) {
                 prev.push(i.onclick)
                 i.onclick = () => {
                     delNode.style.color = "#000000ff"
                     delNode.style.borderColor = ""
                     this.graphtextedit(true)
-                    for (const j in graphMGR.graphitems) {
-                        graphMGR.graphitems[j].onclick = prev[j]
+                    for (const j in this.graphMGR.graphitems) {
+                        this.graphMGR.graphitems[j].onclick = prev[j]
                     }
 
                     i.remove();
 
 
                     const recursiveRemove = (elem: HTMLElement) => {
-                        graphMGR.graphitems.splice(graphMGR.graphitems.indexOf(elem), 1)
-                        const candidate = graphMGR.findItemById(elem.id)
-                        if (candidate != undefined) { graphMGR.graphitemdata.splice(graphMGR.graphitemdata.indexOf(candidate), 1) }
+                        this.graphMGR.graphitems.splice(this.graphMGR.graphitems.indexOf(elem), 1)
+                        const candidate = this.graphMGR.findItemById(elem.id)
+                        if (candidate != undefined) { this.graphMGR.graphitemdata.splice(this.graphMGR.graphitemdata.indexOf(candidate), 1) }
                         for (const child of elem.children) {
                             if (child.id.includes("SP")) { continue }
                             recursiveRemove(child as HTMLElement)
                         }
                     }
                     recursiveRemove(i)
-                    p(graphMGR.graphitems)
+                    p(this.graphMGR.graphitems)
                 }
             }
         }
@@ -829,7 +812,7 @@ export class optionsController {
             //this is potentially very inefficient-setting all graph elements onclicks to something else temporarily. I'll rework this when i have a working build. its not like its harmful, its just a bit inefficient.
             // eslint-disable-next-line @typescript-eslint/no-explicit-any 
             const prev: any[] = [] //explicit any this time because its type annotation is a pain and event handlers need extra type. On later review, maybe rework
-            for (const i of graphMGR.graphitems) {
+            for (const i of this.graphMGR.graphitems) {
                 prev.push(i.onclick)
                 i.onclick = () => {
                     if (from == null) {
@@ -845,13 +828,13 @@ export class optionsController {
                         p("b", from, to)
                         createNewConn.style.color = "#000000ff"
                         createNewConn.style.borderColor = ""
-                        for (const j in graphMGR.graphitems) {
-                            graphMGR.graphitems[j].onclick = prev[j]
+                        for (const j in this.graphMGR.graphitems) {
+                            this.graphMGR.graphitems[j].onclick = prev[j]
                         }
-                        graphMGR.conns ??= []
+                        this.graphMGR.conns ??= []
                         let inConnections = false;
                         let conn
-                        for (const i of graphMGR.conns) {
+                        for (const i of this.graphMGR.conns) {
                             if (
                                 i.idFrom == from && i.idTo == to
                             ) { inConnections = true; conn = i }
@@ -859,12 +842,12 @@ export class optionsController {
                         p(conn)
                         conn ??= { idFrom: from, idTo: to, type }
                         if (inConnections) {
-                            graphMGR.conns.splice(graphMGR.conns.indexOf(conn), 1)
+                            this.graphMGR.conns.splice(this.graphMGR.conns.indexOf(conn), 1)
                         }
                         else {
-                            graphMGR.conns.push(conn)
+                            this.graphMGR.conns.push(conn)
                         }
-                        graphMGR.loadConnectors()
+                        this.graphMGR.loadConnectors()
                         event.stopImmediatePropagation()
                     }
                     p(from, to)
@@ -898,7 +881,7 @@ export class optionsController {
         const downloadBTN = document.createElement("button")
         downloadBTN.textContent = "Download Graph"
         downloadBTN.title = "Press here to download the graph as a json."
-        downloadBTN.onclick = () => { graphMGR.download(downloadName.value) }
+        downloadBTN.onclick = () => { this.graphMGR.download(downloadName.value) }
         downloadBTN.style.display = "inline"
         downloadBTN.style.width = "90%"
         this.activeOptionMenuElements.push(downloadBTN)
@@ -912,8 +895,9 @@ export class optionsController {
 
     }
 
+
     graphtextedit(bool: boolean) {
-        for (const i of graphMGR.graphitemtext) {
+        for (const i of this.graphMGR.graphitemtext) {
             i.contentEditable = "" + bool;
         }
     }
@@ -925,7 +909,7 @@ export class optionsController {
         node.id = this.fetchNextFreeID(1);
         node.children = []
         node.childDegree = 0
-        graphMGR.loadGraphElem(node)
+        this.graphMGR.loadGraphElem(node)
         document.getElementById(node.id)?.dispatchEvent(new MouseEvent('dblclick'))
         const sp = document.getElementById(node.id + "SP"); if (sp != null) { sp.contentEditable = "true"; } //maybe clean this part up?
     }
@@ -942,9 +926,9 @@ export class optionsController {
 
         node.posX = 0;
         node.posY = 20;
-        graphMGR.loadGraphElem(node, parent)
+        this.graphMGR.loadGraphElem(node, parent)
 
-        for (const i of graphMGR.graphitemdata) {
+        for (const i of this.graphMGR.graphitemdata) {
             if (i.id == parent.id) {
                 i.children ??= []
                 let deg = i.childDegree; deg ??= 0
@@ -983,22 +967,22 @@ export class optionsController {
 
     handleDivMovement(event: MouseEvent) {
         if (this.activeEditNode != null) {
-            graphMGR.handleGhostMovement(this.activeEditNode, event);
+            this.handleGhostMovement(this.activeEditNode, event);
         }
         else {
-            graphMGR.handleMouseMoveEvent(event)
+            this.graphMGR.handleMouseMoveEvent(event)
         }
     }
 
     handleElemMovement(event: MouseEvent) {
         if (this.activeEditNode != null) {
-            graphMGR.handleGhostMovement(this.activeEditNode, event);
+            this.handleGhostMovement(this.activeEditNode, event);
         }
     }
 
     fetchGhostOffset(node: HTMLElement) {
         if (node.parentElement == null) { p("node parent is null somehow? error!"); return [Infinity, Infinity] }
-        if (node.parentElement == mdpAPP.gvc) { return [0, 0] }
+        if (node.parentElement == this.graphMGR.gvc) { return [0, 0] }
 
         let x = 0, y = 0
 
@@ -1010,6 +994,17 @@ export class optionsController {
 
         return [x, y]
     }
+
+    // Move only the ghost class elements. Which should only be the last activated element.
+    handleGhostMovement(node: HTMLElement, event: MouseEvent) {
+        const offsetx = this.graphMGR.gvc.getBoundingClientRect().left + 0.5 * node.getBoundingClientRect().width + this.currentGhostOffsetL
+        const offsety = this.graphMGR.gvc.getBoundingClientRect().top + 0.5 * node.getBoundingClientRect().height + this.currentGhostOffsetT
+        node.style.left = (event.x - offsetx) / this.graphMGR.zoom + "px"
+        node.style.top = (event.y - offsety) / this.graphMGR.zoom + "px"
+
+        this.graphMGR.loadConnectors()
+    }
+
 
     setNewPos(i: graphDataNode, node: HTMLElement) {
         if (i.id == node.id) {
@@ -1029,30 +1024,30 @@ export class optionsController {
 
 
         const prev = this.activeEditNode.onclick
-        const gvcprev = mdpAPP.gvc.onclick
-        const gvcp = mdpAPP.gvc.parentElement; if (gvcp == null) { return }
+        const gvcprev = this.graphMGR.gvc.onclick
+        const gvcp = this.graphMGR.gvc.parentElement; if (gvcp == null) { return }
         const gvcpprev = gvcp.onclick
 
         this.activeEditNode.onclick = (event) => {
             if (this.activeEditNode != null) {
-                for (const i of graphMGR.graphitemdata) {
+                for (const i of this.graphMGR.graphitemdata) {
                     this.setNewPos(i, node)
                 }
                 gvcp.onclick = gvcpprev
-                mdpAPP.gvc.onclick = gvcprev
+                this.graphMGR.gvc.onclick = gvcprev
                 this.activeEditNode.onclick = prev
                 this.activeEditNode.style.opacity = "1"
                 this.activeEditNode = null
                 event.stopPropagation()
             }
         }
-        mdpAPP.gvc.onclick = (event) => {
+        this.graphMGR.gvc.onclick = (event) => {
             if (this.activeEditNode != null) {
-                for (const i of graphMGR.graphitemdata) {
+                for (const i of this.graphMGR.graphitemdata) {
                     this.setNewPos(i, node)
                 }
                 gvcp.onclick = gvcpprev
-                mdpAPP.gvc.onclick = gvcprev
+                this.graphMGR.gvc.onclick = gvcprev
                 this.activeEditNode.onclick = prev
                 this.activeEditNode.style.opacity = "1"
                 this.activeEditNode = null
@@ -1061,11 +1056,11 @@ export class optionsController {
         }
         gvcp.onclick = (event) => {
             if (this.activeEditNode != null) {
-                for (const i of graphMGR.graphitemdata) {
+                for (const i of this.graphMGR.graphitemdata) {
                     this.setNewPos(i, node)
                 }
                 gvcp.onclick = gvcpprev
-                mdpAPP.gvc.onclick = gvcprev
+                this.graphMGR.gvc.onclick = gvcprev
                 this.activeEditNode.onclick = prev
                 this.activeEditNode.style.opacity = "1"
                 this.activeEditNode = null

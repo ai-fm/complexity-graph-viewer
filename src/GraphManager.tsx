@@ -1,12 +1,14 @@
 import rawGraphStructures from "../configs/complexity_graph_configs/graphindex";
-import rawValidCategories from "../configs/valid_values/node-category-values.json";
 import "./graph_nodes.css";
 
-import { graphMGR, mdpAPP, mousedown, optionsCTR, optionsOpen, p } from "./global";
+import { getValidCategories, mousedown, optionsOpen, p } from "./global";
+import { MDPApp } from "./MDPApp";
 import { nodes as resultNodes } from "./node_validator";
-const validCategories = JSON.parse(JSON.stringify(rawValidCategories))
-p("print import for quicker debug")
+import { optionsController } from "./optionsController";
 
+const validCategories = await getValidCategories()
+
+p("print import for quicker debug")
 
 export class graphDataNode {
     posX?: number;
@@ -18,7 +20,6 @@ export class graphDataNode {
     childDegree?: number;
     valueType?: string
 }
-
 
 class complexityResult {
     mdpType!: string;
@@ -36,7 +37,7 @@ class complexityResult {
     special?: string[]
 }
 
-const graphStructures: {
+export const graphStructures: {
     graphtype: string;
     nodes: graphDataNode[],
     connectors?: {
@@ -46,22 +47,12 @@ const graphStructures: {
     }[];
 }[] = rawGraphStructures;
 
-/*export function debugsetgraphstruct(dbt: {
-    graphtype: string;
-    nodes: graphDataNode[],
-    connectors?: {
-        idFrom: string,
-        idTo: string,
-        type: string
-    }[];
-}[]) { graphStructures = dbt }*/
-
-
-
-
-
 //GraphManager is responsible for handling construction, movement and unloading/loading of the graph elements.
 export class GraphManager {
+    optionsCTR: optionsController | null = null
+    setOptionsController(optionsCTR: optionsController) {
+        this.optionsCTR = optionsCTR
+    }
     //check if graphMGR is in edit mode
     editMode = false;
     //used in movement offset calculations for zoom to prevent "warping"
@@ -70,6 +61,7 @@ export class GraphManager {
     //zoom factor for all graph  elements
     zoom = 1;
     //graph view container and its' bounding client rect. 
+    gvc: HTMLElement
     gvc_rect: DOMRect
     //node data container for results
     ndc: HTMLElement
@@ -91,15 +83,19 @@ export class GraphManager {
     //include special cases with potentially hyperspecific cases, in the specials string array
     includeSpecialCases = true;
 
-    constructor() {
-        let candidate = document.getElementById("graphViewContainer");
+
+
+
+
+    constructor(mdpApp: MDPApp) {
+        let candidate = mdpApp.gvc//document.getElementById("graphViewContainer");
         if (candidate == null) {
             p("throw placeholder standin print: gvc invalid"); candidate = document.createElement("p")
         }
-        mdpAPP.gvc = candidate
-        this.gvc_rect = mdpAPP.gvc.getBoundingClientRect()
+        this.gvc = candidate
+        this.gvc_rect = this.gvc.getBoundingClientRect()
 
-        candidate = document.getElementById("InformationContainer");
+        candidate = mdpApp.infoContainer//document.getElementById("InformationContainer");
         if (candidate == null) {
             p("throw placeholder standin print: ndc invalid"); candidate = document.createElement("p")
         }
@@ -113,6 +109,7 @@ export class GraphManager {
                 j.valueType = this.getValueTypeFromTitle(title)
             }
         }
+
     }
 
 
@@ -135,6 +132,8 @@ export class GraphManager {
     }
 
 
+
+
     ////
     //// Event handlers
     ////
@@ -155,32 +154,24 @@ export class GraphManager {
 
 
 
-    // Move only the ghost class elements. Which should only be the last activated element.
-    handleGhostMovement(node: HTMLElement, event: MouseEvent) {
-        const offsetx = mdpAPP.gvc.getBoundingClientRect().left + 0.5 * node.getBoundingClientRect().width + optionsCTR.currentGhostOffsetL
-        const offsety = mdpAPP.gvc.getBoundingClientRect().top + 0.5 * node.getBoundingClientRect().height + optionsCTR.currentGhostOffsetT
-        node.style.left = (event.x - offsetx) / this.zoom + "px"
-        node.style.top = (event.y - offsety) / this.zoom + "px"
 
-        this.loadConnectors()
-    }
 
     //general mouse wheel zoom
     handleMouseWheelEvent(event: WheelEvent) {
         this.zoom *= 1.1 ** Math.sign(-event.deltaY)
-        mdpAPP.gvc.style.scale = this.zoom + ""
+        this.gvc.style.scale = this.zoom + ""
 
 
         //fix canvas not loading as it should
         if (this.cnv != null) {
-            let wt = mdpAPP.gvc.parentElement?.getBoundingClientRect().width; let ht = mdpAPP.gvc.parentElement?.getBoundingClientRect().height
+            let wt = this.gvc.parentElement?.getBoundingClientRect().width; let ht = this.gvc.parentElement?.getBoundingClientRect().height
             wt ??= 1; ht ??= 1
             this.cnv.height = ht
             this.cnv.width = wt
             this.cnv.style.position = "fixed"
         }
 
-        mdpAPP.gvc.style.transformOrigin = ("")
+        this.gvc.style.transformOrigin = ("")
         this.loadConnectors()
     }
 
@@ -202,7 +193,11 @@ export class GraphManager {
             this.loadGraphElems(this.validGraphTypes.indexOf(type));
             return true
         }
-        else { console.log("Graph type doesnt have corresponding graph!"); return false; }
+        else {
+            console.log("Graph type doesnt have corresponding graph!", type);
+            if (this.validGraphTypes.length > 0) { this.updateGraphType("NoGraph") }
+            return false;
+        }
     }
 
     //
@@ -218,10 +213,7 @@ export class GraphManager {
     //also checks for duplicate ids upon loading that graph in.
     loadGraphElems(typeIndex: number) {
 
-        //init valid graphtypes
-        for (const i in graphStructures) {
-            if (!this.validGraphTypes.includes(graphStructures[i].graphtype)) { this.validGraphTypes.push(graphStructures[i].graphtype) }
-        }
+
 
         //https://barker.codes/blog/unique-array-values-in-javascript/#check-if-every-value-is-unique
         //checking if all MDP graph types are unique and if not throwing error (but continuing as normal, using first occurance of graph for every)
@@ -239,13 +231,13 @@ export class GraphManager {
         }
 
         this.cnv = document.createElement("canvas")
-        let wt = mdpAPP.gvc.parentElement?.getBoundingClientRect().width; let ht = mdpAPP.gvc.parentElement?.getBoundingClientRect().height
+        let wt = this.gvc.parentElement?.getBoundingClientRect().width; let ht = this.gvc.parentElement?.getBoundingClientRect().height
         wt ??= 1; ht ??= 1
 
         this.cnv.height = ht
         this.cnv.width = wt
         this.cnv.style.position = "fixed"
-        mdpAPP.gvc.parentElement?.prepend(this.cnv)
+        this.gvc.parentElement?.prepend(this.cnv)
         this.conns = graphStructures[typeIndex].connectors
 
 
@@ -454,7 +446,7 @@ export class GraphManager {
     //Given a nodes json data, initialise it based on its type.
     createNode(el: graphDataNode, pParent?: HTMLElement) {
         let parent = pParent
-        parent ??= mdpAPP.gvc
+        parent ??= this.gvc
         const newNode = document.createElement("div")//button") previous button element becomes container for button and other stuff now
         //newNode.style.borderRadius = "15px"
         el.childDegree ??= 0
@@ -468,10 +460,10 @@ export class GraphManager {
             const sp = document.getElementById(newNode.id + "SP") //var for null check
             if (sp != null && sp.textContent == "") { sp.textContent = "<>"; }
 
-            graphMGR.nodeOnClick(newNode, event);
+            this.nodeOnClick(newNode, event);
         }
         //edit node content on dbclick. passed through handler, edit mode only
-        newNode.ondblclick = (event) => { graphMGR.nodeOnDBLClick(newNode, event); }
+        newNode.ondblclick = (event) => { this.nodeOnDBLClick(newNode, event); }
 
         el.title ??= "Untitled"
         //if titled new, leave empty for user to name. Else, if invalid, add ""? to name to indicate so.
@@ -575,17 +567,19 @@ export class GraphManager {
 
 
     nodeOnClick(node: HTMLElement, event: MouseEvent) {
-        if (!optionsOpen) { graphMGR.displayNodeData(node) }
+        if (!optionsOpen) { this.displayNodeData(node) }
         event.stopPropagation()
     }
+
     nodeOnDBLClick(node: HTMLElement, event: MouseEvent) {
         if (optionsOpen) {
             node.style.opacity = "0.5"
-            optionsCTR.handleElemClick(node)
+
+            if (this.optionsCTR != null) { this.optionsCTR.handleElemClick(node) }
 
         }
         else {
-            graphMGR.displayNodeData(node)
+            this.displayNodeData(node)
         }
         event.stopPropagation()
     }
@@ -686,7 +680,7 @@ export class GraphManager {
         this.ndc.style.overflowY = "scroll"
         this.ndc.style.overflowX = "hidden"
         this.ndc.style.textAlign = "left"
-        optionsCTR.closeOptions()
+        if (this.optionsCTR != null) { this.optionsCTR.closeOptions() }
 
 
         const nodeResults: complexityResult[] = [];
@@ -727,7 +721,6 @@ export class GraphManager {
 
                         }
 
-                        p(filtervalues, result[k], k, validEntry)
                     }
                     if (validEntry) { nodeResPapers.push(paperJson.title); nodeResults.push(result) }
                 }
@@ -737,7 +730,6 @@ export class GraphManager {
 
     }
     recursiveFilter(node: HTMLElement): string[][] {
-
         const par = node.parentElement;
         let filters = [this.getValueTypeFromTitle(this.findItemById(node.id)?.title)]
         const candidate = this.findTextElemById(node.id)
@@ -749,7 +741,7 @@ export class GraphManager {
         for (const i of validCategories[filters[0]]) {
             if (i.includes(values[0])) { values = i }
         }
-        if (par != null && par != mdpAPP.gvc) {
+        if (par != null && par != this.gvc) {
             const pfilt = this.recursiveFilter(par)
             filters = filters.concat(pfilt[0])
             values = values.concat(pfilt[1])
@@ -785,8 +777,8 @@ export class GraphManager {
         exit.style.fontSize = "30px"
         header.append(exit)
 
-        const scale = mdpAPP.gvc.style.scale
-        mdpAPP.gvc.style.scale = "1"
+        const scale = this.gvc.style.scale
+        this.gvc.style.scale = "1"
 
         for (const i of this.graphitems) {
             i.style.visibility = "hidden"
@@ -812,7 +804,7 @@ export class GraphManager {
 
         exit.onclick = () => {
 
-            mdpAPP.gvc.style.scale = scale
+            this.gvc.style.scale = scale
 
             for (const i of this.graphitems) {
                 i.style.visibility = "visible"
@@ -822,7 +814,7 @@ export class GraphManager {
             view.remove()
         }
 
-        mdpAPP.gvc.prepend(view)
+        this.gvc.prepend(view)
 
     }
 

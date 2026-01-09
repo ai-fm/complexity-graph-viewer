@@ -1,0 +1,16 @@
+{
+	"graphtype": "NoGraph",
+	"nodes": [
+		{
+			"posX": 494.689,
+			"posY": 320.716,
+			"type": "ClickableGraphNode",
+			"title": "No corresponding graph exists, maybe add a new one?",
+			"id": "1",
+			"children": [],
+			"childDegree": 0,
+			"valueType": "Error"
+		}
+	],
+	"connectors": []
+}
