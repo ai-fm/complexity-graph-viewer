@@ -32,7 +32,34 @@ export async function getValidCategories() {
     }
 }
 
+export async function getGraphConfigs() {
+    const fetched = await new Octokit({}).request('GET /repos/{owner}/{repo}/contents/{path}', {
+        owner: 'ClemRub',
+        repo: 'complexity-jsons',
+        path: 'complexity_graph_configs/graphcfgindex.json'
+    })
+    p(fetched)
 
+    const graphConfigs = []
+
+    if (('content' in fetched.data) && (typeof fetched.data.content == typeof "")) {
+        const data = JSON.parse(decode(fetched.data.content as string))
+        for (const i of data.configs) {
+
+
+            const fetched = await new Octokit({}).request('GET /repos/{owner}/{repo}/contents/{path}', {
+                owner: 'ClemRub',
+                repo: 'complexity-jsons',
+                path: 'complexity_graph_configs/' + i
+            })
+            if (('content' in fetched.data) && (typeof fetched.data.content == typeof "")) {
+                graphConfigs.push(JSON.parse(decode(fetched.data.content as string)))
+            }
+        }
+    }
+
+    return graphConfigs
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any 
 export function p(...t: any[]) { console.log(t) }

@@ -1,13 +1,13 @@
-import rawGraphStructures from "../configs/complexity_graph_configs/graphindex";
+
 import "./graph_nodes.css";
 
-import { getValidCategories, mousedown, optionsOpen, p } from "./global";
+import { getGraphConfigs, getValidCategories, mousedown, optionsOpen, p } from "./global";
 import { MDPApp } from "./MDPApp";
 import { nodes as resultNodes } from "./node_validator";
 import { optionsController } from "./optionsController";
 
 const validCategories = await getValidCategories()
-
+const rawGraphStructures = await getGraphConfigs()
 p("print import for quicker debug")
 
 export class graphDataNode {

@@ -690,8 +690,6 @@ export class optionsController {
         this.activeOptionMenuElements.push(editValidBTN)
         this.oec.appendChild(editValidBTN)
 
-
-
         this.graphtextedit(true)
     }
 

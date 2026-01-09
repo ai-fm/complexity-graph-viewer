@@ -60,3 +60,4 @@ onmousemove = (event) => {
 onwheel = (event) => {
     if ((event.target == mdpAPP.gvc.parentNode) || (event.target == mdpAPP.gvc) || (event.target == graphMGR.cnv) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseWheelEvent(event) }
 }
+
