@@ -8,6 +8,10 @@ export let optionsOpen = false
 export function setMouseDown(value: boolean) { mousedown = value }
 export function setOptionsOpen(isOpen: boolean) { optionsOpen = isOpen }
 
+//DONT PUSH THIS
+export const globalDefault = ""//
+//DONT PUSH THE TOKEN MAN
+
 //https://stackoverflow.com/questions/56952405/how-to-decode-encode-string-to-base64-in-typescript-express-server, adjusted
 export function decode(str: string): string {
     return Buffer.from(str, 'base64').toString('utf8');
@@ -20,8 +24,8 @@ export function encode(str: string): string {
 // global backend variables
 
 // allowing any for simplicity
-export async function getValidCategories() {
-    const fetched = await new Octokit({}).request('GET /repos/{owner}/{repo}/contents/{path}', {
+export async function getValidCategories(token = globalDefault) {
+    const fetched = await new Octokit({ auth: token }).request('GET /repos/{owner}/{repo}/contents/{path}', {
         owner: 'ClemRub',
         repo: 'complexity-jsons',
         path: 'valid_values/node-category-values.json'
@@ -32,13 +36,12 @@ export async function getValidCategories() {
     }
 }
 
-export async function getGraphConfigs() {
-    const fetched = await new Octokit({}).request('GET /repos/{owner}/{repo}/contents/{path}', {
+export async function getGraphConfigs(token = globalDefault) {
+    const fetched = await new Octokit({ auth: token }).request('GET /repos/{owner}/{repo}/contents/{path}', {
         owner: 'ClemRub',
         repo: 'complexity-jsons',
         path: 'complexity_graph_configs/graphcfgindex.json'
     })
-    p(fetched)
 
     const graphConfigs = []
 
@@ -47,7 +50,7 @@ export async function getGraphConfigs() {
         for (const i of data.configs) {
 
 
-            const fetched = await new Octokit({}).request('GET /repos/{owner}/{repo}/contents/{path}', {
+            const fetched = await new Octokit({ auth: token }).request('GET /repos/{owner}/{repo}/contents/{path}', {
                 owner: 'ClemRub',
                 repo: 'complexity-jsons',
                 path: 'complexity_graph_configs/' + i
@@ -59,6 +62,35 @@ export async function getGraphConfigs() {
     }
 
     return graphConfigs
+}
+
+export async function getPaperResults(token = globalDefault) {
+    const fetched = await new Octokit({
+        auth: token
+    }).request('GET /repos/{owner}/{repo}/contents/{path}', {
+        owner: 'ClemRub',
+        repo: 'complexity-jsons',
+        path: 'results/resultindex.json'
+    })
+
+    const paperResults = []
+
+    if (('content' in fetched.data) && (typeof fetched.data.content == typeof "")) {
+
+        const data = JSON.parse(decode(fetched.data.content as string))
+        for (const i of data.results) {
+
+            const fetched = await new Octokit({ auth: token }).request('GET /repos/{owner}/{repo}/contents/{path}', {
+                owner: 'ClemRub',
+                repo: 'complexity-jsons',
+                path: 'results/' + i
+            })
+            if (('content' in fetched.data) && (typeof fetched.data.content == typeof "")) {
+                paperResults.push(JSON.parse(decode(fetched.data.content as string)))
+            }
+        }
+    }
+    return paperResults
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any 

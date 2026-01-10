@@ -1,8 +1,9 @@
 
-import jsons from "../configs/results/index.ts";
-import { getValidCategories } from "./global.ts";
+import { getPaperResults, getValidCategories } from "./global.ts";
 //read all nodes from indexed raw jsons and convert them into array iff valid according to category values.
 
+
+const jsons = await getPaperResults()
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function validateNode(rawJson: { title?: string; authors?: string[]; results: any; url?: string; }) {
   //set to defaults if not set for the values that have default values

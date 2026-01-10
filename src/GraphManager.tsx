@@ -697,7 +697,7 @@ export class GraphManager {
     fetchResults(node: HTMLElement, mdptype: string, nodeResults: complexityResult[], nodeResPapers: string[]) {
         const [filters, filtervalues] = this.recursiveFilter(node)
         resultNodes.forEach((paperJson) => {
-            paperJson.results.forEach((result) => {
+            paperJson.results.forEach((result: complexityResult) => {
                 let anyMDPCategory = []
                 for (const i of validCategories.mdpType) {
                     if (i.includes("Any")) {
