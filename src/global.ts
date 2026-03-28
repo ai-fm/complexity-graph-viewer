@@ -9,8 +9,8 @@ export function setMouseDown(value: boolean) { mousedown = value }
 export function setOptionsOpen(isOpen: boolean) { optionsOpen = isOpen }
 
 //DONT PUSH THIS
-export const globalDefault = ""//
-//DONT PUSH THE TOKEN MAN
+export const globalDefault = ""
+
 
 //https://stackoverflow.com/questions/56952405/how-to-decode-encode-string-to-base64-in-typescript-express-server, adjusted
 export function decode(str: string): string {
@@ -23,7 +23,7 @@ export function encode(str: string): string {
 
 // global backend variables
 
-// allowing any for simplicity
+// fetch json containing valid entries for certain categories from repo
 export async function getValidCategories(token = globalDefault) {
     const fetched = await new Octokit({ auth: token }).request('GET /repos/{owner}/{repo}/contents/{path}', {
         owner: 'ClemRub',
@@ -36,6 +36,7 @@ export async function getValidCategories(token = globalDefault) {
     }
 }
 
+// fetch jsons containing graph structures from repo
 export async function getGraphConfigs(token = globalDefault) {
     const fetched = await new Octokit({ auth: token }).request('GET /repos/{owner}/{repo}/contents/{path}', {
         owner: 'ClemRub',
@@ -64,6 +65,7 @@ export async function getGraphConfigs(token = globalDefault) {
     return graphConfigs
 }
 
+// fetch jsons containing complexity results from repo
 export async function getPaperResults(token = globalDefault) {
     const fetched = await new Octokit({
         auth: token
@@ -93,6 +95,7 @@ export async function getPaperResults(token = globalDefault) {
     return paperResults
 }
 
+// simple debug print function
 // eslint-disable-next-line @typescript-eslint/no-explicit-any 
 export function p(...t: any[]) { console.log(t) }
 

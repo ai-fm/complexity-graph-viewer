@@ -2,6 +2,9 @@ import { Octokit } from "@octokit/core";
 import { decode, encode, optionsOpen, p, setOptionsOpen, } from "./global";
 import { graphDataNode, GraphManager } from "./GraphManager";
 
+
+
+// Open a large menu view and return the button elements to navigate it. Intended to be used to edit variety of underlying data hence itself merely container.
 function openBigJSON() {
     const parent = document.getElementById("appContainer")
     if (parent == null) { return }
@@ -92,8 +95,8 @@ function openBigJSON() {
     return [editWindow, prev, dlButton, ulButton, next]
 }
 
+// hide fullscreen json editor and remove all related elements 
 function closeBigJSON() {
-
     const editWindowElems = document.querySelectorAll(".editWindow")
     editWindowElems.forEach(e => { e.remove() })
     const editWindowSubElems = document.querySelectorAll(".editWindowSub")
@@ -194,14 +197,14 @@ export class optionsController {
         this.makebreak()
 
 
-        const openAddResults = document.createElement("button")
-        openAddResults.textContent = "Add new results or edit valid values of results."
-        openAddResults.style.display = "inline"
-        openAddResults.style.width = "90%"
-        openAddResults.title = "Click to open related submenu."
-        openAddResults.onclick = () => { this.optionsAddResults() }
-        this.activeOptionMenuElements.push(openAddResults)
-        this.oec.appendChild(openAddResults)
+        const openEditJSONs = document.createElement("button")
+        openEditJSONs.textContent = "Add new results or edit valid values of results."
+        openEditJSONs.style.display = "inline"
+        openEditJSONs.style.width = "90%"
+        openEditJSONs.title = "Click to open related submenu."
+        openEditJSONs.onclick = () => { this.optionsEditJSONs() }
+        this.activeOptionMenuElements.push(openEditJSONs)
+        this.oec.appendChild(openEditJSONs)
 
         this.makebreak()
         this.makebreak()
@@ -270,6 +273,8 @@ export class optionsController {
         return response.data
     }
 
+    
+    // submenu to edit "valid" filter categories on results
     fetchAndEditValid(token: string) {
         const owner = 'ClemRub'
         const repo = 'complexity-jsons'
@@ -277,20 +282,25 @@ export class optionsController {
 
         this.fetch_json(token, owner, repo, path).then(fetched => {
 
+            // verify whether request was successful and if so, parse it into json
             let content = JSON.parse("{}")
             if (('content' in fetched) && (typeof fetched.content == typeof "")) {
                 content = JSON.parse(decode(fetched.content as string))
             }
 
+            // get sha from request and store it for later
             let sha: string | undefined = undefined
             if (('sha' in fetched) && (typeof fetched.sha == typeof "")) {
                 sha = fetched.sha as string
             }
+
+            // open big editing container. candidate in-between step to check for correct initialisation
             const candidate = openBigJSON()
-
             if (candidate == undefined) { return }
-
             const [editWindow, prev, dlButton, ulButton, next] = candidate
+
+            // Get key-value pairs of value type and array of valid assignments from fetched json.
+
             const keys: string[] = []
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const values: any[] = []
@@ -301,222 +311,48 @@ export class optionsController {
                 values.push(content[x])
             }
 
+            
             this.editPageCount = 0
+            //initialise array for elements in current page
+            let value_elems = new Array(values[this.editPageCount].length).fill([])
 
+            //initialise windowTitle if it didnt exist before
             const windowTitle = document.createElement("span")
             windowTitle.className = "editWindow"
-            windowTitle.textContent = keys[this.editPageCount] as string
             windowTitle.onclick = () => windowTitle.contentEditable = "true"
             editWindow.appendChild(windowTitle)
             const TitleRuler = document.createElement("hr")
             TitleRuler.className = "editWindow"
             editWindow.appendChild(TitleRuler)
+                
+            //initialise page
+            makeValidValsEditor(this.editPageCount)
 
-            let value_elems = new Array(values[this.editPageCount].length).fill([])
-
-
-            for (const i in values[this.editPageCount]) {
-                const windowElem = document.createElement("div")
-                windowElem.className = "editWindowSub"
-                windowElem.style.display = "flex"
-                windowElem.style.flexWrap = "wrap"
-                const vals = []
-                for (const j of values[this.editPageCount][i]) {
-                    const elem = document.createElement("div")
-                    elem.style.border = "0.1vh solid #21f3f0"
-                    elem.style.margin = "0.1vh"
-                    elem.className = "editWindowSub"
-                    elem.onclick = () => elem.contentEditable = "true"
-                    elem.textContent = j
-                    vals.push(elem)
-                    windowElem.appendChild(elem)
-                }
-                value_elems[parseInt(i)] = vals
-                const elem = document.createElement("div")
-                elem.style.border = "0.1vh solid #21f3f0"
-                elem.style.margin = "0.1vh"
-                elem.className = "editWindowSub"
-                elem.textContent = "+"
-                elem.onclick = () => {
-                    const newElem = document.createElement("div")
-                    newElem.className = "editWindowSub"
-                    newElem.style.border = "0.1vh solid #21f3f0"
-                    newElem.onclick = () => newElem.contentEditable = "true"
-                    newElem.style.margin = "0.1vh"
-                    newElem.textContent = "new"
-                    value_elems[parseInt(i)].push(newElem)
-                    windowElem.insertBefore(newElem, elem)
-                }
-                windowElem.appendChild(elem)
-
-                editWindow.appendChild(windowElem)
-
-                const elemRuler = document.createElement("hr")
-                elemRuler.className = "editWindowSub"
-                editWindow.appendChild(elemRuler)
-            }
-            const windowPlus = document.createElement("span")
-            windowPlus.className = "editWindowSub"
-            windowPlus.textContent = "+"
-            windowPlus.style.border = "0.1vh solid #21f3f0"
-            windowPlus.style.margin = "0.1vh"
-            windowPlus.onclick = () => {
-                const windowElem = document.createElement("div")
-                windowElem.className = "editWindowSub"
-                windowElem.style.display = "flex"
-                windowElem.style.flexWrap = "wrap"
-
-
-                const elem = document.createElement("div")
-                elem.style.border = "0.1vh solid #21f3f0"
-                elem.style.margin = "0.1vh"
-                elem.className = "editWindowSub"
-                elem.textContent = "+"
-                const vals: HTMLElement[] = []
-                elem.onclick = () => {
-                    const newElem = document.createElement("div")
-                    newElem.className = "editWindowSub"
-                    newElem.style.border = "0.1vh solid #21f3f0"
-                    newElem.onclick = () => newElem.contentEditable = "true"
-                    newElem.style.margin = "0.1vh"
-                    newElem.textContent = "new"
-                    vals.push(newElem)
-                    windowElem.insertBefore(newElem, elem)
-                }
-                value_elems.push(vals)
-                windowElem.appendChild(elem)
-                editWindow.insertBefore(windowElem, windowPlus)
-
-                const elemRuler = document.createElement("hr")
-                elemRuler.className = "editWindowSub"
-                editWindow.insertBefore(elemRuler, windowPlus)
-
-            }
-            editWindow.appendChild(windowPlus)
-
+            // on prev button click, go to page before current and load it
             prev.onclick = () => {
                 updateValues(this.editPageCount)
-
-                value_elems = new Array(values[this.editPageCount].length).fill([])
-                this.editPageCount -= 1
+                this.editPageCount -=1
                 if (this.editPageCount < 0) { this.editPageCount = keys.length - 1 }
-
                 windowTitle.textContent = keys[this.editPageCount] as string
                 const editWindowSubElems = document.querySelectorAll(".editWindowSub")
                 editWindowSubElems.forEach(e => { e.remove() })
-                for (const i in values[this.editPageCount]) {
-                    const windowElem = document.createElement("div")
-                    windowElem.className = "editWindowSub"
-                    windowElem.style.display = "flex"
-                    windowElem.style.flexWrap = "wrap"
-
-                    const vals = []
-                    for (const j of values[this.editPageCount][i]) {
-                        const elem = document.createElement("div")
-                        elem.className = "editWindowSub"
-                        elem.style.border = "0.1vh solid #21f3f0"
-                        elem.onclick = () => elem.contentEditable = "true"
-                        elem.style.margin = "0.1vh"
-                        elem.textContent = j
-                        vals.push(elem)
-                        windowElem.appendChild(elem)
-                    }
-                    value_elems[parseInt(i)] = vals
-                    const elem = document.createElement("div")
-                    elem.className = "editWindowSub"
-                    elem.style.border = "0.1vh solid #21f3f0"
-                    elem.style.margin = "0.1vh"
-                    elem.textContent = "+"
-                    elem.onclick = () => {
-                        const newElem = document.createElement("div")
-                        newElem.className = "editWindowSub"
-                        newElem.style.border = "0.1vh solid #21f3f0"
-                        newElem.onclick = () => newElem.contentEditable = "true"
-                        newElem.style.margin = "0.1vh"
-                        newElem.textContent = "new"
-                        value_elems[parseInt(i)].push(newElem)
-                        windowElem.insertBefore(newElem, elem)
-                    }
-                    windowElem.appendChild(elem)
-
-                    editWindow.appendChild(windowElem)
-
-                    const elemRuler = document.createElement("hr")
-                    elemRuler.className = "editWindowSub"
-                    editWindow.appendChild(elemRuler)
-                }
-                const windowPlus = document.createElement("span")
-                windowPlus.className = "editWindowSub"
-                windowPlus.textContent = "+"
-                windowPlus.style.border = "0.1vh solid #21f3f0"
-                windowPlus.style.margin = "0.1vh"
-                editWindow.appendChild(windowPlus)
-
+                makeValidValsEditor(this.editPageCount)
             }
 
+            // on next button click, go to page after current and load it
             next.onclick = () => {
                 updateValues(this.editPageCount)
-
-                value_elems = new Array(values[this.editPageCount].length).fill([])
-                this.editPageCount += 1
+                this.editPageCount +=1
                 if (this.editPageCount == keys.length) { this.editPageCount = 0 }
-
                 windowTitle.textContent = keys[this.editPageCount] as string
                 const editWindowSubElems = document.querySelectorAll(".editWindowSub")
                 editWindowSubElems.forEach(e => { e.remove() })
-
-                for (const i in values[this.editPageCount]) {
-                    const windowElem = document.createElement("div")
-                    windowElem.className = "editWindowSub"
-                    windowElem.style.display = "flex"
-                    windowElem.style.flexWrap = "wrap"
-
-                    const vals = []
-                    for (const j of values[this.editPageCount][i]) {
-                        const elem = document.createElement("div")
-                        elem.className = "editWindowSub"
-                        elem.style.border = "0.1vh solid #21f3f0"
-                        elem.style.margin = "0.1vh"
-                        elem.onclick = () => elem.contentEditable = "true"
-                        elem.textContent = j
-                        vals.push(elem)
-                        windowElem.appendChild(elem)
-                    }
-                    value_elems[parseInt(i)] = vals
-                    const elem = document.createElement("div")
-                    elem.className = "editWindowSub"
-                    elem.style.border = "0.1vh solid #21f3f0"
-                    elem.style.margin = "0.1vh"
-                    elem.textContent = "+"
-                    elem.onclick = () => {
-                        const newElem = document.createElement("div")
-                        newElem.className = "editWindowSub"
-                        newElem.style.border = "0.1vh solid #21f3f0"
-                        newElem.onclick = () => newElem.contentEditable = "true"
-                        newElem.style.margin = "0.1vh"
-                        newElem.textContent = "new"
-                        value_elems[parseInt(i)].push(newElem)
-                        windowElem.insertBefore(newElem, elem)
-                    }
-                    windowElem.appendChild(elem)
-
-                    editWindow.appendChild(windowElem)
-
-                    const elemRuler = document.createElement("hr")
-                    elemRuler.className = "editWindowSub"
-                    editWindow.appendChild(elemRuler)
-                }
-                const windowPlus = document.createElement("span")
-                windowPlus.className = "editWindowSub"
-                windowPlus.textContent = "+"
-                windowPlus.style.border = "0.1vh solid #21f3f0"
-                windowPlus.style.margin = "0.1vh"
-                editWindow.appendChild(windowPlus)
+                makeValidValsEditor(this.editPageCount)
             }
 
+            // for current page, collect all non-placeholder content and store them in key/value pairs for that page.
+            // this is so edits aren't lost between page flips 
             function updateValues(page: number) {
-
-
                 const newValues = []
                 for (const i in value_elems) {
                     const temp = []
@@ -534,7 +370,8 @@ export class optionsController {
                 values[page] = newValues
                 keys[page] = windowTitle.textContent
             }
-
+            
+            //collect data from key, value array. Combines it into json string. 
             function getContent(page: number) {
                 updateValues(page)
                 let content = "{"
@@ -615,7 +452,102 @@ export class optionsController {
                 return JSON.parse(content)
             }
 
+            // function to generate editable menu for a given page number/key
+            function makeValidValsEditor(pageCount:number) {
+                
+                //create array for values corresponding to current key.
+                value_elems = new Array(values[pageCount].length).fill([])
+                
+                // for every array of valid value (and aliases) for current key, create new row of elements corresponding to that value
+                for (const i in values[pageCount]) {
+                    const windowElem = document.createElement("div")
+                    windowElem.className = "editWindowSub"
+                    windowElem.style.display = "flex"
+                    windowElem.style.flexWrap = "wrap"
 
+                    const vals = []
+                    
+                    //for every alias, create new sub-element in row
+                    for (const j of values[pageCount][i]) {
+                        const elem = document.createElement("div")
+                        elem.className = "editWindowSub"
+                        elem.style.border = "0.1vh solid #21f3f0"
+                        elem.style.margin = "0.1vh"
+                        elem.onclick = () => elem.contentEditable = "true"
+                        elem.textContent = j
+                        vals.push(elem)
+                        windowElem.appendChild(elem)
+                    }
+                    //set row to generated row array
+                    value_elems[parseInt(i)] = vals
+                    //in current row, add extra + element
+                    const elem = document.createElement("div")
+                    elem.className = "editWindowSub"
+                    elem.style.border = "0.1vh solid #21f3f0"
+                    elem.style.margin = "0.1vh"
+                    elem.textContent = "+"
+                    elem.onclick = () => {
+                        // + element creates new element with "new" default content in front of itself
+                        const newElem = document.createElement("div")
+                        newElem.className = "editWindowSub"
+                        newElem.style.border = "0.1vh solid #21f3f0"
+                        newElem.onclick = () => newElem.contentEditable = "true"
+                        newElem.style.margin = "0.1vh"
+                        newElem.textContent = "new"
+                        value_elems[parseInt(i)].push(newElem)
+                        windowElem.insertBefore(newElem, elem)
+                    }
+                    windowElem.appendChild(elem)
+                    // add current row to general view and add ruler after it
+                    editWindow.appendChild(windowElem)
+
+                    const elemRuler = document.createElement("hr")
+                    elemRuler.className = "editWindowSub"
+                    editWindow.appendChild(elemRuler)
+                }
+                // add extra + row to add new row of values
+                const windowPlus = document.createElement("span")
+                windowPlus.className = "editWindowSub"
+                windowPlus.textContent = "+"
+                windowPlus.style.border = "0.1vh solid #21f3f0"
+                windowPlus.style.margin = "0.1vh"
+                windowPlus.onclick = () => {
+                    // + creates new row that only contains + element which creates new elements in row
+                    const windowElem = document.createElement("div")
+                    windowElem.className = "editWindowSub"
+                    windowElem.style.display = "flex"
+                    windowElem.style.flexWrap = "wrap"
+
+
+                    const elem = document.createElement("div")
+                    elem.style.border = "0.1vh solid #21f3f0"
+                    elem.style.margin = "0.1vh"
+                    elem.className = "editWindowSub"
+                    elem.textContent = "+"
+                    const vals: HTMLElement[] = []
+                    elem.onclick = () => {
+                        const newElem = document.createElement("div")
+                        newElem.className = "editWindowSub"
+                        newElem.style.border = "0.1vh solid #21f3f0"
+                        newElem.onclick = () => newElem.contentEditable = "true"
+                        newElem.style.margin = "0.1vh"
+                        newElem.textContent = "new"
+                        vals.push(newElem)
+                        windowElem.insertBefore(newElem, elem)
+                    }
+                    value_elems.push(vals)
+                    windowElem.appendChild(elem)
+                    editWindow.insertBefore(windowElem, windowPlus)
+
+                    const elemRuler = document.createElement("hr")
+                    elemRuler.className = "editWindowSub"
+                    editWindow.insertBefore(elemRuler, windowPlus)
+
+                    }
+                editWindow.appendChild(windowPlus)
+            }
+
+            // download all current data 
             dlButton.onclick = () => {
                 content = JSON.stringify(getContent(this.editPageCount))
                 const a = document.createElement("a");
@@ -626,6 +558,7 @@ export class optionsController {
 
             }
 
+            // upload all current data
             ulButton.onclick = async () => {
                 const obj = getContent(this.editPageCount)
                 const encoded = encode(JSON.stringify(obj, null, 2))
@@ -650,8 +583,8 @@ export class optionsController {
     }
 
 
-
-    optionsAddResults() {
+    // edit underlying JSONs for results and valid result data filters
+    optionsEditJSONs() {
 
         if (this.oec == null) { p("OptionsElementsContainer is empty!"); return }
 
@@ -679,6 +612,18 @@ export class optionsController {
         this.oec.appendChild(Vtoken)
         this.makebreak()
 
+        const editResultsBTN = document.createElement("button")
+        editResultsBTN.textContent = "Edit the current results for the graph."
+        editResultsBTN.title = "Present results edit"
+        editResultsBTN.onclick = () => {
+            //this.fetchAndEditResults(Vtoken.value)
+        }
+        editResultsBTN.style.display = "inline"
+        editResultsBTN.style.width = "90%"
+        this.activeOptionMenuElements.push(editResultsBTN)
+        this.oec.appendChild(editResultsBTN)
+
+        
         const editValidBTN = document.createElement("button")
         editValidBTN.textContent = "Edit the valid possible values for entries in the graph."
         editValidBTN.title = "Valid category edit"
@@ -690,9 +635,10 @@ export class optionsController {
         this.activeOptionMenuElements.push(editValidBTN)
         this.oec.appendChild(editValidBTN)
 
-        this.graphtextedit(true)
     }
 
+
+    // Unimplemented- Edit Color values and the like. 
     optionsCustomizeApp() {
         if (this.oec == null) { p("OptionsElementsContainer is empty!"); return }
 
@@ -706,6 +652,7 @@ export class optionsController {
 
     }
 
+    // Edit the currently open graph 
     optionsEditGraph() {
         if (this.oec == null) { p("OptionsElementsContainer is empty!"); return }
 
@@ -925,7 +872,6 @@ export class optionsController {
 
     optionsEditHide() {
         this.graphtextedit(false)
-
     }
 
 
@@ -935,6 +881,7 @@ export class optionsController {
         }
     }
 
+    // make hovering node for new node button 
     makeGhostNode() {
         const node = new graphDataNode
         node.type = "ClickableGraphNode"
@@ -949,7 +896,7 @@ export class optionsController {
 
 
 
-
+    // make hovering node for new child node button
     makeGhostChildNode(parent: HTMLElement) {
         const node = new graphDataNode
         node.type = "ClickableSubNode"
