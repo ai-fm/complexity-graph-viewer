@@ -1,5 +1,5 @@
 
-import { p } from "./global";
+import { p, setCurrentGraphType } from "./global";
 import { GraphManager } from "./GraphManager";
 import "./MDPTypeDropdown.css";
 
@@ -34,7 +34,8 @@ export class MDPTypeDropdown {
     this.dropdownField.onchange = (e) => {
       if (e.currentTarget == null) { return }
       const target = e.currentTarget as HTMLFormElement
-      graphMGR.updateGraphType(target.value);
+      setCurrentGraphType(target.value)
+      graphMGR.updateGraphType(target.value)
       this.value = target.value
     }
 

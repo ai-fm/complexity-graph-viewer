@@ -1,8 +1,5 @@
-import { Octokit } from "@octokit/core";
-import { decode, encode, optionsOpen, p, setOptionsOpen, } from "./global";
-import { graphDataNode, GraphManager } from "./GraphManager";
-
-
+import { currentGraphType, decode, download, encode,  fetch_json,  getsha,  Graph,  graphNode,  optionsOpen, p, setOptionsOpen, upload, } from "./global";
+import { GraphManager } from "./GraphManager";
 
 // Open a large menu view and return the button elements to navigate it. Intended to be used to edit variety of underlying data hence itself merely container.
 function openBigJSON() {
@@ -74,7 +71,14 @@ function openBigJSON() {
         dlButton.style.scale = "300%"
         buttonContainer.appendChild(dlButton)
     }
-
+    let plus = document.getElementById("newPage");
+    if (plus == null) {
+        plus = document.createElement("button");
+        plus.id = "newPage";
+        plus.textContent = "+";
+        plus.style.scale = "300%";
+        buttonContainer.appendChild(plus);
+    }
     let ulButton = document.getElementById("uploadCurrentJson")
     if (ulButton == null) {
         ulButton = document.createElement("button")
@@ -92,7 +96,7 @@ function openBigJSON() {
         buttonContainer.appendChild(next);
     }
 
-    return [editWindow, prev, dlButton, ulButton, next]
+    return [editWindow, prev, dlButton, plus, ulButton, next]
 }
 
 // hide fullscreen json editor and remove all related elements 
@@ -126,6 +130,8 @@ export class optionsController {
     editPageCount = 0
 
     graphMGR: GraphManager;
+
+    activeEditGraph:Graph|null=null;
 
     ////
     ////Initialise options button and menu.
@@ -196,7 +202,6 @@ export class optionsController {
         this.oec.style.textAlign = "center";
         this.makebreak()
 
-
         const openEditJSONs = document.createElement("button")
         openEditJSONs.textContent = "Add new results or edit valid values of results."
         openEditJSONs.style.display = "inline"
@@ -223,7 +228,6 @@ export class optionsController {
 
         const openEditGraph = document.createElement("button")
         openEditGraph.textContent = "Edit the current graph or create a new one."
-        //TODO CHECK FOR DUPLICATE GRAPH TYPES!
         openEditGraph.style.display = "inline"
         openEditGraph.style.width = "90%"
         openEditGraph.title = "Click to open related submenu."
@@ -231,63 +235,20 @@ export class optionsController {
         this.activeOptionMenuElements.push(openEditGraph)
         this.oec.appendChild(openEditGraph)
     }
-
-    // Upload to the repository.
-    async upload_json(token: string, owner: string, repo: string, path: string, message: string, content: string, sha: string | undefined) {
-        const octokit = new Octokit({
-            auth: token
-        })
-
-        await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
-            owner: owner,
-            repo: repo,
-            path: path,
-            message: message,
-            committer: {
-                name: 'Complexity-graph submission',
-                email: 'none@none.none'
-            },
-            content: content,
-            sha: sha,
-            headers: {
-                'X-GitHub-Api-Version': '2022-11-28'
-            }
-        })
-    }
-
-    // Download from the repository.
-    async fetch_json(token: string, owner: string, repo: string, path: string) {
-        const octokit = new Octokit({
-            auth: token
-        })
-
-        const response = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
-            owner: owner,
-            repo: repo,
-            path: path,
-            headers: {
-                'X-GitHub-Api-Version': '2022-11-28'
-            }
-        })
-
-        return response.data
-    }
-
-    
+ 
     // submenu to edit "valid" filter categories on results
     fetchAndEditValid(token: string) {
         const owner = 'ClemRub'
         const repo = 'complexity-jsons'
         const path = 'valid_values/node-category-values.json'
 
-        this.fetch_json(token, owner, repo, path).then(fetched => {
+        fetch_json(token, owner, repo, path).then(fetched => {
 
             // verify whether request was successful and if so, parse it into json
             let content = JSON.parse("{}")
             if (('content' in fetched) && (typeof fetched.content == typeof "")) {
                 content = JSON.parse(decode(fetched.content as string))
             }
-
             // get sha from request and store it for later
             let sha: string | undefined = undefined
             if (('sha' in fetched) && (typeof fetched.sha == typeof "")) {
@@ -297,7 +258,7 @@ export class optionsController {
             // open big editing container. candidate in-between step to check for correct initialisation
             const candidate = openBigJSON()
             if (candidate == undefined) { return }
-            const [editWindow, prev, dlButton, ulButton, next] = candidate
+            const [editWindow, prev, dlButton, plus, ulButton, next] = candidate
 
             // Get key-value pairs of value type and array of valid assignments from fetched json.
 
@@ -310,7 +271,6 @@ export class optionsController {
                 keys.push(x)
                 values.push(content[x])
             }
-
             
             this.editPageCount = 0
             //initialise array for elements in current page
@@ -319,23 +279,28 @@ export class optionsController {
             //initialise windowTitle if it didnt exist before
             const windowTitle = document.createElement("span")
             windowTitle.className = "editWindow"
+            windowTitle.textContent = keys[this.editPageCount] as string
             windowTitle.onclick = () => windowTitle.contentEditable = "true"
             editWindow.appendChild(windowTitle)
             const TitleRuler = document.createElement("hr")
             TitleRuler.className = "editWindow"
             editWindow.appendChild(TitleRuler)
-                
             //initialise page
             makeValidValsEditor(this.editPageCount)
-
             // on prev button click, go to page before current and load it
             prev.onclick = () => {
                 updateValues(this.editPageCount)
                 this.editPageCount -=1
                 if (this.editPageCount < 0) { this.editPageCount = keys.length - 1 }
-                windowTitle.textContent = keys[this.editPageCount] as string
-                const editWindowSubElems = document.querySelectorAll(".editWindowSub")
-                editWindowSubElems.forEach(e => { e.remove() })
+                makeValidValsEditor(this.editPageCount)
+            }
+
+            // create new empty page
+            plus.onclick=() => {
+                updateValues(this.editPageCount)
+                keys.push("new")
+                values.push([])
+                this.editPageCount = keys.length - 1
                 makeValidValsEditor(this.editPageCount)
             }
 
@@ -344,9 +309,6 @@ export class optionsController {
                 updateValues(this.editPageCount)
                 this.editPageCount +=1
                 if (this.editPageCount == keys.length) { this.editPageCount = 0 }
-                windowTitle.textContent = keys[this.editPageCount] as string
-                const editWindowSubElems = document.querySelectorAll(".editWindowSub")
-                editWindowSubElems.forEach(e => { e.remove() })
                 makeValidValsEditor(this.editPageCount)
             }
 
@@ -357,8 +319,7 @@ export class optionsController {
                 for (const i in value_elems) {
                     const temp = []
                     for (const j of value_elems[i]) {
-                        p(j.textContent)
-                        if (!((j.textContent == "new") || (j.textContent == "+"))) {
+                        if (!((j.textContent == "new") || (j.textContent == "+")|| (j.textContent == ""))) {
                             temp.push(j.textContent)
                         }
                     }
@@ -374,6 +335,12 @@ export class optionsController {
             //collect data from key, value array. Combines it into json string. 
             function getContent(page: number) {
                 updateValues(page)
+                if(keys.includes("new")){
+                    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+                    delete keys[keys.indexOf("new")]}
+                if(keys.includes("+")){
+                    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+                    delete keys[keys.indexOf("+")]}
                 let content = "{"
                 for (const i in keys) {
                     if (keys[i] == keys[0]) {
@@ -454,6 +421,9 @@ export class optionsController {
 
             // function to generate editable menu for a given page number/key
             function makeValidValsEditor(pageCount:number) {
+                windowTitle.textContent = keys[pageCount] as string
+                const editWindowSubElems = document.querySelectorAll(".editWindowSub")
+                editWindowSubElems.forEach(e => { e.remove() })
                 
                 //create array for values corresponding to current key.
                 value_elems = new Array(values[pageCount].length).fill([])
@@ -549,39 +519,22 @@ export class optionsController {
 
             // download all current data 
             dlButton.onclick = () => {
-                content = JSON.stringify(getContent(this.editPageCount))
-                const a = document.createElement("a");
-                const file = new Blob([content], { type: "text/json" });;
-                a.href = URL.createObjectURL(file);
-                a.download = "node-category-values.json";
-                a.click();
-
+                updateValues(this.editPageCount)
+                download(getContent(this.editPageCount),"node-category-values")
             }
-
+    
             // upload all current data
             ulButton.onclick = async () => {
+                updateValues(this.editPageCount)
                 const obj = getContent(this.editPageCount)
                 const encoded = encode(JSON.stringify(obj, null, 2))
-                this.upload_json(token, owner, repo, path, "Uploading new Category Jsons.", encoded, sha)
-                const octokit = new Octokit({
-                    auth: token
-                })
-
-                const response = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
-                    owner: owner,
-                    repo: repo,
-                    path: path,
-                    headers: {
-                        'X-GitHub-Api-Version': '2022-11-28'
-                    }
-                })
-                if ('sha' in response.data) {
-                    sha = response.data.sha
-                }
+                upload(token, owner, repo, path, "Uploading new Category Jsons.", encoded, sha)
+                sha=await getsha(token, owner, repo, path)
             }
+
         })
     }
-
+    
 
     // edit underlying JSONs for results and valid result data filters
     optionsEditJSONs() {
@@ -595,7 +548,6 @@ export class optionsController {
         this.optionsEditHide()
 
         this.makebreak()
-
 
         //necessary for uploads, not for downloads. //removed because not neccesary for public github repo
         const Vtoken = document.createElement("input")
@@ -654,6 +606,10 @@ export class optionsController {
 
     // Edit the currently open graph 
     optionsEditGraph() {
+        this.activeEditGraph={} as Graph
+
+        
+        
         if (this.oec == null) { p("OptionsElementsContainer is empty!"); return }
 
         for (const i of this.activeOptionMenuElements) { i.remove() }
@@ -663,16 +619,17 @@ export class optionsController {
         const editModeExplanation = document.createElement("p")
         editModeExplanation.style.position = "relative"
         editModeExplanation.style.wordWrap = "break-word"
-        editModeExplanation.textContent = "Welcome to the graph editor. You can customize a graph using the buttons and fields below. If you are unsure what a button does, just hover over it for a tooltip. Changes here don't affect the graph configs. To export this graph, simply hit the download button and move it into \\src\\complexity_graph_configs."
+        editModeExplanation.textContent = "temporarily disabled"//Welcome to the graph editor. You can customize a graph using the buttons and fields below. If you are unsure what a button does, just hover over it for a tooltip. Changes here don't affect the graph configs. To export this graph, simply hit the download button and move it into \\src\\complexity_graph_configs."
         this.activeOptionMenuElements.push(editModeExplanation)
         this.oec.appendChild(editModeExplanation)
+        return;
 
         const clearCanvasBTN = document.createElement("button")
         clearCanvasBTN.textContent = "Clear canvas"
         clearCanvasBTN.style.display = "inline"
         clearCanvasBTN.style.width = "90%"
         clearCanvasBTN.title = "Clears the entire canvas and the data structures generating it, allowing you to start fresh."
-        clearCanvasBTN.onclick = () => { this.graphMGR.unloadGraphItems(); this.graphMGR.conns = []; this.graphMGR.loadConnectors() }
+        clearCanvasBTN.onclick = () => { this.graphMGR.unloadGraphItems(); /*this.graphMGR.conns = [];*/ this.graphMGR.loadConnectors(currentGraphType) }
         this.activeOptionMenuElements.push(clearCanvasBTN)
         this.oec.appendChild(clearCanvasBTN)
 
@@ -827,7 +784,7 @@ export class optionsController {
                         else {
                             this.graphMGR.conns.push(conn)
                         }
-                        this.graphMGR.loadConnectors()
+                        this.graphMGR.loadConnectors(currentGraphType)
                         event.stopImmediatePropagation()
                     }
                     p(from, to)
@@ -861,7 +818,15 @@ export class optionsController {
         const downloadBTN = document.createElement("button")
         downloadBTN.textContent = "Download Graph"
         downloadBTN.title = "Press here to download the graph as a json."
-        downloadBTN.onclick = () => { this.graphMGR.download(downloadName.value) }
+        downloadBTN.onclick = () => { 
+            
+            
+            
+            //download(getgraphjson, downloadName.value) 
+
+
+
+        }
         downloadBTN.style.display = "inline"
         downloadBTN.style.width = "90%"
         this.activeOptionMenuElements.push(downloadBTN)
@@ -883,7 +848,7 @@ export class optionsController {
 
     // make hovering node for new node button 
     makeGhostNode() {
-        const node = new graphDataNode
+        const node = {} as graphNode
         node.type = "ClickableGraphNode"
         node.title = "<>"
         node.id = this.fetchNextFreeID(1);
@@ -898,7 +863,7 @@ export class optionsController {
 
     // make hovering node for new child node button
     makeGhostChildNode(parent: HTMLElement) {
-        const node = new graphDataNode
+        const node = {} as graphNode
         node.type = "ClickableSubNode"
         node.title = "<>"
         node.id = this.fetchNextFreeID(1, parent.id + ".", [...parent.children])
@@ -982,11 +947,11 @@ export class optionsController {
         node.style.left = (event.x - offsetx) / this.graphMGR.zoom + "px"
         node.style.top = (event.y - offsety) / this.graphMGR.zoom + "px"
 
-        this.graphMGR.loadConnectors()
+        this.graphMGR.loadConnectors(currentGraphType)
     }
 
 
-    setNewPos(i: graphDataNode, node: HTMLElement) {
+    setNewPos(i: graphNode, node: HTMLElement) {
         if (i.id == node.id) {
             i.posX = parseFloat(node.style.left)
             i.posY = parseFloat(node.style.top)
@@ -996,6 +961,7 @@ export class optionsController {
             for (const j of i.children) { this.setNewPos(j, node) }
         }
     }
+
     handleElemClick(node: HTMLElement) {
         //still sort of buggy. but good enough for now
         this.activeEditNode = node

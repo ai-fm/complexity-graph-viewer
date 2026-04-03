@@ -1,51 +1,10 @@
 
 import "./graph_nodes.css";
 
-import { getGraphConfigs, getValidCategories, mousedown, optionsOpen, p } from "./global";
+import { graphConfigs, validCategories, mousedown, optionsOpen, p, graphNode, complexityResult, currentGraphType, validGraphTypes, getGraphByType, paperResults, Paper } from "./global";
 import { MDPApp } from "./MDPApp";
-import { nodes as resultNodes } from "./node_validator";
 import { optionsController } from "./optionsController";
 
-const validCategories = await getValidCategories()
-const rawGraphStructures = await getGraphConfigs()
-p("print import for quicker debug")
-
-export class graphDataNode {
-    posX?: number;
-    posY?: number;
-    type!: string;
-    title?: string | null | undefined;
-    id!: string;
-    children?: graphDataNode[];
-    childDegree?: number;
-    valueType?: string
-}
-
-class complexityResult {
-    mdpType!: string;
-    problemType!: string;
-    problemApproach!: string;
-    problemNotes!: string;
-    complexity!: string;
-    complexitysuffix?: string;
-    horizonType!: string;
-    generalProofType!: string;
-    proofNotes!: string;
-    determinism?: string;
-    dependence?: string;
-    complexityNotes?: string;
-    special?: string[]
-}
-
-export const graphStructures: {
-    graphtype: string;
-    nodes: graphDataNode[],
-    connectors?: {
-        idFrom: string,
-        idTo: string,
-        type: string
-    }[];
-}[] = rawGraphStructures;
 
 //GraphManager is responsible for handling construction, movement and unloading/loading of the graph elements.
 export class GraphManager {
@@ -53,6 +12,7 @@ export class GraphManager {
     setOptionsController(optionsCTR: optionsController) {
         this.optionsCTR = optionsCTR
     }
+    
     //check if graphMGR is in edit mode
     editMode = false;
     //used in movement offset calculations for zoom to prevent "warping"
@@ -67,25 +27,15 @@ export class GraphManager {
     ndc: HTMLElement
     //canvas for lines between nodes.
     cnv: HTMLCanvasElement | null = null;
-    conns: { idFrom: string; idTo: string; type: string; }[] | undefined = undefined
     //currently active graph elements
     graphitems: HTMLElement[] = [];
+    graphitemdata: graphNode[] = []
     //stores button span elements that store their title, to avoid some of the issues that come with making it tied to textcontent (i.e. empty textcontent deleting child nodes, no space, etc)
     graphitemtext: HTMLElement[] = [];
-    //positional data and other information about nodes. Read from json and applied to corresponding graphitems
-    graphitemdata: graphDataNode[] = []
     //currently active node data elements
     nodeitems: HTMLElement[] = []
-    //Graph types that can be rendered, read from complexity_graph_configs. 
-    validGraphTypes: string[] = [];
-    //current graph type. Initialized to "MDP" as default 
-    graphtype = "MDP"
     //include special cases with potentially hyperspecific cases, in the specials string array
     includeSpecialCases = true;
-
-
-
-
 
     constructor(mdpApp: MDPApp) {
         let candidate = mdpApp.gvc//document.getElementById("graphViewContainer");
@@ -101,8 +51,7 @@ export class GraphManager {
         }
         this.ndc = candidate
 
-
-        for (const i of graphStructures) {
+        for (const i of graphConfigs) {
             for (const j of i.nodes) {
                 let title = "error";
                 if ((j.title != null) && (j.title != undefined)) { title = j.title }
@@ -114,24 +63,12 @@ export class GraphManager {
 
 
 
-
-    ////
-    //// Functions relating to inter-component-communication
-    ////
-
-    //extends given array by the graph types from layout configs.
-    addMDPTypes(types: string[]) {
-        return types.concat(this.validGraphTypes)
-    }
-
     //remove all result entries currently displayed in the righthand window.
     undisplayNodeData() {
         for (const i of this.nodeitems) {
             i.remove()
         }
     }
-
-
 
 
     ////
@@ -147,14 +84,9 @@ export class GraphManager {
                     i.style.top = (parseFloat(i.style.top) + event.movementY) + "px"
                 }
             }
-            this.loadConnectors()
+            this.loadConnectors(currentGraphType)
         }
     }
-
-
-
-
-
 
     //general mouse wheel zoom
     handleMouseWheelEvent(event: WheelEvent) {
@@ -172,7 +104,7 @@ export class GraphManager {
         }
 
         this.gvc.style.transformOrigin = ("")
-        this.loadConnectors()
+        this.loadConnectors(currentGraphType)
     }
 
 
@@ -182,20 +114,19 @@ export class GraphManager {
 
     //Update graph type from one to another. Usually called from dropdown.
     updateGraphType(type: string) {
-        if (this.validGraphTypes.includes(type)) {
+        if (validGraphTypes.includes(type)) {
             this.lastX = 0;
             this.lastY = 0;
             this.zoom = 1;
-            this.graphtype = type;
             const ctx = this.cnv?.getContext("2d");
             if ((ctx != null) && (this.cnv != null)) { ctx.clearRect(0, 0, this.cnv.width, this.cnv.height) } else { p("unexpected canvas error") }
             this.unloadGraphItems()
-            this.loadGraphElems(this.validGraphTypes.indexOf(type));
+            this.loadGraphElems(type);
             return true
         }
         else {
             console.log("Graph type doesnt have corresponding graph!", type);
-            if (this.validGraphTypes.length > 0) { this.updateGraphType("NoGraph") }
+            if (validGraphTypes.length > 0) { this.updateGraphType("NoGraph") }
             return false;
         }
     }
@@ -211,17 +142,16 @@ export class GraphManager {
 
     //for a set graph type, fetch node data, add it to graphitemdata array and pass it on to createNode.
     //also checks for duplicate ids upon loading that graph in.
-    loadGraphElems(typeIndex: number) {
-
+    loadGraphElems(type:string) {
 
 
         //https://barker.codes/blog/unique-array-values-in-javascript/#check-if-every-value-is-unique
         //checking if all MDP graph types are unique and if not throwing error (but continuing as normal, using first occurance of graph for every)
-        if (!(this.validGraphTypes.every((value, _index, array) => { return array.indexOf(value) === array.lastIndexOf(value); }))) {
-            p("Not all graph types are unique!", this.validGraphTypes)
+        if (!(validGraphTypes.every((value, _index, array) => { return array.indexOf(value) === array.lastIndexOf(value); }))) {
+            p("Not all graph types are unique!", validGraphTypes)
         }
 
-        for (const i in graphStructures[typeIndex].nodes) { this.loadGraphElem(graphStructures[typeIndex].nodes[i]) }
+        for (const i of getGraphByType(type).nodes) { this.loadGraphElem(i) }
 
         const ids = []
         for (const i of this.graphitemdata) {
@@ -238,11 +168,10 @@ export class GraphManager {
         this.cnv.width = wt
         this.cnv.style.position = "fixed"
         this.gvc.parentElement?.prepend(this.cnv)
-        this.conns = graphStructures[typeIndex].connectors
 
 
         for (const i of this.graphitems) { this.filterStyliseNodes(i) }
-        this.loadConnectors()
+        this.loadConnectors(type)
 
     }
 
@@ -251,7 +180,7 @@ export class GraphManager {
     filterStyliseNodes(node: HTMLElement) {
         const nodeResults: complexityResult[] = [];
         const nodeResultTitles: string[] = [];
-        this.fetchResults(node, this.graphtype, nodeResults, nodeResultTitles)
+        this.fetchResults(node, currentGraphType, nodeResults, nodeResultTitles)
         //list so it preserves order for lowest, highest
         //this checks containment in node-category-values and takes first entry from there which matches these. i.e EXPTIME in ["EXP","EXPTIME"]->arr[0]="EXP"-> ff5500 
         let total = 0
@@ -428,7 +357,7 @@ export class GraphManager {
     }
 
     //Load in a given element by passing its information data to node data array and its graph element data to html element.
-    loadGraphElem(elem: graphDataNode, parent?: HTMLElement) {
+    loadGraphElem(elem: graphNode, parent?: HTMLElement) {
         this.createNode(elem, parent);
         this.graphitemdata.push(elem);
     }
@@ -444,7 +373,7 @@ export class GraphManager {
     }
 
     //Given a nodes json data, initialise it based on its type.
-    createNode(el: graphDataNode, pParent?: HTMLElement) {
+    createNode(el: graphNode, pParent?: HTMLElement) {
         let parent = pParent
         parent ??= this.gvc
         const newNode = document.createElement("div")//button") previous button element becomes container for button and other stuff now
@@ -564,8 +493,6 @@ export class GraphManager {
 
     }
 
-
-
     nodeOnClick(node: HTMLElement, event: MouseEvent) {
         if (!optionsOpen) { this.displayNodeData(node) }
         event.stopPropagation()
@@ -587,14 +514,15 @@ export class GraphManager {
 
 
     //loads in connecting lines between nodes.
-    loadConnectors() {
-        if ((this.cnv == null) || (this.conns == undefined)) { return }
+    loadConnectors(type:string ) {
+        const conns=getGraphByType(type).connectors
+        if ((this.cnv == null) || (conns == undefined)) { return }
         const ctx = this.cnv.getContext("2d");
         if (ctx == null) { p("Context is null"); return }
         ctx.clearRect(0, 0, this.cnv.width, this.cnv.height)
 
         //adapted from https://jsfiddle.net/m1erickson/86f4C/
-        for (const conn of this.conns) {
+        for (const conn of conns) {
             const connFrom = conn.idFrom;
             const connTo = conn.idTo;
             const elemFrom = document.getElementById(connFrom)
@@ -658,7 +586,7 @@ export class GraphManager {
     //// Graph Viewer - active use functions
     ////
 
-    findItemById(id: string): graphDataNode | undefined {
+    findItemById(id: string): graphNode | undefined {
         for (const i of this.graphitemdata) {
             if (i.id == id) { return i }
         }
@@ -685,7 +613,7 @@ export class GraphManager {
 
         const nodeResults: complexityResult[] = [];
         const nodeResultTitles: string[] = [];
-        this.fetchResults(node, this.graphtype, nodeResults, nodeResultTitles)
+        this.fetchResults(node, currentGraphType, nodeResults, nodeResultTitles)
         if (nodeResults.length == 0) { this.makeparagraph(this.ndc, "Sorry, no results found. You can add additional results in complexity_result_jsons\\json_directory following the guide template. Add them into the import list in index.ts, and the program should handle the rest.") }
         for (const i in nodeResults) {
             const ii = parseInt(i)
@@ -693,12 +621,12 @@ export class GraphManager {
         }
     }
 
-
+    
     fetchResults(node: HTMLElement, mdptype: string, nodeResults: complexityResult[], nodeResPapers: string[]) {
         const [filters, filtervalues] = this.recursiveFilter(node)
-        resultNodes.forEach((paperJson) => {
+        paperResults.forEach((paperJson: Paper) => {
             paperJson.results.forEach((result: complexityResult) => {
-                let anyMDPCategory = []
+                let anyMDPCategory: string | string[] = []
                 for (const i of validCategories.mdpType) {
                     if (i.includes("Any")) {
                         anyMDPCategory = i;
@@ -729,6 +657,8 @@ export class GraphManager {
 
 
     }
+
+
     recursiveFilter(node: HTMLElement): string[][] {
         const par = node.parentElement;
         let filters = [this.getValueTypeFromTitle(this.findItemById(node.id)?.title)]
@@ -792,7 +722,7 @@ export class GraphManager {
             this.makeparagraph(view, x + " : " + resData[x]).style.fontSize = "20px"
         }
 
-        for (const i of resultNodes) {
+        for (const i of paperResults) {
             if (i.title == restitle) {
                 const link = document.createElement("a")
                 link.href = i.url
@@ -888,8 +818,8 @@ export class GraphManager {
     ////
 
     //For a node, convert its' data into a json. Children recursively get converted to json.
-    fetchNodeJsonEntry(node: graphDataNode) {
-        const childrenJson: graphDataNode[] = []
+    fetchNodeJsonEntry(node: graphNode) {
+        const childrenJson: graphNode[] = []
         if (node.children != undefined) {
             for (const i of node.children) { childrenJson.push(this.fetchNodeJsonEntry(i)) }
         }
@@ -929,28 +859,5 @@ export class GraphManager {
 
     }
 
-    //Get JSON for the current graph as given by graphitemdata and conns (NOT VISIBLE GRAPH DIRECTLY)
-    getGraphAsJson() {
-        const nodeEntries: graphDataNode[] = []
-        for (const i of this.graphitemdata) {
-            if (i.type == "ClickableGraphNode") { nodeEntries.push(this.fetchNodeJsonEntry(i)) }
-        }
-        const outDict = {
-            graphtype: (document.getElementById("GraphTitleContainer") as HTMLInputElement)?.value,
-            nodes: nodeEntries,
-            connectors: this.conns
-        }
-        return outDict
-    }
-
-    //download json file with filename given by param. adjusted from stackoverflow answer.
-    download(fileName: string) {
-        const content = JSON.stringify(this.getGraphAsJson(), null, "\t");
-        const a = document.createElement("a");
-        const file = new Blob([content], { type: "text/json" });;
-        a.href = URL.createObjectURL(file);
-        a.download = fileName += ".json";
-        a.click();
-    }
 }
 
