@@ -93,7 +93,7 @@ export async function initAll(token = globalDefault) {
 
 // fetch json containing valid entries for certain categories from repo
 export async function initValidCategories(token = globalDefault) {
-    const fetched = fetch_json(token,'ClemRub','complexity-jsons','valid_values/node-category-values.json')
+    const fetched = await fetch_json(token,'ClemRub','complexity-jsons','valid_values/node-category-values.json')
     if (('content' in fetched) && (typeof fetched.content == typeof "")) {
         validCategories=JSON.parse(decode(fetched.content as string))
     }
@@ -135,6 +135,7 @@ export async function initResults(token = globalDefault) {
 export function validatePaperResults(){
     validatedResults=[]
     for(const i of paperResults){
+    
         const candidate={} as Paper
         candidate.authors=i.authors
         candidate.title=i.title
@@ -155,6 +156,7 @@ function isValidResult(res: complexityResult) {
     let categ:keyof typeof res
     for(categ in res){
         //only check categories included in validCategories, other categories neednt be validated or wont be acknowledged
+        p(categ, validCategories)
         if(categ in validCategories){
             let valid=false
             for(const l of validCategories[categ as keyof typeof validCategories]){
