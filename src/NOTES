@@ -1,46 +1,70 @@
 TODOS: 
 
-add upload button to grapheditor
+----will----
+
+fix move&creation offset
+
+fix weird node highlighting / make it properly highlight
+
+result configuration
+- finish result-browser
+- fix author-doubling
+- implement UL/DL
+
+fix edit menu side view break-leaks
+
+3-degree children breaking
+
+allow better search for specific paper in result editor
+
+---- should ---
+fix jank highlighting in dropdown suggest for file names
 
 help button for advice
-
-
-
-        //TODO CHECK FOR DUPLICATE GRAPH TYPES!
-
-add disclaimer that in case of doubt original paper is correct and that this is ment to be an easy overview of the literature that directs you toward the complexity result, not a standin library that directly provides it 
-[it will get more accurate over time anyhow, first results just might be rough since i was just starting out then]
-
-add muller objectives to graph for pomdp
-
-rework config to have seperation between general, specific and special edge cases (current is general&specific, seperately special edge cases)
+add disclaimer that in case of doubt original paper is correct and that this is ment to be an easy overview of the literature that directs you toward the complexity result, not a standin library that directly provides it ; [it will get more accurate over time anyhow, first results just might be rough since i was just starting out then]
 
 make toggle buttons undo toggle and effects when pressed again
 
-! state somewhere that top bar isnt automatic and extending it requires manual color adjustments else not sensible (default blue)
-! make color list automatic and load from config. allow manual adjustment in options menu and saving it to node-category-values.json
+rework big-view for specific result
+
+deal with duplicate/unreachable graph types
+//https://barker.codes/blog/unique-array-values-in-javascript/#check-if-every-value-is-unique
+//checking if all MDP graph types are unique and if not throwing error (but continuing as normal, using first occurance of graph for every)
+if (!(validGraphTypes.every((value, _index, array) => { return array.indexOf(value) === array.lastIndexOf(value); }))) {
+        p("Not all graph types are unique!", validGraphTypes)
+}
+
+fix zoom offset and make zooming more generally useful 
+
+options back button
+
+rework valid vals editor to use validCategories object instead of k,v arrs
+
+rework result editor to look cleaner
+
+for both editors, make reusable code into seperate instantiator functions so code looks better
+
+---- "someday?"----
 
 Implement By-Problem view instead of By-Type view
-Settings
+
 More options beneath dropdown (as in, filtering)
-
-fix connections bug (with 3 depth children esp) (auto tethers to parent if clicking a child node. parent nodes unaffected)
--> maybe leave current unintentional functionality as "link to parent"?
-fix creation offset
-
-
-remember, global filters should affect how nodes are displayed (i.e if side nodes are filtered to only view nonstationary, displayed complexity should update to only view avg of nonstationary)
-make global filters have a filter to show "special" cases 
-
-
-automate config indexing using github actions
 
 make errors a red popup instead of console writes?
 
 maybe add manual "load local configs (from x folder)" button?
 
 allow options menu to edit color 
+! make color list automatic and load from config. allow manual adjustment in options menu and saving it to node-category-values.json
+! rework it to use jsons 
+! state somewhere that top bar isnt automatic and extending it requires manual color adjustments else not sensible (default blue)
 
-include stochastic game node in RMDP graph
+rework node scaling
 
 validator that checks if all result configs have valid assignments that can be read in based on node category values
+
+
+graph multiline adjustment?
+//this is a hack job to make longer complexities always take two lines and allow easy fetching of line count for longer titles for proper displaying thereof
+//it works but will look jank for shorter words with spaces between them. this is primarily for showing this off, and while it doesnt need fixing if given the time i will improve upon this
+txtspan.textContent = txtspan.textContent.replace(" ", "\n")

@@ -1,9 +1,9 @@
 import { render } from "preact";
 
-import { optionsOpen, p, setMouseDown, initAll, validGraphTypes, currentGraphType } from "./global";
+import {  p, setMouseDown, initAll, validGraphTypes, currentGraphType, addOptions, activeEditNode, graphEditActive} from "./global";
 import { GraphManager } from "./GraphManager";
 import { MDPApp } from "./MDPApp";
-import { addOptions, MDPTypeDropdown } from "./MDPTypeDropdown";
+import { MDPTypeDropdown } from "./MDPTypeDropdown";
 import { optionsController } from "./optionsController";
 
 
@@ -15,7 +15,6 @@ const renderRoot = document.getElementById("render")!
 
 //initialize all external data once
 await initAll()
-
 
 //initialize singletons instances
 const mdpAPP = new MDPApp(renderRoot)
@@ -49,15 +48,17 @@ onmouseup = () => {
 }
 
 onmousemove = (event) => {
-    if (!optionsOpen) {
-        graphMGR.handleMouseMoveEvent(event)
-    } else {
-        optionsCTR.handleDivMovement(event)
+    if(graphEditActive && (activeEditNode!=null)){
+        optionsCTR.handleGhostMovement(activeEditNode, event);
     }
-
+    else {
+        graphMGR.handleMouseMoveEvent(event)
+    } 
 }
+
 
 onwheel = (event) => {
-    if ((event.target == mdpAPP.gvc.parentNode) || (event.target == mdpAPP.gvc) || (event.target == graphMGR.cnv) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { graphMGR.handleMouseWheelEvent(event) }
+    if ((event.target == mdpAPP.gvc.parentNode) || (event.target == mdpAPP.gvc) || (event.target == graphMGR.cnv) || (graphMGR.graphitems.includes(event.target as HTMLElement))) { 
+        graphMGR.handleMouseWheelEvent(event)
+    }
 }
-

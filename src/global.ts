@@ -59,15 +59,29 @@ export interface Paper {
 // global variables
 export let mousedown = false
 export let optionsOpen = false
+export let graphEditActive = false
 export let currentGraphType:string
+export let activeEditGraph:Graph
+export let activeEditNode:graphNode|null
+export let editPageCount = 0
+export let editSubPageCount=0
+export let graphOffsets=[0,0]
+export let graphZoom=1
 export function setMouseDown(value: boolean) { mousedown = value }
 export function setOptionsOpen(isOpen: boolean) { optionsOpen = isOpen }
+export function setGraphEdit(isOpen: boolean) { graphEditActive = isOpen; if(!isOpen){activeEditNode=null} }
 export function setCurrentGraphType(type:string){currentGraphType=type}
+export function setEditGraph(graph:Graph){activeEditGraph=Object.assign({}, graph)}
+export function setEditNode(node:graphNode|null){activeEditNode=node}
+export function setEditPC(pg:number){editPageCount=pg}
+export function setEditSPC(pg:number){editSubPageCount=pg}
+export function calcGraphOffsets(x: number,y: number){graphOffsets=[graphOffsets[0]+x,graphOffsets[1]+y]}
+export function setGraphZoom(z:number){graphZoom=z}
 
 export let validCategories: validatorCategories
-export let graphIndices: { configs: {config:string}[]; }
+export let graphIndices: { configs: string[]; }
 export let graphConfigs: Graph[]
-export let resultIndices: { results: {result:string}[]; }
+export let resultIndices: { results: string[]; }
 export let paperResults: Paper[]
 
 export let validatedResults:Paper[]
@@ -156,7 +170,7 @@ function isValidResult(res: complexityResult) {
     let categ:keyof typeof res
     for(categ in res){
         //only check categories included in validCategories, other categories neednt be validated or wont be acknowledged
-        p(categ, validCategories)
+        
         if(categ in validCategories){
             let valid=false
             for(const l of validCategories[categ as keyof typeof validCategories]){
@@ -172,6 +186,9 @@ function isValidResult(res: complexityResult) {
 //AUXILIARY AND ASSISTANCE
 
 export function getGraphByType(type:string){
+    if(type=="edit"){
+        return activeEditGraph
+    }
     for(const i of graphConfigs){
         if(i.graphtype==type){return i}
     }
@@ -194,23 +211,35 @@ export function encode(str: string): string {
 }
 
 export async function getsha(token: string, owner: string, repo: string, path: string){
-    let sha=""
-    const octokit = new Octokit({
-                    auth: token
-                })
+    const octokit = new Octokit({auth: token})
+    try {
+        const response=await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
+            owner: owner,
+            repo: repo,
+            path: path})
 
-                const response = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
-                    owner: owner,
-                    repo: repo,
-                    path: path,
-                    headers: {
-                        'X-GitHub-Api-Version': '2022-11-28'
-                    }
-                })
-                if ('sha' in response.data) {
-                    sha = response.data.sha
-                }
-    return sha
+            if ('sha' in response.data) {return response.data.sha}   
+        } 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        catch(error:any){if (error.status === 404) {
+      return undefined;
+    }}
+    
+}
+
+// appends options to empty dropdown/datalist option set 
+// wording not readjusted from initial use solely as dropdown
+export function addOptions(types: string[], elementOptions: HTMLElement | null) {
+  const uniqueTypes = Array.from(new Set(types)); //this removes duplicates 
+  uniqueTypes.map(option => {
+    // generate option element from input string. adjusted from https://stackoverflow.com/a/62342334
+    const optionElement = document.createElement('option');
+    optionElement.textContent = option;
+    optionElement.value = option;
+    // simple not null-check. shouldnt be neccesary because this wouldnt be called outside of dropdownField element, but to be on the safe side.
+    if (elementOptions != null) { elementOptions.appendChild(optionElement); }
+    else { console.log("options target initialized as null, this should not be possible? debug") }
+  });
 }
 
 //DOWNLOAD
@@ -240,15 +269,27 @@ export function download(pContent: any, fileName: string) {
         a.click();
 }
 
+export function getNodeFromID(id:string,nodes:graphNode[],depth=0){
+    for(const n of nodes){
+        if(n.id==id){return n}
+    }
+    for(const n of nodes){
+        if(n.id==id.slice(0,depth+1)){
+            return getNodeFromID(id,n.children,depth+2)
+        }
+    }
+    return {} as graphNode
+}
 
 //UPLOAD
 
 // Upload to the repository.
-export async function upload(token = globalDefault, owner: string, repo: string, path: string, message: string, content: string, sha: string | undefined) {
+export async function upload(token = globalDefault, owner: string, repo: string, path: string, message: string, content: string) {
+    const sha=await getsha(token, owner, repo, path)
+
     const octokit = new Octokit({
         auth: token
     })
-    
     await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
         owner: owner,
         repo: repo,
@@ -264,30 +305,6 @@ export async function upload(token = globalDefault, owner: string, repo: string,
 }
 
 
-
-
-
-
-
-/*
-//Get JSON for the current graph as given by graphitemdata and conns (NOT VISIBLE GRAPH DIRECTLY)
-    getGraphAsJson() {
-        const nodeEntries: graphNode[] = []
-        for (const i of this.graphitemdata) {
-            if (i.type == "ClickableGraphNode") { nodeEntries.push(this.fetchNodeJsonEntry(i)) }
-        }
-        const outDict = {
-            graphtype: (document.getElementById("GraphTitleContainer") as HTMLInputElement)?.value,
-            nodes: nodeEntries,
-            connectors: this.conns
-        }
-        return outDict
-    }
-
-    //download json file with filename given by param. adjusted from stackoverflow answer.
-   
-
-*/
 
 
 

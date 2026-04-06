@@ -1,7 +1,6 @@
 
 import "./graph_nodes.css";
-
-import { graphConfigs, validCategories, mousedown, optionsOpen, p, graphNode, complexityResult, currentGraphType, validGraphTypes, getGraphByType, paperResults, Paper } from "./global";
+import { validCategories, mousedown, optionsOpen, p, graphNode, complexityResult, currentGraphType, validGraphTypes, getGraphByType, paperResults, Paper, graphZoom, setGraphZoom, calcGraphOffsets, graphOffsets, activeEditNode, graphEditActive, setEditNode, getNodeFromID, activeEditGraph } from "./global";
 import { MDPApp } from "./MDPApp";
 import { optionsController } from "./optionsController";
 
@@ -9,17 +8,13 @@ import { optionsController } from "./optionsController";
 //GraphManager is responsible for handling construction, movement and unloading/loading of the graph elements.
 export class GraphManager {
     optionsCTR: optionsController | null = null
+    styleBarRects:HTMLElement[]=[]
     setOptionsController(optionsCTR: optionsController) {
         this.optionsCTR = optionsCTR
     }
     
     //check if graphMGR is in edit mode
     editMode = false;
-    //used in movement offset calculations for zoom to prevent "warping"
-    lastX = 0;
-    lastY = 0;
-    //zoom factor for all graph  elements
-    zoom = 1;
     //graph view container and its' bounding client rect. 
     gvc: HTMLElement
     gvc_rect: DOMRect
@@ -32,131 +27,57 @@ export class GraphManager {
     graphitemdata: graphNode[] = []
     //stores button span elements that store their title, to avoid some of the issues that come with making it tied to textcontent (i.e. empty textcontent deleting child nodes, no space, etc)
     graphitemtext: HTMLElement[] = [];
-    //currently active node data elements
-    nodeitems: HTMLElement[] = []
     //include special cases with potentially hyperspecific cases, in the specials string array
     includeSpecialCases = true;
 
     constructor(mdpApp: MDPApp) {
-        let candidate = mdpApp.gvc//document.getElementById("graphViewContainer");
-        if (candidate == null) {
-            p("throw placeholder standin print: gvc invalid"); candidate = document.createElement("p")
-        }
-        this.gvc = candidate
+        this.gvc = mdpApp.gvc
         this.gvc_rect = this.gvc.getBoundingClientRect()
-
-        candidate = mdpApp.infoContainer//document.getElementById("InformationContainer");
-        if (candidate == null) {
-            p("throw placeholder standin print: ndc invalid"); candidate = document.createElement("p")
-        }
-        this.ndc = candidate
-
-        for (const i of graphConfigs) {
-            for (const j of i.nodes) {
-                let title = "error";
-                if ((j.title != null) && (j.title != undefined)) { title = j.title }
-                j.valueType = this.getValueTypeFromTitle(title)
+        // If a node is currently being edited, clicking the background will set that to not be the case any more. 
+        this.gvc.onclick = () => {
+            if(activeEditNode!=null){
+                setEditNode(null);
+                this.loadGraph("edit")
             }
         }
-
+        this.ndc = mdpApp.infoContainer
     }
-
-
-
-    //remove all result entries currently displayed in the righthand window.
-    undisplayNodeData() {
-        for (const i of this.nodeitems) {
-            i.remove()
-        }
-    }
-
 
     ////
-    //// Event handlers
+    //// Main graph management
     ////
 
-    //general mouse movement. 
-    handleMouseMoveEvent(event: MouseEvent) {
-        if (mousedown) {
-            for (const i of this.graphitems) {
-                if (!i.getAttribute("class")?.includes("child node")) {
-                    i.style.left = (parseFloat(i.style.left) + event.movementX) + "px"
-                    i.style.top = (parseFloat(i.style.top) + event.movementY) + "px"
-                }
-            }
-            this.loadConnectors(currentGraphType)
-        }
-    }
+    /// Generate graph elements
 
-    //general mouse wheel zoom
-    handleMouseWheelEvent(event: WheelEvent) {
-        this.zoom *= 1.1 ** Math.sign(-event.deltaY)
-        this.gvc.style.scale = this.zoom + ""
-
-
-        //fix canvas not loading as it should
-        if (this.cnv != null) {
-            let wt = this.gvc.parentElement?.getBoundingClientRect().width; let ht = this.gvc.parentElement?.getBoundingClientRect().height
-            wt ??= 1; ht ??= 1
-            this.cnv.height = ht
-            this.cnv.width = wt
-            this.cnv.style.position = "fixed"
-        }
-
-        this.gvc.style.transformOrigin = ("")
-        this.loadConnectors(currentGraphType)
-    }
-
-
-    //// 
-    //// Graph Viewer - Graph generation
-    ////
-
-    //Update graph type from one to another. Usually called from dropdown.
-    updateGraphType(type: string) {
-        if (validGraphTypes.includes(type)) {
-            this.lastX = 0;
-            this.lastY = 0;
-            this.zoom = 1;
+    // update graph type from one to another. 
+    loadGraph(type: string) {
+        if (validGraphTypes.includes(type) || (type=="edit")) {
+            p(type,getGraphByType(type))
             const ctx = this.cnv?.getContext("2d");
             if ((ctx != null) && (this.cnv != null)) { ctx.clearRect(0, 0, this.cnv.width, this.cnv.height) } else { p("unexpected canvas error") }
             this.unloadGraphItems()
             this.loadGraphElems(type);
+            this.loadConnectors(type)
             return true
         }
         else {
             console.log("Graph type doesnt have corresponding graph!", type);
-            if (validGraphTypes.length > 0) { this.updateGraphType("NoGraph") }
+            if (validGraphTypes.length > 0) { this.loadGraph("NoGraph") }
             return false;
         }
     }
 
-    //
-    unloadGraphItems() {
-        for (const i in this.graphitems) { this.graphitems[i].remove() }
-
-        this.graphitems = []
-        this.graphitemdata = []
-        this.graphitemtext = []
-    }
-
     //for a set graph type, fetch node data, add it to graphitemdata array and pass it on to createNode.
-    //also checks for duplicate ids upon loading that graph in.
     loadGraphElems(type:string) {
-
-
-        //https://barker.codes/blog/unique-array-values-in-javascript/#check-if-every-value-is-unique
-        //checking if all MDP graph types are unique and if not throwing error (but continuing as normal, using first occurance of graph for every)
-        if (!(validGraphTypes.every((value, _index, array) => { return array.indexOf(value) === array.lastIndexOf(value); }))) {
-            p("Not all graph types are unique!", validGraphTypes)
+        for (const i of getGraphByType(type).nodes) { 
+            this.createNode(i);
+            this.graphitemdata.push(i);     
         }
-
-        for (const i of getGraphByType(type).nodes) { this.loadGraphElem(i) }
 
         const ids = []
         for (const i of this.graphitemdata) {
             const id = i.id
-            if (ids.indexOf(id) != -1) { p("Duplicate id: " + id) }
+            if (ids.indexOf(id) != -1) { /*p("Duplicate id: " + id)*/ }
             ids.push(id)
         }
 
@@ -169,15 +90,254 @@ export class GraphManager {
         this.cnv.style.position = "fixed"
         this.gvc.parentElement?.prepend(this.cnv)
 
-
+        const elements = document.getElementsByClassName("colorRect");
+        while(elements.length > 0){
+            if(elements[0].parentNode!=null){elements[0].parentNode.removeChild(elements[0]);}
+        }
+        
         for (const i of this.graphitems) { this.filterStyliseNodes(i) }
         this.loadConnectors(type)
+    }
+
+    //Given a nodes json data, initialise it based on its type.
+    // This also includes behaviour related to how it behaves when edited! 
+    createNode(el: graphNode, pParent?: HTMLElement) {
+        let parent = pParent
+        parent ??= this.gvc
+        const newNode = document.createElement("div")
+
+        el.childDegree ??= 0
+        newNode.style.transform = "scale(" + this.getNodeScale(el.title as string) + ")"
+        //span to hold buttons text instead of button. avoids some issues.
+        const txtspan = document.createElement("span")
+
+        el.title ??= "Untitled"
+        //if titled new, leave empty for user to name. Else, if invalid, add ""? to name to indicate so.
+        txtspan.textContent = this.getValueTypeFromTitle(el.title) == "Error" ? ("\"" + el.title + "\"?") : el.title
+        txtspan.style.whiteSpace = "pre-line"
+
+        //this is a hack job to make longer complexities always take two lines and allow easy fetching of line count for longer titles for proper displaying thereof
+        //it works but will look jank for shorter words with spaces between them. this is primarily for showing this off, and while it doesnt need fixing if given the time i will improve upon this
+        txtspan.textContent = txtspan.textContent.replace(" ", "\n")
+
+
+        if (el.children != null) { 
+            el.children.forEach(
+                (i) => {
+                    this.createNode(i, newNode);
+                    this.graphitemdata.push(i);
+                }) 
+        }
+
+        newNode.style.display = "flex"
+        newNode.style.flexDirection = "column-reverse"
+        newNode.style.width = "auto";
+        newNode.setAttribute("class", newNode.getAttribute("class") + " graphitem")
+        if (el.type == "ClickableSubNode") { newNode.setAttribute("class", newNode.getAttribute("class") + " child node") }
+        newNode.setAttribute("draggable", "false")
+        newNode.style.verticalAlign = "middle"
+        newNode.style.position = "absolute"
+
+        
+        el.posX ??= 0; el.posY ??= 0;
+        const [offX,offY] = graphOffsets
+        if(el.childDegree==0){
+            newNode.style.left = (el.posX+offX)/graphZoom + "px" 
+            newNode.style.top = (el.posY+offY)/graphZoom + "px"
+        }
+        else{
+            newNode.style.left = (el.posX)/graphZoom + "px" 
+            newNode.style.top = (el.posY)/graphZoom + "px"
+        }
+        newNode.id = el.id
+        txtspan.id = el.id + "SP"
+
+        // If there currently is no actively edited graph node, handle everything as normal.
+        if(activeEditNode==null){
+            //display data on click. passed through handler.
+            newNode.onclick = (event) => {
+                //empty span failsafe [Buttons can get emptied out text and onchange and emptied functions dont seem to fire, so instead, putting it here]
+                const sp = document.getElementById(newNode.id + "SP") //var for null check
+                if (sp != null && sp.textContent == "") { sp.textContent = "<>"; }
+                this.nodeOnClick(newNode, event);
+            }
+        }
+        // otherwise, let clicking remove it as active edit node and reload the graph to reset click events.
+        else{
+            newNode.onclick = (event) => {
+                event.stopPropagation()
+                setEditNode(null)
+                this.loadGraph("edit")
+            }
+            
+        }
+        // If the graph in editing mode, double clicking a node should set it as the currently actively edited object.
+        // Further, its span's content should be editable in this mode, and update the corresponding actively edited graph
+        if(graphEditActive){
+            newNode.ondblclick = (event) => { 
+                event.stopPropagation()
+                newNode.style.opacity="0.5"
+                setEditNode(getNodeFromID(newNode.id,activeEditGraph.nodes))
+            }
+            txtspan.contentEditable="true"
+            txtspan.oninput=()=>{
+                getNodeFromID(newNode.id,activeEditGraph.nodes).title=txtspan.textContent
+            }
+        }
+
+        // color currently edited node differently if one is in use. Also overwrite on click behaviour.
+        if((activeEditNode!=null)&&(newNode.id==activeEditNode.id)){
+            newNode.style.opacity = "0.5"
+        }
+
+        const nodeDataContainer = document.createElement("div")
+        nodeDataContainer.style.display = "flex"
+        nodeDataContainer.style.flexDirection = "row"
+        nodeDataContainer.style.justifyContent = "center"
+
+        this.graphitemtext.push(txtspan)
+        nodeDataContainer.appendChild(txtspan)
+        const vline = document.createElement("div")
+        vline.style.borderRight = "1px solid #000000"
+        vline.style.width = "3px" //add some space to look better
+        //x^1nodeDataContainer.appendChild(vline)
+
+        const minmaxContainer = document.createElement("div")
+        minmaxContainer.style.display = "flex"
+        minmaxContainer.style.flexDirection = "column"
+        minmaxContainer.style.justifyContent = "space-evenly"
+
+        //fixed and scaled by amount of lines in span
+
+        // eslint-disable-next-line no-control-regex
+        const linecount = 1 + (txtspan.textContent.match(new RegExp("\n", "g")) || []).length
+        const circleWidth = 10 * linecount
+        const circleHeight = 10 * linecount
+        const circleSize = Math.PI * linecount
+
+        const minCir = document.createElement("div")
+        minCir.style.backgroundColor = "#000000"
+        //used as spacing since clippath masks the rest of the square
+        minCir.style.width = circleWidth + "px"
+        minCir.style.height = circleHeight + "px"
+        minCir.style.clipPath = "circle(" + circleSize + "px)"
+        minCir.id = el.id + "MIN"
+        const maxCir = document.createElement("div")
+        maxCir.style.backgroundColor = "#000000"
+        //used as spacing since clippath masks the rest of the square
+        maxCir.style.width = circleWidth + "px"
+        maxCir.style.height = circleHeight + "px"
+        maxCir.style.clipPath = "circle(" + circleSize + "px)"
+        maxCir.id = el.id + "MAX"
+        minmaxContainer.append(minCir)
+        minmaxContainer.append(maxCir)
+
+        nodeDataContainer.append(minmaxContainer)
+
+        const special = document.createElement("span")
+        special.textContent = ""
+        special.style.color = "red"
+        special.style.fontSize = 16 * linecount + "px"
+        special.id = el.id + "SPC"
+        nodeDataContainer.append(special)
+
+        newNode.append(nodeDataContainer)
+
+        const nodeVisualBG = document.createElement("button")
+        nodeVisualBG.id = el.id + "BG"
+        nodeVisualBG.style.position = "absolute"
+        nodeVisualBG.style.left = newNode.offsetLeft - 5 + "px"
+        nodeVisualBG.style.top = newNode.offsetTop + "px"
+        nodeVisualBG.style.bottom = newNode.offsetHeight - 2.5 + "px"
+        nodeVisualBG.style.right = newNode.offsetWidth - 5 + "px"
+        nodeVisualBG.style.zIndex = "-1"
+        newNode.appendChild(nodeVisualBG)
+
+        this.graphitems.push(newNode)
+        parent.appendChild(newNode)
+    }
+
+    //loads in connecting lines between nodes.
+    loadConnectors(type:string ) {
+        const conns=getGraphByType(type).connectors
+        if ((this.cnv == null) || (conns == undefined)) { return }
+        const ctx = this.cnv.getContext("2d");
+        if (ctx == null) { p("Context is null"); return }
+        ctx.clearRect(0, 0, this.cnv.width, this.cnv.height)
+
+        //adapted from https://jsfiddle.net/m1erickson/86f4C/
+        for (const conn of conns) {
+            const connFrom = conn.idFrom;
+            const connTo = conn.idTo;
+            const elemFrom = document.getElementById(connFrom)
+            const elemTo = document.getElementById(connTo)
+            if ((elemFrom == null) || (elemTo == null)) { continue }
+            const pos1 = elemFrom.getBoundingClientRect()
+            //gvc left or top are inherent offset in gvc. Makes canvas thats otherwise unaffected by this offset work properly.
+
+            const pos1centerX = (pos1.left + 0.5 * (pos1.right - pos1.left)) - this.gvc_rect.left
+            const pos1centerY = (pos1.top + 0.5 * (pos1.bottom - pos1.top)) - this.gvc_rect.top
+            const pos2 = elemTo.getBoundingClientRect()
+            const pos2centerX = (pos2.left + 0.5 * (pos2.right - pos2.left)) - this.gvc_rect.left
+            const pos2centerY = (pos2.top + 0.5 * (pos2.bottom - pos2.top)) - this.gvc_rect.top
+            const connType = conn.type;
+            //unused for the time being
+            if (connType == "arrow") {
+
+                const vecX = (pos2centerX - pos1centerX) / ((pos2centerX - pos1centerX) + (pos2centerY - pos1centerY))
+                const vecY = (pos2centerY - pos1centerY) / ((pos2centerX - pos1centerX) + (pos2centerY - pos1centerY))
+
+                const angle = (Math.PI / 180) * 120
+                const vecXL = Math.cos(angle) * vecX - Math.sin(angle) * vecY
+                const vecYL = Math.cos(angle) * vecY + Math.sin(angle) * vecX
+                const vecXR = Math.cos(-angle) * vecX - Math.sin(-angle) * vecY
+                const vecYR = Math.cos(-angle) * vecY + Math.sin(-angle) * vecX
+
+                const endPosLineX = pos2centerX - (vecX * 30 * graphZoom)
+                const endPosLineY = pos2centerY - (vecY * 30 * graphZoom)
+                const endPosX = pos2centerX - (vecX * 10 * graphZoom)
+                const endPosY = pos2centerY - (vecY * 10 * graphZoom)
+                const linePath = new Path2D("M " + pos1centerX + " " + pos1centerY + //start position
+                    " L " + (endPosLineX) + " " + endPosLineY //end position, scaled
+                )
+
+                ctx.stroke(linePath);
+                ctx.fill(new Path2D(
+                    " M " + (endPosLineX) + " " + endPosLineY + //last end pos
+                    " L " + (endPosLineX + (vecXL * 10 * graphZoom)) + " " + (endPosLineY + (vecYL * 10 * graphZoom)) +// left arrow point 
+                    " L " + endPosX + " " + endPosY + //fin end pos
+                    " L " + (endPosLineX + (vecXR * 10 * graphZoom)) + " " + (endPosLineY + (vecYR * 10 * graphZoom)) // right arrow point 
+
+                ))
+            }
+            else if (connType == "line") {
+                ctx.beginPath();
+                ctx.moveTo(pos1centerX, pos1centerY);
+                ctx.lineTo(pos2centerX, pos2centerY);
+                ctx.stroke();
+            }
+            else {
+                ctx.beginPath();
+                ctx.moveTo(pos1centerX, pos1centerY);
+                ctx.lineTo(pos2centerX, pos2centerY);
+                ctx.stroke();
+            }
+
+        }
 
     }
 
-
-
+    // apply colors to nodes depending on the underlying complexity results
     filterStyliseNodes(node: HTMLElement) {
+        //
+        document.querySelectorAll(".colorRect").forEach(el => 
+            {
+                const e=el as HTMLElement
+                if(e.style.height=="0px")
+                {e.remove()}
+
+            });   
+        
         const nodeResults: complexityResult[] = [];
         const nodeResultTitles: string[] = [];
         this.fetchResults(node, currentGraphType, nodeResults, nodeResultTitles)
@@ -225,8 +385,9 @@ export class GraphManager {
 
         const nodebg = document.getElementById(node.id + "BG")
         if (nodebg == undefined) { return }
-        const rect = document.createElement("div")
 
+        const rect = document.createElement("div")
+        rect.className="colorRect"
         const min_rect = -2
         let max_rect = node.offsetWidth + 10
 
@@ -302,8 +463,6 @@ export class GraphManager {
             if (spc != null) { spc.textContent = "" }
             for (const i of count_list) {
                 if (i[1] > 0) {
-
-
                     if (spc != null) {
                         if (i[0] == "Possibly Open") { spc.textContent += "?" }
                         else if (i[0] == "Open") { spc.textContent += "!" }
@@ -356,250 +515,97 @@ export class GraphManager {
 
     }
 
-    //Load in a given element by passing its information data to node data array and its graph element data to html element.
-    loadGraphElem(elem: graphNode, parent?: HTMLElement) {
-        this.createNode(elem, parent);
-        this.graphitemdata.push(elem);
-    }
+    /// Active graph management
 
-    getNodeScale(title: string): number {
-
-        if (this.getValueTypeFromTitle(title) == "mdpType") { return 2.5 }
-        if (this.getValueTypeFromTitle(title) == "problemType") { return 1.5 }
-        if (this.getValueTypeFromTitle(title) == "problemApproach") { return 0.8 }//because child node usually 
-        if (this.getValueTypeFromTitle(title) == "horizonType") { return 0.6 }
-        if (this.getValueTypeFromTitle(title) == "") { return 1 }
-        return 1
-    }
-
-    //Given a nodes json data, initialise it based on its type.
-    createNode(el: graphNode, pParent?: HTMLElement) {
-        let parent = pParent
-        parent ??= this.gvc
-        const newNode = document.createElement("div")//button") previous button element becomes container for button and other stuff now
-        //newNode.style.borderRadius = "15px"
-        el.childDegree ??= 0
-        newNode.style.transform = "scale(" + this.getNodeScale(el.title as string) + ")"
-        //span to hold buttons text instead of button. avoids some issues.
-        const txtspan = document.createElement("span")
-
-        //display data on click. passed through handler.
-        newNode.onclick = (event) => {
-            //empty span failsafe [Buttons can get emptied out text and onchange and emptied functions dont seem to fire, so instead, putting it here]
-            const sp = document.getElementById(newNode.id + "SP") //var for null check
-            if (sp != null && sp.textContent == "") { sp.textContent = "<>"; }
-
-            this.nodeOnClick(newNode, event);
-        }
-        //edit node content on dbclick. passed through handler, edit mode only
-        newNode.ondblclick = (event) => { this.nodeOnDBLClick(newNode, event); }
-
-        el.title ??= "Untitled"
-        //if titled new, leave empty for user to name. Else, if invalid, add ""? to name to indicate so.
-        txtspan.textContent = this.getValueTypeFromTitle(el.title) == "Error" ? ("\"" + el.title + "\"?") : el.title
-        txtspan.style.whiteSpace = "pre-line"
-
-        //this is a hack job to make longer complexities always take two lines and allow easy fetching of line count for longer titles for proper displaying thereof
-        //it works but will look jank for shorter words with spaces between them. this is primarily for showing this off, and while it doesnt need fixing if given the time i will improve upon this
-        txtspan.textContent = txtspan.textContent.replace(" ", "\n")
-
-
-        if (el.children != null) { el.children.forEach((i) => this.loadGraphElem(i, newNode)) }
-
-        newNode.style.display = "flex"
-        newNode.style.flexDirection = "column-reverse"
-        newNode.style.width = "auto";
-        newNode.setAttribute("class", newNode.getAttribute("class") + " graphitem")
-        if (el.type == "ClickableSubNode") { newNode.setAttribute("class", newNode.getAttribute("class") + " child node") }
-        newNode.setAttribute("draggable", "false")
-        newNode.style.verticalAlign = "middle"
-        newNode.style.position = "absolute"
-        el.posX ??= 0; el.posY ??= 0;
-        newNode.style.left = el.posX + "px"
-        newNode.style.top = el.posY + "px"
-        newNode.id = el.id
-        txtspan.id = el.id + "SP"
-
-
-
-        const nodeDataContainer = document.createElement("div")
-        nodeDataContainer.style.display = "flex"
-        nodeDataContainer.style.flexDirection = "row"
-        nodeDataContainer.style.justifyContent = "center"
-
-        this.graphitemtext.push(txtspan)
-        nodeDataContainer.appendChild(txtspan)
-        const vline = document.createElement("div")
-        vline.style.borderRight = "1px solid #000000"
-        vline.style.width = "3px" //add some space to look better
-        //nodeDataContainer.appendChild(vline)
-
-        const minmaxContainer = document.createElement("div")
-        minmaxContainer.style.display = "flex"
-        minmaxContainer.style.flexDirection = "column"
-        minmaxContainer.style.justifyContent = "space-evenly"
-
-        //fixed and scaled by amount of lines in span
-
-        // eslint-disable-next-line no-control-regex
-        const linecount = 1 + (txtspan.textContent.match(new RegExp("\n", "g")) || []).length
-        const circleWidth = 10 * linecount
-        const circleHeight = 10 * linecount
-        const circleSize = Math.PI * linecount
-
-        const minCir = document.createElement("div")
-        minCir.style.backgroundColor = "#000000"
-        //used as spacing since clippath masks the rest of the square
-        minCir.style.width = circleWidth + "px"
-        minCir.style.height = circleHeight + "px"
-        minCir.style.clipPath = "circle(" + circleSize + "px)"
-        minCir.id = el.id + "MIN"
-        const maxCir = document.createElement("div")
-        maxCir.style.backgroundColor = "#000000"
-        //used as spacing since clippath masks the rest of the square
-        maxCir.style.width = circleWidth + "px"
-        maxCir.style.height = circleHeight + "px"
-        maxCir.style.clipPath = "circle(" + circleSize + "px)"
-        maxCir.id = el.id + "MAX"
-        minmaxContainer.append(minCir)
-        minmaxContainer.append(maxCir)
-
-
-
-        nodeDataContainer.append(minmaxContainer)
-
-        const special = document.createElement("span")
-        special.textContent = ""
-        special.style.color = "red"
-        special.style.fontSize = 16 * linecount + "px"
-        special.id = el.id + "SPC"
-        nodeDataContainer.append(special)
-
-        newNode.append(nodeDataContainer)
-
-
-        const nodeVisualBG = document.createElement("button")
-        nodeVisualBG.id = el.id + "BG"
-        nodeVisualBG.style.position = "absolute"
-        nodeVisualBG.style.left = newNode.offsetLeft - 5 + "px"
-        nodeVisualBG.style.top = newNode.offsetTop + "px"
-        nodeVisualBG.style.bottom = newNode.offsetHeight - 2.5 + "px"
-        nodeVisualBG.style.right = newNode.offsetWidth - 5 + "px"
-        nodeVisualBG.style.zIndex = "-1"
-        newNode.appendChild(nodeVisualBG)
-
-        this.graphitems.push(newNode)
-        parent.appendChild(newNode)
-
-    }
-
-    nodeOnClick(node: HTMLElement, event: MouseEvent) {
-        if (!optionsOpen) { this.displayNodeData(node) }
-        event.stopPropagation()
-    }
-
-    nodeOnDBLClick(node: HTMLElement, event: MouseEvent) {
-        if (optionsOpen) {
-            node.style.opacity = "0.5"
-
-            if (this.optionsCTR != null) { this.optionsCTR.handleElemClick(node) }
-
-        }
-        else {
-            this.displayNodeData(node)
-        }
-        event.stopPropagation()
-    }
-
-
-
-    //loads in connecting lines between nodes.
-    loadConnectors(type:string ) {
-        const conns=getGraphByType(type).connectors
-        if ((this.cnv == null) || (conns == undefined)) { return }
-        const ctx = this.cnv.getContext("2d");
-        if (ctx == null) { p("Context is null"); return }
-        ctx.clearRect(0, 0, this.cnv.width, this.cnv.height)
-
-        //adapted from https://jsfiddle.net/m1erickson/86f4C/
-        for (const conn of conns) {
-            const connFrom = conn.idFrom;
-            const connTo = conn.idTo;
-            const elemFrom = document.getElementById(connFrom)
-            const elemTo = document.getElementById(connTo)
-            if ((elemFrom == null) || (elemTo == null)) { continue }
-            const pos1 = elemFrom.getBoundingClientRect()
-            //gvc left or top are inherent offset in gvc. Makes canvas thats otherwise unaffected by this offset work properly.
-
-            const pos1centerX = (pos1.left + 0.5 * (pos1.right - pos1.left)) - this.gvc_rect.left
-            const pos1centerY = (pos1.top + 0.5 * (pos1.bottom - pos1.top)) - this.gvc_rect.top
-            const pos2 = elemTo.getBoundingClientRect()
-            const pos2centerX = (pos2.left + 0.5 * (pos2.right - pos2.left)) - this.gvc_rect.left
-            const pos2centerY = (pos2.top + 0.5 * (pos2.bottom - pos2.top)) - this.gvc_rect.top
-            const connType = conn.type;
-            if (connType == "arrow") {
-
-                const vecX = (pos2centerX - pos1centerX) / ((pos2centerX - pos1centerX) + (pos2centerY - pos1centerY))
-                const vecY = (pos2centerY - pos1centerY) / ((pos2centerX - pos1centerX) + (pos2centerY - pos1centerY))
-
-                const angle = (Math.PI / 180) * 120
-                const vecXL = Math.cos(angle) * vecX - Math.sin(angle) * vecY
-                const vecYL = Math.cos(angle) * vecY + Math.sin(angle) * vecX
-                const vecXR = Math.cos(-angle) * vecX - Math.sin(-angle) * vecY
-                const vecYR = Math.cos(-angle) * vecY + Math.sin(-angle) * vecX
-
-                const endPosLineX = pos2centerX - (vecX * 30 * this.zoom)
-                const endPosLineY = pos2centerY - (vecY * 30 * this.zoom)
-                const endPosX = pos2centerX - (vecX * 10 * this.zoom)
-                const endPosY = pos2centerY - (vecY * 10 * this.zoom)
-                const linePath = new Path2D("M " + pos1centerX + " " + pos1centerY + //start position
-                    " L " + (endPosLineX) + " " + endPosLineY //end position, scaled
-                )
-
-                ctx.stroke(linePath);
-                ctx.fill(new Path2D(
-                    " M " + (endPosLineX) + " " + endPosLineY + //last end pos
-                    " L " + (endPosLineX + (vecXL * 10 * this.zoom)) + " " + (endPosLineY + (vecYL * 10 * this.zoom)) +// left arrow point 
-                    " L " + endPosX + " " + endPosY + //fin end pos
-                    " L " + (endPosLineX + (vecXR * 10 * this.zoom)) + " " + (endPosLineY + (vecYR * 10 * this.zoom)) // right arrow point 
-
-                ))
-            }
-            else if (connType == "line") {
-                ctx.beginPath();
-                ctx.moveTo(pos1centerX, pos1centerY);
-                ctx.lineTo(pos2centerX, pos2centerY);
-                ctx.stroke();
-            }
-            else {
-                ctx.beginPath();
-                ctx.moveTo(pos1centerX, pos1centerY);
-                ctx.lineTo(pos2centerX, pos2centerY);
-                ctx.stroke();
-            }
-
-        }
-
-    }
-
-    ////
-    //// Graph Viewer - active use functions
-    ////
-
+    // find element with a given ID. 
     findItemById(id: string): graphNode | undefined {
         for (const i of this.graphitemdata) {
             if (i.id == id) { return i }
         }
     }
+
+    // find span element associated with ID
     findTextElemById(id: string): HTMLElement | undefined {
         for (const i of this.graphitemtext) {
             if (i.id == (id + "SP")) { return i }
         }
     }
 
+    // get the value type associated with a certain node type, using the valid categories to filter
+    getValueTypeFromTitle(title: string | undefined | null) {
+        if (title == null || title == undefined) { return "Error" }
+        let x: keyof typeof validCategories;
+        for (x in validCategories) { for (const i of validCategories[x]) { if (i.includes(title)) { return x; } } }
+        if (title == "<>") { return "" }
+        return "Error"
+
+    }
+
+    // fetch results that fall under a given node
+    fetchResults(node: HTMLElement, mdptype: string, nodeResults: complexityResult[], nodeResPapers: string[]) {
+        const [filters, filtervalues] = this.recursiveFilter(node)
+        paperResults.forEach((paperJson: Paper) => {
+            paperJson.results.forEach((result: complexityResult) => {
+                let anyMDPCategory: string | string[] = []
+                for (const i of validCategories.mdpType) {if (i.includes("Any")) {anyMDPCategory = i;}}
+                if ((result.mdpType == mdptype) || (anyMDPCategory.includes(mdptype))) {
+                    let validEntry = true
+                    if (filters.includes("Error")) { validEntry = false }
+                    for (const i in filters) {
+                        const k = filters[i] as keyof typeof result
+                        if (filters.includes("special") && ("special" in result)) {
+                            if (!(result.special as string[]).includes(filtervalues[i])) { validEntry = false; }
+                            if (!this.includeSpecialCases) { validEntry = false; }
+                        }
+                        else if (!filtervalues.includes(result[k] as string)) {
+                            if (filtervalues.includes("Any") && k == "mdpType") { continue }
+                            validEntry = false
+                        }
+                    }
+                    if (validEntry) { nodeResPapers.push(paperJson.title); nodeResults.push(result) }
+                }
+            })
+        })
+    }
+
+    // filters for fetching results, recursively gained from nodes parents
+    recursiveFilter(node: HTMLElement): string[][] {
+        const par = node.parentElement;
+        let filters = [this.getValueTypeFromTitle(this.findItemById(node.id)?.title)]
+        const candidate = this.findTextElemById(node.id)
+        let values: string[]
+        if ((candidate == null) || (candidate.textContent == null)) { values = ["error"] }
+        else { values = [candidate.textContent.replace("\n", " ")] }
+        if (validCategories[filters[0]] == undefined) { /*p("No valid filters found. Maybe add them to configs?");*/ return [["Error"], ["Error"]] }
+
+        for (const i of validCategories[filters[0]]) {if (i.includes(values[0])) { values = i } }
+        if (par != null && par != this.gvc) {
+            const pfilt = this.recursiveFilter(par)
+            filters = filters.concat(pfilt[0])
+            values = values.concat(pfilt[1])
+        }
+        return [filters, values]
+    }
+
+    /// Remove graph elements
+
+    // delete everything within gvc
+    unloadGraphItems() {
+        this.cnv?.remove()
+        this.gvc.innerHTML=""
+    }
+
+    ////
+    //// Side-panel management
+    ////
+
+    
+
+    // Generate side-panel elements
 
     //display json results for clicked nodes, if possible
     displayNodeData(node: HTMLElement) {
+
         //remove all "old" node info elements
         this.undisplayNodeData()
 
@@ -609,7 +615,6 @@ export class GraphManager {
         this.ndc.style.overflowX = "hidden"
         this.ndc.style.textAlign = "left"
         if (this.optionsCTR != null) { this.optionsCTR.closeOptions() }
-
 
         const nodeResults: complexityResult[] = [];
         const nodeResultTitles: string[] = [];
@@ -621,69 +626,61 @@ export class GraphManager {
         }
     }
 
-    
-    fetchResults(node: HTMLElement, mdptype: string, nodeResults: complexityResult[], nodeResPapers: string[]) {
-        const [filters, filtervalues] = this.recursiveFilter(node)
-        paperResults.forEach((paperJson: Paper) => {
-            paperJson.results.forEach((result: complexityResult) => {
-                let anyMDPCategory: string | string[] = []
-                for (const i of validCategories.mdpType) {
-                    if (i.includes("Any")) {
-                        anyMDPCategory = i;
-                    }
-                }
-                if ((result.mdpType == mdptype) || (anyMDPCategory.includes(mdptype))) {
-                    let validEntry = true
-                    if (filters.includes("Error")) { validEntry = false }
-                    for (const i in filters) {
-
-                        const k = filters[i] as keyof typeof result
-                        if (filters.includes("special") && ("special" in result)) {
-                            if (!(result.special as string[]).includes(filtervalues[i])) { validEntry = false; }
-                            if (!this.includeSpecialCases) { validEntry = false; }
-
-                        }
-                        else if (!filtervalues.includes(result[k] as string)) {
-                            if (filtervalues.includes("Any") && k == "mdpType") { continue }
-                            validEntry = false
-
-                        }
-
-                    }
-                    if (validEntry) { nodeResPapers.push(paperJson.title); nodeResults.push(result) }
-                }
-            })
-        })
-
-
+    // make title paragraph element 
+    makeTitleparagraph(resNumber: number, restitle: string, resData: complexityResult) {
+        const para = document.createElement("p")
+        para.setAttribute("class", "nodeDataDisplayElem")
+        para.style.position = "relative"
+        para.style.left = "10px"
+        para.style.wordWrap = "break-word"
+        para.textContent = "Result " + resNumber + " from \"" + restitle + "\":";
+        para.style.color = "blue"
+        para.onclick = () => { this.openResultBig(resNumber, restitle, resData) }
+        this.ndc.append(para)
+        return para
     }
 
-
-    recursiveFilter(node: HTMLElement): string[][] {
-        const par = node.parentElement;
-        let filters = [this.getValueTypeFromTitle(this.findItemById(node.id)?.title)]
-        const candidate = this.findTextElemById(node.id)
-        let values: string[]
-        if ((candidate == null) || (candidate.textContent == null)) { values = ["error"] }
-        else { values = [candidate.textContent.replace("\n", " ")] }
-        if (validCategories[filters[0]] == undefined) { p("No valid filters found. Maybe add them to configs?"); return [["Error"], ["Error"]] }
-
-        for (const i of validCategories[filters[0]]) {
-            if (i.includes(values[0])) { values = i }
-        }
-        if (par != null && par != this.gvc) {
-            const pfilt = this.recursiveFilter(par)
-            filters = filters.concat(pfilt[0])
-            values = values.concat(pfilt[1])
-        }
-        return [filters, values]
+    //make paragraph element containing text with optional <br> afterwards
+    makeparagraph(target: HTMLElement, text: string, makebreak?: boolean) {
+        const para = document.createElement("p")
+        para.setAttribute("class", "nodeDataDisplayElem")
+        para.style.position = "relative"
+        para.style.left = "10px"
+        para.style.wordWrap = "break-word"
+        para.textContent = text;
+        target.append(para)
+        if (makebreak) { target.append(document.createElement("br")) }
+        return para
     }
+
+    //Generate result entry from prior functions given a result.
+    makeresult(resNumber: number, restitle: string, resData: complexityResult) {
+        const target = this.ndc
+        this.makeTitleparagraph(resNumber, restitle, resData)
+        this.makeparagraph(target, "Problem: " + resData.problemType + ", " + resData.problemApproach)
+        if (resData.determinism != undefined) { this.makeparagraph(target, "Deterministic? : " + resData.determinism) }
+        if (resData.dependence != undefined) { this.makeparagraph(target, "Stationary?: " + resData.dependence) }
+        this.makeparagraph(target, "Horizon: " + resData.horizonType)
+        const complexity = (resData.complexitysuffix == undefined) ? resData.complexity : resData.complexity + "-" + resData.complexitysuffix
+        this.makeparagraph(target, "Complexity: " + complexity)
+        this.makeparagraph(target, "General approach: " + resData.generalProofType)
+        if (resData.special != undefined) {
+            let extraInfo = ""
+            for (const i of resData.special) { extraInfo += i }
+            this.makeparagraph(target, "Special: " + extraInfo)
+        }
+        target.append(document.createElement("hr"))
+    }
+
+    /// remove all result entries currently displayed in the righthand window.
+    undisplayNodeData() {this.ndc.innerHTML=''}
 
 
     ////
-    //// Generate output from a clicked graph node to be displayed in the righthand panel
+    //// Big display management
     ////
 
+    // Display one complexity result in a big window
     openResultBig(resNumber: number, restitle: string, resData: complexityResult) {
         if (document.getElementById("bigResultPopup") != null) { document.getElementById("bigResultPopup")?.remove() }
         const view = document.createElement("div")
@@ -707,20 +704,8 @@ export class GraphManager {
         exit.style.fontSize = "30px"
         header.append(exit)
 
-        const scale = this.gvc.style.scale
-        this.gvc.style.scale = "1"
-
-        for (const i of this.graphitems) {
-            i.style.visibility = "hidden"
-        }
-
-        if (this.cnv != null) { this.cnv.style.visibility = "hidden" }
-
-
         let x: keyof typeof resData;
-        for (x in resData) {
-            this.makeparagraph(view, x + " : " + resData[x]).style.fontSize = "20px"
-        }
+        for (x in resData) {this.makeparagraph(view, x + " : " + resData[x]).style.fontSize = "20px"}
 
         for (const i of paperResults) {
             if (i.title == restitle) {
@@ -732,132 +717,72 @@ export class GraphManager {
             }
         }
 
+        this.unloadGraphItems()
+        this.cnv?.remove()
         exit.onclick = () => {
-
-            this.gvc.style.scale = scale
-
-            for (const i of this.graphitems) {
-                i.style.visibility = "visible"
-            }
-
-            if (this.cnv != null) { this.cnv.style.visibility = "visible" }
+            this.loadGraph(currentGraphType)
             view.remove()
         }
-
         this.gvc.prepend(view)
 
     }
 
-    makeTitleparagraph(resNumber: number, restitle: string, resData: complexityResult) {
-        const para = document.createElement("p")
-        para.setAttribute("class", "nodeDataDisplayElem")
-        para.style.position = "relative"
-        para.style.left = "10px"
-        para.style.wordWrap = "break-word"
-        para.textContent = "Result " + resNumber + " from \"" + restitle + "\":";
-        para.style.color = "blue"
-        para.onclick = () => { this.openResultBig(resNumber, restitle, resData) }
-        this.ndc.append(para)
-        this.nodeitems.push(para)
-        return para
-    }
-
-    //make paragraph element containing text with optional <br> afterwards
-    makeparagraph(target: HTMLElement, text: string, makebreak?: boolean) {
-        const para = document.createElement("p")
-        para.setAttribute("class", "nodeDataDisplayElem")
-        para.style.position = "relative"
-        para.style.left = "10px"
-        para.style.wordWrap = "break-word"
-        para.textContent = text;
-        target.append(para)
-        if (target == this.ndc) { this.nodeitems.push(para) }
-        if (makebreak) { this.makebreak(target) }
-        return para
-
-    }
-
-    //make break element
-    makebreak(target: HTMLElement) {
-        const br = document.createElement("br")
-        br.setAttribute("class", "nodeDataDisplayElem")
-        target.append(br)
-        if (target == this.ndc) { this.nodeitems.push(br) }
-    }
-
-    //make horizontal divier line
-    makehrule(target: HTMLElement) {
-        const hr = document.createElement("hr")
-        hr.setAttribute("class", "nodeDataDisplayElem")
-        target.append(hr)
-        if (target == this.ndc) { this.nodeitems.push(hr) }
-    }
-
-    //Generate result entry from prior functions given a result.
-    makeresult(resNumber: number, restitle: string, resData: complexityResult) {
-        const target = this.ndc
-        this.makeTitleparagraph(resNumber, restitle, resData)
-        this.makeparagraph(target, "Problem: " + resData.problemType + ", " + resData.problemApproach)
-        if (resData.determinism != undefined) { this.makeparagraph(target, "Deterministic? : " + resData.determinism) }
-        if (resData.dependence != undefined) { this.makeparagraph(target, "Stationary?: " + resData.dependence) }
-        this.makeparagraph(target, "Horizon: " + resData.horizonType)
-        const complexity = (resData.complexitysuffix == undefined) ? resData.complexity : resData.complexity + "-" + resData.complexitysuffix
-        this.makeparagraph(target, "Complexity: " + complexity)
-        this.makeparagraph(target, "General approach: " + resData.generalProofType)
-        if (resData.special != undefined) {
-            let extraInfo = ""
-            for (const i of resData.special) { extraInfo += i }
-            this.makeparagraph(target, "Special: " + extraInfo)
-        }
-        this.makehrule(target)
-    }
 
 
     ////
-    //// Generate JSON from currently visible graph 
+    //// Event handlers
     ////
 
-    //For a node, convert its' data into a json. Children recursively get converted to json.
-    fetchNodeJsonEntry(node: graphNode) {
-        const childrenJson: graphNode[] = []
-        if (node.children != undefined) {
-            for (const i of node.children) { childrenJson.push(this.fetchNodeJsonEntry(i)) }
+    // general mouse movement. 
+    handleMouseMoveEvent(event: MouseEvent) {
+        if (mousedown) {
+            calcGraphOffsets(event.movementX,event.movementY)
+            if(graphEditActive){this.loadGraph("edit")}
+            else{this.loadGraph(currentGraphType)}
         }
-        const title_unsafe = (document.getElementById(node.id + "SP")?.textContent)
-        const htmlnode = document.getElementById(node.id)
-        let left = node.posX
-        let top = node.posY
-        if (htmlnode != null) {
-            left = parseFloat(htmlnode.style.left)
-            top = parseFloat(htmlnode.style.top)
-        }
-        let title = "error"
-        if (title_unsafe != undefined) { title = title_unsafe as string }
-        title = title.replace(/</g, "").replace(/>/g, "").replace(/\r?\n/g, " ")
-        if ((title.startsWith("\"")) && (title.endsWith("\"?"))) {
-            title = title.substring(1, title.length - 2);
-        }
-        const outDict = {
-            posX: left,//node.posX,
-            posY: top,//node.posY,
-            type: node.type,
-            title: title,//span text container of element
-            id: node.id,
-            children: childrenJson,
-            childDegree: node.childDegree,
-            valueType: this.getValueTypeFromTitle(title)
-        }
-        return outDict
     }
 
-    getValueTypeFromTitle(title: string | undefined | null) {
-        if (title == null || title == undefined) { return "Error" }
-        let x: keyof typeof validCategories;
-        for (x in validCategories) { for (const i of validCategories[x]) { if (i.includes(title)) { return x; } } }
-        if (title == "<>") { return "" }
-        return "Error"
+    //general mouse wheel zoom
+    handleMouseWheelEvent(event: WheelEvent) {
+        setGraphZoom(graphZoom * (1.1 ** Math.sign(-event.deltaY)))
+        this.gvc.style.scale = graphZoom + ""
 
+        if (this.cnv != null) {
+            let wt = this.gvc.parentElement?.getBoundingClientRect().width; let ht = this.gvc.parentElement?.getBoundingClientRect().height
+            wt ??= 1; ht ??= 1
+            this.cnv.height = ht
+            this.cnv.width = wt
+            this.cnv.style.position = "fixed"
+        }
+
+        this.gvc.style.transformOrigin = ("")
+        this.loadGraph(currentGraphType)
     }
+
+    //manage node click events
+    nodeOnClick(node: HTMLElement, event: MouseEvent) {
+        event.stopPropagation()
+        if (!optionsOpen) { this.displayNodeData(node) }
+    }
+
+
+
+    ////
+    //// Misc. functions to hopefully rework in the far future 
+    ////
+
+
+    //get the scale a certain node should have in the graph, off its title.
+    //in the future maybe apply to json config as a fixed thing, thats scrolled through (between fixed values) via scrolling over node in edit mode?
+    getNodeScale(title: string|null|undefined): number {
+        if (this.getValueTypeFromTitle(title) === "mdpType") { return 2.5 }
+        if (this.getValueTypeFromTitle(title) === "problemType") { return 1.5 }
+        if (this.getValueTypeFromTitle(title) === "problemApproach") { return 0.8 }//because child node usually 
+        if (this.getValueTypeFromTitle(title) === "horizonType") { return 0.6 }
+        if (this.getValueTypeFromTitle(title) === "") { return 1 }
+        return 1
+    }
+
 
 }
 
